@@ -44,6 +44,10 @@ class Sudoku(object):
     def __copy__(self) -> 'Sudoku':
         return Sudoku(np.copy(self.grid), self.rank, self.coord_dim, self.dim_coord)
 
+    @property
+    def is_fulfilled(self):
+        return self.unfilled_count == 0 and self.validate_coord(self.key_coord)
+
     def get_vec(self, n: int, sdk_vec: SdkVec) -> np.ndarray:
         return np.array([self.grid[coord] for coord in self.dim_coord[n][sdk_vec]])
 
@@ -60,7 +64,9 @@ class Sudoku(object):
         check_dims = [(n, sdk_vec) for cd in cds for sdk_vec, n in self.coord_dim[cd].items()]
         for n, sdk_vec in check_dims:
             if is_valid:
-                is_valid &= Sudoku.check_vec_unique(self.get_vec(n, sdk_vec))
+                values = self.get_vec(n, sdk_vec)
+                values = values[values != 0]  # only filled values for uniqueness
+                is_valid &= np.size(values) == np.size(np.unique(values))
             else:
                 break  # exit immediate if invalid point found
         return is_valid
@@ -83,11 +89,6 @@ class Sudoku(object):
             tri_vec = [self.get_vec(n, s) for s, n in self.coord_dim[coordinate].items()]
             candidates = set(self.value_set - set(np.concatenate(tri_vec)))
         return candidates
-
-    @staticmethod
-    def check_vec_unique(vec: np.ndarray) -> bool:
-        filled_vec = vec[np.nonzero(vec)]
-        return np.size(filled_vec) == np.size(np.unique(filled_vec))
 
     @staticmethod
     def gen_coord_dim_lookups(rank: int):

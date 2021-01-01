@@ -100,12 +100,3 @@ class TestSudoku(TestCase):
         self.assertTrue(sudoku.fill_coord((3, 3), 2))
         self.assertTrue(sudoku.grid[(3, 3)] == 2)
         pass
-
-    def test_check_values(self):
-        values_all_zeros = np.zeros(9, dtype=int)
-        values_one_to_nine = np.array(range(1, 10))
-        values_duplicated_one = np.array([0, 1, 1, 0])
-        self.assertTrue(Sudoku.check_vec_unique(values_all_zeros))
-        self.assertTrue(Sudoku.check_vec_unique(values_one_to_nine))
-        self.assertFalse(Sudoku.check_vec_unique(values_duplicated_one))
-        pass
