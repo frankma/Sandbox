@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sudoku</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app">
+        <h1>Sudoku</h1>
+
+        <div id="grid" class="grid" data-size="{{ rank * rank }}"></div>
+
+        <div id="status" class="status"></div>
+
+        <div class="controls">
+            <div class="control-group">
+                <select id="difficulty">
+                    {% for d in difficulties %}
+                    <option value="{{ d }}" {% if d == 'medium' %}selected{% endif %}>{{ d.capitalize() }}</option>
+                    {% endfor %}
+                </select>
+                <button id="new-btn">New Sudoku</button>
+            </div>
+            <div class="control-group">
+                <button id="solve-btn">Solve step-by-step</button>
+                <label class="speed-label">Speed
+                    <input type="range" id="speed" min="10" max="500" value="120">
+                </label>
+            </div>
+            <div class="control-group">
+                <button id="hint-btn">Hint</button>
+                <button id="reset-btn">Reset</button>
+            </div>
+        </div>
+
+        <div class="legend">
+            <span><i class="swatch given"></i>Given</span>
+            <span><i class="swatch user"></i>Your entry</span>
+            <span><i class="swatch single"></i>Logical fill</span>
+            <span><i class="swatch trial"></i>Guessed fill</span>
+            <span><i class="swatch hint"></i>Hint</span>
+            <span><i class="swatch conflict"></i>Conflict</span>
+        </div>
+        <div class="hint-tip">Hover an empty cell to see its possible values.</div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

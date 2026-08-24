@@ -179,3 +179,43 @@ class TestSudoKuSolver(TestCase):
         self.assertTrue(solver_hard.solution.is_fulfilled)
         self.assertTrue(solver_expert.solution.is_fulfilled)
         pass
+
+    def test_solve_steps_matches_solve(self):
+        solver_reference = self.solver_medium.__copy__()
+        solver_reference.solve(solver_type=SolverType.LOGICAL)
+
+        solver_stepped = self.solver_medium.__copy__()
+        steps = list(solver_stepped.solve_steps())
+
+        self.assertTrue(solver_stepped.solution.is_fulfilled)
+        self.assertTrue((solver_stepped.solution.grid == solver_reference.solution.grid).all())
+        self.assertTrue(len(steps) > 0)
+        for coord, value, technique in steps:
+            self.assertIn(technique, ('single', 'trial'))
+            self.assertTrue(1 <= value <= solver_stepped.solution.size)
+
+        replay = self.solver_medium.problem.__copy__()
+        for coord, value, _ in steps:
+            self.assertTrue(replay.fill_coord(coord, value) or replay.grid[coord] == value)
+        self.assertTrue(replay.is_fulfilled)
+        pass
+
+    def test_hint_progresses_towards_solution(self):
+        solver = self.solver_hard.__copy__()
+        reference = self.solver_hard.__copy__()
+        reference.solve(solver_type=SolverType.LOGICAL)
+
+        for _ in range(5):
+            coord, value, technique = solver.hint()
+            self.assertIn(technique, ('single', 'trial'))
+            self.assertEqual(reference.solution.grid[coord], value)
+            solver.fill_coordinates({coord: value})
+
+        self.assertTrue(solver.solution.unfilled_count < self.solver_hard.solution.unfilled_count)
+        pass
+
+    def test_hint_none_when_solved(self):
+        solver = self.solver_no_trial_needed.__copy__()
+        solver.solve(solver_type=SolverType.LOGICAL)
+        self.assertIsNone(solver.hint())
+        pass
