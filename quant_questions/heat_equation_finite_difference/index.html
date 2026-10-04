@@ -1,0 +1,490 @@
+<title>Heat-Equation Finite Difference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<script>
+  window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]] }, svg: { fontCache: "global" } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<style>
+  /* Layout: lab-notebook column of prose; figures break out wider, each a framed plate on graph-paper ground. */
+  :root {
+    --paper: #f5f7f8;
+    --plate: #ffffff;
+    --ink: #172026;
+    --muted: #56656d;
+    --rule: #d3dce0;
+    --grid: #e7edf0;
+    --ember: #c2401a;
+    --frost: #2b6c8c;
+    --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+    --font-body: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+    --font-data: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --paper: #0f1518; --plate: #161e22; --ink: #e2e9ec; --muted: #94a3aa;
+      --rule: #2a363c; --grid: #1f292e; --ember: #ff7d50; --frost: #73b6d8;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #0f1518; --plate: #161e22; --ink: #e2e9ec; --muted: #94a3aa;
+    --rule: #2a363c; --grid: #1f292e; --ember: #ff7d50; --frost: #73b6d8;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font: 400 1.0625rem/1.65 var(--font-body);
+    padding-inline: 20px;
+    padding-block: 48px 72px;
+  }
+  main { max-width: 1000px; margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; }
+  .prose { max-width: 66ch; }
+  section, header { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+  h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.12; }
+  h1 { font-size: clamp(2.1rem, 5vw, 3.3rem); font-weight: 700; letter-spacing: -0.02em; }
+  h2 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.01em; }
+  h3 { font-size: 1.05rem; font-weight: 500; }
+  p { margin: 0; }
+  .prose > * + * { margin-top: 0.9em; }
+  .label {
+    font: 600 0.72rem/1 var(--font-data);
+    text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted);
+  }
+  .mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+  a { color: var(--frost); }
+
+  .equation { font-size: 1.15rem; overflow-x: auto; }
+  .answer {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px;
+    border-top: 2px solid var(--ink); border-bottom: 1px solid var(--rule);
+    padding-block: 18px;
+  }
+  .answer .value { font: 600 clamp(2rem, 6vw, 2.9rem)/1 var(--font-data); color: var(--ember); font-variant-numeric: tabular-nums; }
+  .answer .note { color: var(--muted); font-size: 0.95rem; }
+
+  .plate {
+    background: var(--plate);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 20px;
+    display: grid; gap: 16px;
+  }
+  .plate svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .two-col { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+  @media (max-width: 760px) { .two-col { grid-template-columns: 1fr; } }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; }
+  .seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
+  .seg button {
+    font: 400 0.82rem/1 var(--font-data); color: var(--muted); background: transparent;
+    border: 0; border-right: 1px solid var(--rule); padding: 9px 12px; cursor: pointer;
+  }
+  .seg button:last-child { border-right: 0; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .seg button:hover:not([aria-pressed="true"]) { color: var(--ink); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+  .slider { display: flex; align-items: center; gap: 12px; flex: 1 1 260px; }
+  .slider input { flex: 1; accent-color: var(--ember); }
+  .readout { display: flex; flex-wrap: wrap; gap: 8px 28px; font: 400 0.85rem/1.4 var(--font-data); font-variant-numeric: tabular-nums; }
+  .readout b { font-weight: 600; }
+  .key { display: flex; flex-wrap: wrap; gap: 6px 20px; font: 400 0.8rem/1.3 var(--font-data); color: var(--muted); }
+  .key span::before { content: ""; display: inline-block; width: 18px; height: 0; vertical-align: middle; margin-right: 6px; border-top: 2px solid currentColor; }
+  .key .k-num { color: var(--ember); }
+  .key .k-num::before { width: 8px; height: 8px; border: 0; border-radius: 50%; background: currentColor; }
+  .key .k-ex { color: var(--frost); }
+  .key .k-ic::before { border-top-style: dashed; }
+
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font: 400 0.9rem/1.4 var(--font-data); font-variant-numeric: tabular-nums; }
+  th { font: 600 0.7rem/1.2 var(--font-data); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); text-align: right; padding: 8px 10px; border-bottom: 2px solid var(--ink); }
+  td { text-align: right; padding: 9px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+  td.v { color: var(--ember); font-weight: 600; }
+  tfoot td { color: var(--muted); border-bottom: 0; }
+
+  .checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 0; max-width: 72ch; }
+  .checks li { display: grid; grid-template-columns: 9.5rem 1fr; gap: 16px; padding-block: 12px; border-bottom: 1px solid var(--rule); }
+  .checks li:first-child { border-top: 1px solid var(--rule); }
+  .checks .label { padding-top: 0.35em; line-height: 1.3; }
+  @media (max-width: 560px) { .checks li { grid-template-columns: 1fr; gap: 4px; } }
+
+  svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
+  svg .axis { stroke: var(--ink); stroke-width: 1; }
+  svg .gridline { stroke: var(--grid); stroke-width: 1; }
+  footer { color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--rule); padding-top: 18px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<main>
+  <header>
+    <span class="label">Practicum · Finite differences</span>
+    <h1>Heat-Equation Finite Difference</h1>
+    <div class="prose">
+      <p>A rod on \(0 &lt; x &lt; 1\) starts with the parabolic profile \(V(x,0) = x - x^2\), its ends are held at zero, and it diffuses at a rate that wobbles in time:</p>
+    </div>
+    <div class="equation">$$\frac{\partial V}{\partial t} = \bigl(0.16 + 0.08\sin t\bigr)\,\frac{\partial^2 V}{\partial x^2}, \qquad V(0,t) = V(1,t) = 0.$$</div>
+    <div class="prose">
+      <p>The task is to estimate \(V(0.5,\,1)\) with centred differences in space and the trapezoid rule in time, show how the estimate converges as the grid is refined, and explain how the code was checked.</p>
+    </div>
+    <div class="answer">
+      <span class="label">V(0.5, 1) on the finest grid</span>
+      <span class="value" id="headline">0.0370063</span>
+      <span class="note">exact <span class="mono" id="headline-exact">0.0369996</span> · error falls 4× per halving of Δx and Δt</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>The scheme</h2>
+    <div class="two-col">
+      <div class="prose">
+        <p>Replace \(\partial^2 V / \partial x^2\) at each interior node by the centred difference \((V_{i-1} - 2V_i + V_{i+1})/\Delta x^2\). That turns the PDE into a system of ODEs, \(\dot V = a(t)\,D V\).</p>
+        <p>The trapezoid rule averages the right-hand side over the start and end of each step. The coefficient must be evaluated at both ends too, at \(a(t_n)\) on the known side and \(a(t_{n+1})\) on the unknown side:</p>
+        <p class="equation">$$\Bigl(I - \tfrac{\Delta t}{2}\,a_{n+1} D\Bigr)V^{n+1} = \Bigl(I + \tfrac{\Delta t}{2}\,a_{n} D\Bigr)V^{n}$$</p>
+        <p>Every step is one tridiagonal solve, so it costs time proportional to the number of nodes. The method is unconditionally stable and second-order in both \(\Delta x\) and \(\Delta t\).</p>
+      </div>
+      <figure class="plate" style="margin:0">
+        <span class="label">Crank–Nicolson stencil</span>
+        <svg viewBox="0 0 400 250" role="img" aria-label="Six-point stencil: three known values at time n feed three unknown values at time n plus one">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0 L10 5 L0 10 z" style="fill: var(--muted)"></path>
+            </marker>
+          </defs>
+          <g class="gridline">
+            <line x1="40" y1="70" x2="360" y2="70"></line>
+            <line x1="40" y1="180" x2="360" y2="180"></line>
+            <line x1="100" y1="40" x2="100" y2="210"></line>
+            <line x1="200" y1="40" x2="200" y2="210"></line>
+            <line x1="300" y1="40" x2="300" y2="210"></line>
+          </g>
+          <g stroke-width="1.4" style="stroke: var(--muted)" marker-end="url(#arrow)">
+            <line x1="108" y1="172" x2="190" y2="80"></line>
+            <line x1="200" y1="170" x2="200" y2="82"></line>
+            <line x1="292" y1="172" x2="210" y2="80"></line>
+          </g>
+          <line x1="112" y1="70" x2="288" y2="70" stroke-width="2" style="stroke: var(--ember)"></line>
+          <line x1="112" y1="180" x2="288" y2="180" stroke-width="2" style="stroke: var(--frost)"></line>
+          <g>
+            <circle cx="100" cy="70" r="9" style="fill: var(--plate); stroke: var(--ember)" stroke-width="2"></circle>
+            <circle cx="200" cy="70" r="9" style="fill: var(--plate); stroke: var(--ember)" stroke-width="2"></circle>
+            <circle cx="300" cy="70" r="9" style="fill: var(--plate); stroke: var(--ember)" stroke-width="2"></circle>
+            <circle cx="100" cy="180" r="9" style="fill: var(--frost)"></circle>
+            <circle cx="200" cy="180" r="9" style="fill: var(--frost)"></circle>
+            <circle cx="300" cy="180" r="9" style="fill: var(--frost)"></circle>
+          </g>
+          <text x="100" y="236" text-anchor="middle">i − 1</text>
+          <text x="200" y="236" text-anchor="middle">i</text>
+          <text x="300" y="236" text-anchor="middle">i + 1</text>
+          <text x="30" y="74" text-anchor="end">n+1</text>
+          <text x="30" y="184" text-anchor="end">n</text>
+          <text x="200" y="40" text-anchor="middle" style="fill: var(--ember)">unknown · weighted by a(tₙ₊₁)</text>
+          <text x="200" y="214" text-anchor="middle" style="fill: var(--frost)">known · weighted by a(tₙ)</text>
+        </svg>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>Watch it cool</h2>
+    <p class="prose">Pick one of the four grids from the convergence table and drag through time. The dots are the finite-difference solution and the line is the exact Fourier series. On the coarsest grid the gap is just visible at the peak; by the third grid it is too small to see.</p>
+    <div class="plate">
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Grid">
+          <button type="button" id="grid-0" data-grid="0">Δx 0.1</button>
+          <button type="button" id="grid-1" data-grid="1">Δx 0.05</button>
+          <button type="button" id="grid-2" data-grid="2">Δx 0.025</button>
+          <button type="button" id="grid-3" data-grid="3">Δx 0.0125</button>
+        </div>
+        <label class="slider" for="time">
+          <span class="label">Time</span>
+          <input type="range" id="time" min="0" max="8" step="1" value="8">
+        </label>
+      </div>
+      <div class="readout" id="readout"></div>
+      <svg id="profile" viewBox="0 0 640 300" role="img" aria-label="Temperature profile V against x at the selected time"></svg>
+      <div class="key"><span class="k-num">finite difference</span><span class="k-ex">exact series</span><span class="k-ic">initial profile x − x²</span></div>
+      <span class="label">Diffusivity a(t) = 0.16 + 0.08 sin t</span>
+      <svg id="coef" viewBox="0 0 640 96" role="img" aria-label="Diffusivity a of t rising from 0.16 to 0.227 over the first unit of time"></svg>
+    </div>
+  </section>
+
+  <section>
+    <h2>The whole field</h2>
+    <p class="prose">The same solution over all of \(0 \le t \le 1\), computed on the Δx = 0.025 grid. The peak at \(x = 0.5\) decays from 0.25 to about 0.037. The decay speeds up slightly towards \(t = 1\), where \(a(t)\) is largest.</p>
+    <div class="plate">
+      <svg id="field" viewBox="0 0 640 330" role="img" aria-label="Heat map of V over x and t, hottest at x equals one half and t equals zero"></svg>
+    </div>
+  </section>
+
+  <section>
+    <h2>Convergence</h2>
+    <div class="two-col">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Δx</th><th>Δt</th><th>V(0.5, 1)</th><th>Error</th><th>Ratio</th></tr></thead>
+          <tbody id="conv-body"></tbody>
+          <tfoot><tr><td colspan="5" id="conv-foot"></td></tr></tfoot>
+        </table>
+      </div>
+      <figure class="plate" style="margin:0">
+        <span class="label">Error against Δx, log–log</span>
+        <svg id="loglog" viewBox="0 0 420 280" role="img" aria-label="Error falls on a line of slope two against grid spacing"></svg>
+        <div class="key"><span class="k-num">measured error</span><span class="k-ic">slope 2 reference</span></div>
+      </figure>
+    </div>
+    <p class="prose">The table keeps \(\Delta t / \Delta x = 1.25\), so each row halves both steps. A second-order method should then cut the error by \(2^2 = 4\) per row, and it does, to three decimals.</p>
+  </section>
+
+  <section>
+    <h2>Exact solution and checks</h2>
+    <div class="prose">
+      <p>The coefficient depends on \(t\) only, so separation of variables still works if time is measured in accumulated diffusivity \(A(t) = \int_0^t a = 0.16\,t + 0.08\,(1 - \cos t)\):</p>
+      <p class="equation">$$V(x,t) = \sum_{k\ \text{odd}} \frac{8}{(k\pi)^3}\,\sin(k\pi x)\,e^{-k^2\pi^2 A(t)}.$$</p>
+      <p>The numbers on this page are computed live in your browser by a port of <a href="solver.py">solver.py</a>. The unit tests in <a href="test/test_solver.py">test/test_solver.py</a> cover:</p>
+    </div>
+    <ul class="checks">
+      <li><span class="label">Linear algebra</span><span>The Thomas solver returns \([1, 1, 1]\) for the hand-solvable system \(\operatorname{tridiag}(-1, 2, -1)\,x = [1, 0, 1]\).</span></li>
+      <li><span class="label">Series</span><span>At \(t = 0\) the Fourier series reproduces \(x - x^2\) to seven decimals.</span></li>
+      <li><span class="label">Boundaries</span><span>\(V(0,t)\) and \(V(1,t)\) stay exactly zero.</span></li>
+      <li><span class="label">Symmetry</span><span>The data are symmetric about \(x = 0.5\), and so is the solution, to machine precision.</span></li>
+      <li><span class="label">Accuracy</span><span>The finest grid is within \(10^{-5}\) of the exact value.</span></li>
+      <li><span class="label">Order</span><span>Each refinement cuts the error by \(4 \pm 0.1\).</span></li>
+      <li><span class="label">Max principle</span><span>The peak \(V(0.5, t)\) decreases at every time step.</span></li>
+    </ul>
+  </section>
+
+  <footer>Problem 2 of the Financial Mathematics and Modeling Practicum (QuIC Financial Technologies, 2003–2010), restated. Solution, code and figures are original.</footer>
+</main>
+
+<script>
+(() => {
+  const STEPS = [[0.1, 0.125], [0.05, 0.0625], [0.025, 0.03125], [0.0125, 0.015625]];
+  const NS = "http://www.w3.org/2000/svg";
+  const a = t => 0.16 + 0.08 * Math.sin(t);
+  const A = t => 0.16 * t + 0.08 * (1 - Math.cos(t));
+
+  function exact(x, t, terms = 400) {
+    const At = A(t);
+    let s = 0;
+    for (let k = 1; k < 2 * terms; k += 2) {
+      const kp = k * Math.PI;
+      s += 8 / kp ** 3 * Math.sin(kp * x) * Math.exp(-kp * kp * At);
+    }
+    return s;
+  }
+
+  function thomas(r, rhs) {
+    // Solves tridiag(-r, 1 + 2r, -r) x = rhs.
+    const n = rhs.length, c = new Array(n), d = new Array(n);
+    const diag = 1 + 2 * r;
+    c[0] = -r / diag; d[0] = rhs[0] / diag;
+    for (let i = 1; i < n; i++) {
+      const m = diag + r * c[i - 1];
+      c[i] = -r / m;
+      d[i] = (rhs[i] + r * d[i - 1]) / m;
+    }
+    const x = new Array(n);
+    x[n - 1] = d[n - 1];
+    for (let i = n - 2; i >= 0; i--) x[i] = d[i] - c[i] * x[i + 1];
+    return x;
+  }
+
+  function crankNicolson(dx, dt) {
+    const nx = Math.round(1 / dx), nt = Math.round(1 / dt);
+    const xs = Array.from({ length: nx + 1 }, (_, i) => i * dx);
+    let v = xs.map(x => x - x * x);
+    v[0] = v[nx] = 0;
+    const snaps = [v.slice()];
+    for (let n = 0; n < nt; n++) {
+      const r0 = a(n * dt) * dt / (2 * dx * dx), r1 = a((n + 1) * dt) * dt / (2 * dx * dx);
+      const rhs = [];
+      for (let i = 1; i < nx; i++) rhs.push(r0 * v[i - 1] + (1 - 2 * r0) * v[i] + r0 * v[i + 1]);
+      v = [0, ...thomas(r1, rhs), 0];
+      snaps.push(v);
+    }
+    return { dx, dt, xs, snaps };
+  }
+
+  const runs = STEPS.map(([dx, dt]) => crankNicolson(dx, dt));
+  const mid = run => run.snaps[run.snaps.length - 1][Math.round(0.5 / run.dx)];
+  const V_EXACT = exact(0.5, 1);
+
+  const el = (tag, attrs = {}, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+  const txt = (parent, x, y, s, attrs = {}) => { const t = el("text", { x, y, ...attrs }, parent); t.textContent = s; return t; };
+  const fmt = (v, d = 7) => v.toFixed(d);
+
+  // Headline
+  document.getElementById("headline").textContent = fmt(mid(runs[3]));
+  document.getElementById("headline-exact").textContent = fmt(V_EXACT);
+
+  // Profile + diffusivity charts
+  const P = { w: 640, h: 300, l: 52, r: 14, t: 12, b: 38 };
+  const px = x => P.l + x * (P.w - P.l - P.r);
+  const py = v => P.h - P.b - v / 0.25 * (P.h - P.t - P.b);
+  const profile = document.getElementById("profile");
+  const C = { w: 640, h: 96, l: 52, r: 14, t: 8, b: 26 };
+  const cx = t => C.l + t * (C.w - C.l - C.r);
+  const cy = v => C.h - C.b - (v - 0.15) / 0.085 * (C.h - C.t - C.b);
+  const coef = document.getElementById("coef");
+
+  function drawProfileFrame() {
+    const g = el("g", {}, profile);
+    for (let v = 0; v <= 0.2501; v += 0.05) {
+      el("line", { x1: P.l, x2: P.w - P.r, y1: py(v), y2: py(v), class: "gridline" }, g);
+      txt(g, P.l - 8, py(v) + 4, v.toFixed(2), { "text-anchor": "end" });
+    }
+    for (const x of [0, 0.25, 0.5, 0.75, 1]) txt(g, px(x), P.h - P.b + 18, x, { "text-anchor": "middle" });
+    el("line", { x1: P.l, x2: P.w - P.r, y1: py(0), y2: py(0), class: "axis" }, g);
+    txt(g, P.w - P.r, P.h - 4, "x", { "text-anchor": "end" });
+    let d = "";
+    for (let i = 0; i <= 100; i++) { const x = i / 100; d += (i ? "L" : "M") + px(x).toFixed(1) + " " + py(x - x * x).toFixed(1); }
+    el("path", { d, fill: "none", "stroke-width": 1.2, "stroke-dasharray": "4 4", style: "stroke: var(--muted)" }, g);
+  }
+  const exactPath = el("path", { fill: "none", "stroke-width": 2, style: "stroke: var(--frost)" }, profile);
+  const dotLayer = el("g", { style: "fill: var(--ember)" }, profile);
+
+  function drawCoefFrame() {
+    for (const v of [0.16, 0.2]) {
+      el("line", { x1: C.l, x2: C.w - C.r, y1: cy(v), y2: cy(v), class: "gridline" }, coef);
+      txt(coef, C.l - 8, cy(v) + 4, v.toFixed(2), { "text-anchor": "end" });
+    }
+    for (const t of [0, 0.25, 0.5, 0.75, 1]) txt(coef, cx(t), C.h - 6, t, { "text-anchor": "middle" });
+    el("line", { x1: C.l, x2: C.w - C.r, y1: C.h - C.b, y2: C.h - C.b, class: "axis" }, coef);
+    let d = "";
+    for (let i = 0; i <= 100; i++) { const t = i / 100; d += (i ? "L" : "M") + cx(t).toFixed(1) + " " + cy(a(t)).toFixed(1); }
+    el("path", { d, fill: "none", "stroke-width": 2, style: "stroke: var(--ink)" }, coef);
+  }
+  const coefMarker = el("g", {}, coef);
+  const coefLine = el("line", { y1: C.t, y2: C.h - C.b, "stroke-width": 1, "stroke-dasharray": "3 3", style: "stroke: var(--ember)" }, coefMarker);
+  const coefDot = el("circle", { r: 4.5, style: "fill: var(--ember)" }, coefMarker);
+
+  drawProfileFrame();
+  drawCoefFrame();
+
+  const slider = document.getElementById("time");
+  const readout = document.getElementById("readout");
+  const buttons = [...document.querySelectorAll("[data-grid]")];
+  let gridIndex = 0;
+
+  function render() {
+    const run = runs[gridIndex];
+    const n = Number(slider.value);
+    const t = n * run.dt;
+    const v = run.snaps[n];
+    let d = "";
+    for (let i = 0; i <= 200; i++) { const x = i / 200; d += (i ? "L" : "M") + px(x).toFixed(1) + " " + py(exact(x, t, t === 0 ? 400 : 60)).toFixed(1); }
+    exactPath.setAttribute("d", d);
+    dotLayer.replaceChildren();
+    const r = run.xs.length > 50 ? 2.6 : 4;
+    run.xs.forEach((x, i) => el("circle", { cx: px(x).toFixed(1), cy: py(v[i]).toFixed(1), r }, dotLayer));
+    coefLine.setAttribute("x1", cx(t)); coefLine.setAttribute("x2", cx(t));
+    coefDot.setAttribute("cx", cx(t)); coefDot.setAttribute("cy", cy(a(t)));
+    const vm = v[Math.round(0.5 / run.dx)], ve = exact(0.5, t);
+    readout.innerHTML =
+      `<span>t = <b>${t.toFixed(5).replace(/0+$/, "").replace(/\.$/, ".0")}</b> (step ${n} of ${run.snaps.length - 1})</span>` +
+      `<span>V(0.5, t) = <b style="color:var(--ember)">${fmt(vm)}</b></span>` +
+      `<span>exact <b style="color:var(--frost)">${fmt(ve)}</b></span>` +
+      `<span>error ${(vm - ve).toExponential(2)}</span>`;
+    fieldMarker.setAttribute("x1", fx(t)); fieldMarker.setAttribute("x2", fx(t));
+  }
+
+  function selectGrid(i) {
+    const prevT = Number(slider.value) * runs[gridIndex].dt;
+    gridIndex = i;
+    buttons.forEach((b, j) => b.setAttribute("aria-pressed", String(j === i)));
+    const run = runs[i];
+    slider.max = run.snaps.length - 1;
+    slider.value = Math.round(prevT / run.dt);
+    render();
+  }
+  buttons.forEach((b, i) => b.addEventListener("click", () => selectGrid(i)));
+  slider.addEventListener("input", render);
+
+  // Field heat map (t across, x up)
+  const field = document.getElementById("field");
+  const F = { w: 640, h: 330, l: 52, r: 96, t: 10, b: 40 };
+  const fx = t => F.l + t * (F.w - F.l - F.r);
+  const fy = x => F.h - F.b - x * (F.h - F.t - F.b);
+  const RAMP = [[0, [35, 33, 74]], [0.25, [107, 42, 110]], [0.5, [194, 64, 26]], [0.75, [242, 158, 76]], [1, [251, 231, 161]]];
+  function heat(u) {
+    u = Math.max(0, Math.min(1, u));
+    for (let k = 1; k < RAMP.length; k++) {
+      if (u <= RAMP[k][0]) {
+        const [u0, c0] = RAMP[k - 1], [u1, c1] = RAMP[k], s = (u - u0) / (u1 - u0);
+        return `rgb(${c0.map((c, j) => Math.round(c + s * (c1[j] - c))).join(",")})`;
+      }
+    }
+  }
+  const fieldRun = runs[2];
+  const cw = (F.w - F.l - F.r) / (fieldRun.snaps.length - 1), ch = (F.h - F.t - F.b) / (fieldRun.xs.length - 1);
+  const cells = el("g", { "shape-rendering": "crispEdges" }, field);
+  fieldRun.snaps.forEach((v, n) => {
+    const t = n * fieldRun.dt;
+    fieldRun.xs.forEach((x, i) => {
+      const xLeft = Math.max(F.l, fx(t) - cw / 2), xRight = Math.min(F.w - F.r, fx(t) + cw / 2);
+      const yTop = Math.max(F.t, fy(x) - ch / 2), yBot = Math.min(F.h - F.b, fy(x) + ch / 2);
+      el("rect", { x: xLeft.toFixed(2), y: yTop.toFixed(2), width: (xRight - xLeft + 0.4).toFixed(2), height: (yBot - yTop + 0.4).toFixed(2), fill: heat(v[i] / 0.25) }, cells);
+    });
+  });
+  for (const t of [0, 0.25, 0.5, 0.75, 1]) txt(field, fx(t), F.h - F.b + 18, t, { "text-anchor": "middle" });
+  for (const x of [0, 0.5, 1]) txt(field, F.l - 8, fy(x) + 4, x, { "text-anchor": "end" });
+  txt(field, F.w - F.r, F.h - 4, "t", { "text-anchor": "end" });
+  txt(field, F.l - 30, F.t + 10, "x", { "text-anchor": "middle" });
+  const fieldMarker = el("line", { y1: F.t, y2: F.h - F.b, "stroke-width": 1.5, "stroke-dasharray": "4 3", stroke: "#ffffff", "stroke-opacity": 0.85 }, field);
+  // colour bar
+  const bx = F.w - F.r + 26, bw = 14;
+  for (let k = 0; k < 50; k++) {
+    const u0 = k / 50;
+    el("rect", { x: bx, y: (fy(u0 + 0.02) ).toFixed(2), width: bw, height: ((F.h - F.t - F.b) / 50 + 0.5).toFixed(2), fill: heat(u0 + 0.01) }, field);
+  }
+  for (const v of [0, 0.125, 0.25]) txt(field, bx + bw + 6, fy(v / 0.25) + 4, v);
+
+  // Convergence table + log-log chart
+  const body = document.getElementById("conv-body");
+  let prev = null;
+  const errs = runs.map(run => {
+    const v = mid(run), e = v - V_EXACT;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${run.dx}</td><td>${run.dt}</td><td class="v">${v.toFixed(10)}</td><td>${e.toExponential(2)}</td><td>${prev ? (prev / e).toFixed(3) : "–"}</td>`;
+    body.appendChild(tr);
+    prev = e;
+    return [run.dx, e];
+  });
+  document.getElementById("conv-foot").textContent = `exact  ${V_EXACT.toFixed(10)}`;
+
+  const L = { w: 420, h: 280, l: 58, r: 14, t: 12, b: 38 };
+  const lx = dx => L.l + (Math.log10(dx) - Math.log10(0.01)) / (Math.log10(0.15) - Math.log10(0.01)) * (L.w - L.l - L.r);
+  const ly = e => L.h - L.b - (Math.log10(e) + 6) / 3 * (L.h - L.t - L.b);
+  const loglog = document.getElementById("loglog");
+  for (const p of [-6, -5, -4, -3]) {
+    el("line", { x1: L.l, x2: L.w - L.r, y1: ly(10 ** p), y2: ly(10 ** p), class: "gridline" }, loglog);
+    txt(loglog, L.l - 8, ly(10 ** p) + 4, `1e${p}`, { "text-anchor": "end" });
+  }
+  for (const dx of [0.0125, 0.025, 0.05, 0.1]) {
+    el("line", { x1: lx(dx), x2: lx(dx), y1: L.t, y2: L.h - L.b, class: "gridline" }, loglog);
+    txt(loglog, lx(dx), L.h - L.b + 18, dx, { "text-anchor": "middle" });
+  }
+  el("line", { x1: L.l, x2: L.w - L.r, y1: L.h - L.b, y2: L.h - L.b, class: "axis" }, loglog);
+  txt(loglog, L.w - L.r, L.h - 4, "Δx", { "text-anchor": "end" });
+  const [dx0, e0] = errs[0];
+  const ref = dx => e0 * (dx / dx0) ** 2;
+  el("line", { x1: lx(0.0105), y1: ly(ref(0.0105)), x2: lx(0.14), y2: ly(ref(0.14)), "stroke-width": 1.2, "stroke-dasharray": "4 4", style: "stroke: var(--muted)" }, loglog);
+  let d = "";
+  errs.forEach(([dx, e], i) => { d += (i ? "L" : "M") + lx(dx) + " " + ly(e); });
+  el("path", { d, fill: "none", "stroke-width": 2, style: "stroke: var(--ember)" }, loglog);
+  errs.forEach(([dx, e]) => el("circle", { cx: lx(dx), cy: ly(e), r: 5, style: "fill: var(--ember); stroke: var(--plate)", "stroke-width": 2 }, loglog));
+
+  selectGrid(0);
+  slider.value = slider.max;
+  render();
+})();
+</script>

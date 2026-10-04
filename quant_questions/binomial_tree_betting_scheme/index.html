@@ -1,0 +1,414 @@
+<title>Binomial Tree Betting Scheme</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Libre+Franklin:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<script>
+  window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]] }, svg: { fontCache: "global" } };
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<style>
+  /* Layout: a scorebook. Ruled columns of prose, the betting lattice as the centre spread, ledger and odds panels beside it. */
+  :root {
+    --field: #f2f4f1;
+    --card: #ffffff;
+    --ink: #17201b;
+    --muted: #5b675f;
+    --line: #d4dbd5;
+    --grass: #1d6a45;
+    --grass-soft: #dcebe2;
+    --brick: #a6402c;
+    --brick-soft: #f3dfd9;
+    --chalk: #e5ebe6;
+    --font-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
+    --font-body: "Libre Franklin", "Franklin Gothic Book", "Helvetica Neue", Arial, sans-serif;
+    --font-data: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --field: #101512; --card: #171e1a; --ink: #e3eae5; --muted: #95a39a; --line: #2b3630;
+      --grass: #5cc28e; --grass-soft: #1d3a2b; --brick: #f08a72; --brick-soft: #43251e; --chalk: #222b26;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --field: #101512; --card: #171e1a; --ink: #e3eae5; --muted: #95a39a; --line: #2b3630;
+    --grass: #5cc28e; --grass-soft: #1d3a2b; --brick: #f08a72; --brick-soft: #43251e; --chalk: #222b26;
+  }
+
+  body {
+    background: var(--field);
+    color: var(--ink);
+    font: 400 1rem/1.65 var(--font-body);
+    padding-inline: 20px;
+    padding-block: 44px 72px;
+  }
+  main { max-width: 1040px; margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; }
+  section, header { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .prose { max-width: 64ch; }
+  .prose > * + * { margin-top: 0.85em; }
+  p { margin: 0; }
+  h1, h2 { font-family: var(--font-display); text-transform: uppercase; margin: 0; text-wrap: balance; line-height: 1; }
+  h1 { font-size: clamp(2.6rem, 7vw, 4.4rem); font-weight: 700; letter-spacing: 0.01em; }
+  h2 { font-size: 1.9rem; font-weight: 600; letter-spacing: 0.02em; }
+  .label { font: 600 0.72rem/1.2 var(--font-data); text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+  .mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+  a { color: var(--grass); }
+  mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+
+  .verdict {
+    display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 28px; align-items: end;
+    border-block: 3px double var(--ink); padding-block: 18px;
+  }
+  .verdict .bet { grid-row: span 2; font: 700 clamp(3.4rem, 11vw, 6rem)/0.9 var(--font-display); color: var(--grass); font-variant-numeric: tabular-nums; }
+  .verdict p { color: var(--muted); max-width: 52ch; }
+  @media (max-width: 520px) { .verdict { grid-template-columns: 1fr; } .verdict .bet { grid-row: auto; } }
+
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 3px; padding: 18px; display: grid; gap: 14px; }
+  .spread { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .spread { grid-template-columns: 1fr; } }
+  .scroll { overflow-x: auto; }
+  #lattice { display: block; width: 100%; min-width: 600px; height: auto; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  button {
+    font: 600 0.95rem/1 var(--font-display); text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 10px 14px; border-radius: 3px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer;
+  }
+  button:hover:not(:disabled) { border-color: var(--ink); }
+  button:disabled { opacity: 0.4; cursor: default; }
+  button.win { background: var(--grass); border-color: var(--grass); color: var(--card); }
+  button.lose { background: var(--brick); border-color: var(--brick); color: var(--card); }
+  button[aria-pressed="true"] { background: var(--ink); color: var(--card); border-color: var(--ink); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--grass); outline-offset: 2px; }
+  .seg { display: inline-flex; }
+  .seg button { border-radius: 0; }
+  .seg button:first-child { border-radius: 3px 0 0 3px; }
+  .seg button:last-child { border-radius: 0 3px 3px 0; border-left: 0; }
+  .spacer { flex: 1; }
+
+  .ledger { width: 100%; border-collapse: collapse; font: 400 0.85rem/1.3 var(--font-data); font-variant-numeric: tabular-nums; }
+  .ledger th { font: 600 0.68rem/1.2 var(--font-data); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); text-align: right; padding: 6px 6px; border-bottom: 2px solid var(--ink); }
+  .ledger th:first-child, .ledger td:first-child { text-align: left; }
+  .ledger td { text-align: right; padding: 7px 6px; border-bottom: 1px solid var(--line); }
+  .ledger .w { color: var(--grass); font-weight: 600; }
+  .ledger .l { color: var(--brick); font-weight: 600; }
+  .ledger tfoot td { font-weight: 600; border-bottom: 0; border-top: 2px solid var(--ink); }
+  .status { font: 600 1.25rem/1.1 var(--font-display); text-transform: uppercase; letter-spacing: 0.04em; }
+
+  .grid-card { display: grid; grid-template-columns: auto repeat(4, minmax(0, 1fr)); gap: 4px; font: 400 0.9rem/1 var(--font-data); font-variant-numeric: tabular-nums; max-width: 460px; }
+  .grid-card .h { color: var(--muted); font-size: 0.72rem; display: grid; place-items: center; padding: 6px; }
+  .grid-card .c { display: grid; place-items: center; height: 54px; border-radius: 2px; font-weight: 600; }
+  .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: start; }
+  @media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+
+  .odds { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+  .odds input { flex: 1 1 200px; accent-color: var(--grass); }
+  .stats { display: flex; flex-wrap: wrap; gap: 8px 24px; font: 400 0.85rem/1.4 var(--font-data); font-variant-numeric: tabular-nums; }
+  .stats b { font-weight: 600; }
+  #hist { display: block; width: 100%; height: auto; }
+
+  .checks { list-style: none; margin: 0; padding: 0; max-width: 74ch; }
+  .checks li { display: grid; grid-template-columns: 10rem 1fr; gap: 16px; padding-block: 11px; border-bottom: 1px solid var(--line); }
+  .checks li:first-child { border-top: 1px solid var(--line); }
+  .checks .label { padding-top: 0.3em; }
+  @media (max-width: 560px) { .checks li { grid-template-columns: 1fr; gap: 4px; } }
+
+  svg text { font-family: var(--font-data); }
+  footer { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); padding-top: 18px; }
+  @media (prefers-reduced-motion: no-preference) { .node rect, .edge { transition: fill 160ms, stroke 160ms, opacity 160ms; } }
+</style>
+
+<main>
+  <header>
+    <span class="label">Practicum · Replication</span>
+    <h1>Binomial Tree Betting Scheme</h1>
+    <div class="prose">
+      <p>Your team meets your uncle's team in the World Series, and the first side to four wins takes it. Before each game you name a stake \(b\). Your uncle writes you an IOU for \(b\) if your team wins the game, and you write him one if it loses. The IOUs are settled in cash when the series ends.</p>
+      <p>You want to walk away exactly <b>$100 up if your team wins the series</b> and <b>$100 down if it loses</b>. How much do you bet on game one?</p>
+    </div>
+    <div class="verdict">
+      <span class="bet">$31.25</span>
+      <span class="label">Opening bet</span>
+      <p>This is \(100 \times \binom{6}{3}/2^6\): the payoff times the chance that a fair series goes to game seven. It doesn't depend on how good either team is.</p>
+    </div>
+  </header>
+
+  <section>
+    <h2>Play the series</h2>
+    <p class="prose">Every state in the series is a node, labelled by your team's record, wins–losses. The node shows the stake for the next game. Play a series below and the ledger keeps the IOU balance. Whatever path you take, the series ends at exactly +$100 or −$100.</p>
+    <div class="spread">
+      <div class="panel">
+        <div class="controls">
+          <button type="button" class="win" id="btn-win">Your team wins</button>
+          <button type="button" class="lose" id="btn-lose">Your team loses</button>
+          <button type="button" id="btn-random">Random game</button>
+          <button type="button" id="btn-reset">Reset</button>
+          <span class="spacer"></span>
+          <div class="seg" role="group" aria-label="Node label">
+            <button type="button" id="show-bet" aria-pressed="true">Bet</button>
+            <button type="button" id="show-value" aria-pressed="false">Balance</button>
+          </div>
+        </div>
+        <div class="scroll">
+          <svg id="lattice" viewBox="0 0 780 440" role="img" aria-label="Lattice of every series record from 0–0 to the end of the series, each node showing its bet"></svg>
+        </div>
+        <span class="label">Across: games played · Up: wins minus losses</span>
+      </div>
+      <div class="panel">
+        <div class="status" id="status">0–0 · Game 1 next</div>
+        <table class="ledger">
+          <thead><tr><th>Game</th><th>Bet</th><th>Result</th><th>Balance</th></tr></thead>
+          <tbody id="ledger-body"></tbody>
+          <tfoot><tr><td colspan="3">IOU balance</td><td id="ledger-total">0.00</td></tr></tfoot>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Why it works</h2>
+    <div class="two">
+      <div class="prose">
+        <p>Let \(V(w,l)\) be the IOU balance you need on reaching record \(w\)–\(l\). At the end of the series it is fixed: \(V(4,l) = +100\) and \(V(w,4) = -100\).</p>
+        <p>From a live node you bet \(b\). A win takes you to \(V + b\) and a loss to \(V - b\), and both must land on the balance their next node needs:</p>
+        <p>$$V(w,l) = \frac{V(w{+}1,l) + V(w,l{+}1)}{2}, \qquad b(w,l) = \frac{V(w{+}1,l) - V(w,l{+}1)}{2}.$$</p>
+        <p>This is delta-hedging on a binomial tree. The even-money bet is the hedge, and the value is the average of its two children: the risk-neutral measure with \(p = \tfrac12\). The real chance of winning never enters, just as the real drift never enters a Black–Scholes price.</p>
+        <p>Working back from game seven: at 3–3 you bet the full $100. At 0–0 the two children are \(V(1,0) = +31.25\) and \(V(0,1) = -31.25\), so the opening bet is $31.25.</p>
+      </div>
+      <div class="panel">
+        <span class="label">Bet by record, before the next game</span>
+        <div class="grid-card" id="grid-card"></div>
+        <p class="prose" style="color: var(--muted); font-size: 0.9rem">Rows are your team's wins, columns its losses. The table is symmetric. The stakes grow as the series tightens and shrink when one side runs away with it.</p>
+      </div>
+    </div>
+    <div class="prose">
+      <p>The general result for a best-of-\((2n-1)\) series with payoff \(X\):</p>
+      <p>$$b(0,0) = X\binom{2n-2}{n-1}\Bigl(\tfrac12\Bigr)^{2n-1}, \qquad n = 4:\ 100 \cdot \tfrac{20}{64} = 31.25.$$</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Any team, same outcome</h2>
+    <p class="prose">Set how likely your team is to win each game and simulate 10,000 series with the betting scheme. The win/loss split moves with the odds, but no series ends anywhere except ±$100.</p>
+    <div class="panel">
+      <div class="odds">
+        <label class="label" for="p">Chance your team wins a game</label>
+        <input type="range" id="p" min="0.1" max="0.9" step="0.05" value="0.6">
+        <span class="mono" id="p-out">0.60</span>
+        <button type="button" id="btn-sim">Run again</button>
+      </div>
+      <div class="stats" id="stats"></div>
+      <svg id="hist" viewBox="0 0 720 240" role="img" aria-label="Histogram of final balances: all series end at minus 100 or plus 100"></svg>
+    </div>
+  </section>
+
+  <section>
+    <h2>Checks</h2>
+    <p class="prose">The Python solver in <a href="solver.py">solver.py</a> and its tests in <a href="test/test_solver.py">test/test_solver.py</a> verify:</p>
+    <ul class="checks">
+      <li><span class="label">Answer</span><span>The opening bet is 31.25.</span></li>
+      <li><span class="label">Every path</span><span>All \(2^7\) win/loss sequences, played with these bets, finish at exactly +100 or −100, matching who won the series.</span></li>
+      <li><span class="label">Symmetry</span><span>\(V(w,l) = -V(l,w)\) and \(b(w,l) = b(l,w)\).</span></li>
+      <li><span class="label">Closed form</span><span>\(V(1,0) = 100\,(2 \cdot \tfrac{21}{32} - 1)\), where 21/32 is the fair-coin chance of winning the series from 1–0.</span></li>
+      <li><span class="label">Game seven</span><span>At 3–3 the bet is the full $100.</span></li>
+      <li><span class="label">Scaling</span><span>The bet doubles with the payoff. Best-of-1 needs $100 and best-of-3 needs $50.</span></li>
+    </ul>
+  </section>
+
+  <footer>Problem 4 of the Financial Mathematics and Modeling Practicum (QuIC Financial Technologies, 2003–2010), restated. Solution, code and figures are original.</footer>
+</main>
+
+<script>
+(() => {
+  const N = 4, X = 100, NS = "http://www.w3.org/2000/svg";
+  const memo = new Map();
+  function value(w, l) {
+    if (w === N) return X;
+    if (l === N) return -X;
+    const key = w + "," + l;
+    if (!memo.has(key)) memo.set(key, (value(w + 1, l) + value(w, l + 1)) / 2);
+    return memo.get(key);
+  }
+  const bet = (w, l) => (value(w + 1, l) - value(w, l + 1)) / 2;
+  const live = (w, l) => w < N && l < N;
+  const money = v => (v < 0 ? "−" : v > 0 ? "+" : "") + Math.abs(v).toFixed(2);
+
+  const el = (tag, attrs = {}, parent) => {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (parent) parent.appendChild(e);
+    return e;
+  };
+
+  // ---- Lattice
+  const svg = document.getElementById("lattice");
+  const gx = g => 52 + g * 96;
+  const gy = d => 220 - d * 47;
+  const pos = (w, l) => [gx(w + l), gy(w - l)];
+  const states = [];
+  for (let w = 0; w <= N; w++) for (let l = 0; l <= N; l++) if (!(w === N && l === N)) states.push([w, l]);
+
+  for (let g = 0; g <= 7; g++) {
+    const t = el("text", { x: gx(g), y: 432, "text-anchor": "middle", "font-size": 11, style: "fill: var(--muted)" }, svg);
+    t.textContent = g;
+  }
+  const edges = new Map();
+  const edgeLayer = el("g", {}, svg);
+  for (const [w, l] of states) {
+    if (!live(w, l)) continue;
+    for (const [w2, l2] of [[w + 1, l], [w, l + 1]]) {
+      const [x1, y1] = pos(w, l), [x2, y2] = pos(w2, l2);
+      const e = el("line", { x1: x1 + 30, y1, x2: x2 - 30, y2, "stroke-width": 1.5, class: "edge", style: "stroke: var(--line)" }, edgeLayer);
+      edges.set(`${w},${l}>${w2},${l2}`, e);
+    }
+  }
+  const nodes = new Map();
+  for (const [w, l] of states) {
+    const [x, y] = pos(w, l);
+    const g = el("g", { class: "node" }, svg);
+    const terminal = !live(w, l);
+    const won = w === N;
+    const rect = el("rect", { x: x - 32, y: y - 19, width: 64, height: 38, rx: 3, "stroke-width": 1.5 }, g);
+    const rec = el("text", { x, y: y - 5, "text-anchor": "middle", "font-size": 10 }, g);
+    rec.textContent = `${w}–${l}`;
+    const num = el("text", { x, y: y + 11, "text-anchor": "middle", "font-size": 13, "font-weight": 600 }, g);
+    nodes.set(`${w},${l}`, { rect, rec, num, w, l, terminal, won });
+  }
+
+  let mode = "bet";
+  let path = [[0, 0]];
+  const ledgerBody = document.getElementById("ledger-body");
+  const status = document.getElementById("status");
+  const btnWin = document.getElementById("btn-win"), btnLose = document.getElementById("btn-lose"), btnRandom = document.getElementById("btn-random");
+
+  function styleNode(n, onPath, current) {
+    let fill = "var(--card)", stroke = "var(--line)", text = "var(--ink)", sub = "var(--muted)";
+    if (n.terminal) {
+      fill = n.won ? "var(--grass-soft)" : "var(--brick-soft)";
+      stroke = fill; text = n.won ? "var(--grass)" : "var(--brick)";
+    }
+    if (onPath) { stroke = "var(--ink)"; }
+    if (current) { fill = "var(--ink)"; stroke = "var(--ink)"; text = "var(--card)"; sub = "var(--card)"; }
+    n.rect.setAttribute("style", `fill: ${fill}; stroke: ${stroke}`);
+    n.num.setAttribute("style", `fill: ${text}`);
+    n.rec.setAttribute("style", `fill: ${sub}`);
+    if (n.terminal) n.num.textContent = n.won ? "+100" : "−100";
+    else n.num.textContent = mode === "bet" ? "$" + bet(n.w, n.l).toFixed(2) : money(value(n.w, n.l));
+  }
+
+  function render() {
+    const onPath = new Set(path.map(([w, l]) => `${w},${l}`));
+    const [cw, cl] = path[path.length - 1];
+    for (const [key, n] of nodes) styleNode(n, onPath.has(key), key === `${cw},${cl}`);
+    for (const [key, e] of edges) e.setAttribute("style", "stroke: var(--line)");
+    for (let i = 1; i < path.length; i++) {
+      const [a, b] = [path[i - 1], path[i]];
+      const e = edges.get(`${a[0]},${a[1]}>${b[0]},${b[1]}`);
+      e.setAttribute("style", `stroke: ${b[0] > a[0] ? "var(--grass)" : "var(--brick)"}; stroke-width: 3`);
+    }
+    ledgerBody.replaceChildren();
+    let balance = 0;
+    for (let i = 1; i < path.length; i++) {
+      const [w, l] = path[i - 1], wonGame = path[i][0] > w, b = bet(w, l);
+      balance += wonGame ? b : -b;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${i} · ${w}–${l}</td><td>${b.toFixed(2)}</td><td class="${wonGame ? "w" : "l"}">${wonGame ? "Won" : "Lost"}</td><td>${money(balance)}</td>`;
+      ledgerBody.appendChild(tr);
+    }
+    document.getElementById("ledger-total").textContent = money(balance);
+    const over = !live(cw, cl);
+    if (over) status.textContent = cw === N ? `Your team wins ${cw}–${cl} · you collect $100` : `Your team loses ${cw}–${cl} · you pay $100`;
+    else status.textContent = `${cw}–${cl} · Game ${cw + cl + 1} next · bet $${bet(cw, cl).toFixed(2)}`;
+    btnWin.disabled = btnLose.disabled = btnRandom.disabled = over;
+  }
+
+  function play(won) {
+    const [w, l] = path[path.length - 1];
+    if (!live(w, l)) return;
+    path.push(won ? [w + 1, l] : [w, l + 1]);
+    render();
+  }
+  btnWin.addEventListener("click", () => play(true));
+  btnLose.addEventListener("click", () => play(false));
+  btnRandom.addEventListener("click", () => play(Math.random() < Number(pInput.value)));
+  document.getElementById("btn-reset").addEventListener("click", () => { path = [[0, 0]]; render(); });
+  const showBet = document.getElementById("show-bet"), showValue = document.getElementById("show-value");
+  showBet.addEventListener("click", () => { mode = "bet"; showBet.setAttribute("aria-pressed", "true"); showValue.setAttribute("aria-pressed", "false"); render(); });
+  showValue.addEventListener("click", () => { mode = "value"; showValue.setAttribute("aria-pressed", "true"); showBet.setAttribute("aria-pressed", "false"); render(); });
+
+  // ---- Bet grid
+  const card = document.getElementById("grid-card");
+  const add = (cls, text, style = "") => { const d = document.createElement("div"); d.className = cls; d.textContent = text; if (style) d.setAttribute("style", style); card.appendChild(d); };
+  add("h", "W \\ L");
+  for (let l = 0; l < N; l++) add("h", `${l} lost`);
+  for (let w = 0; w < N; w++) {
+    add("h", `${w} won`);
+    for (let l = 0; l < N; l++) {
+      const b = bet(w, l), mix = Math.round(b / X * 100);
+      add("c", b.toFixed(2), `background: color-mix(in srgb, var(--grass) ${mix}%, var(--chalk)); color: ${mix > 45 ? "var(--card)" : "var(--ink)"}`);
+    }
+  }
+
+  // ---- Simulation
+  const pInput = document.getElementById("p");
+  const hist = document.getElementById("hist");
+  const H = { w: 720, h: 240, l: 56, r: 14, t: 14, b: 38 };
+  const bins = [];
+  for (let v = -100; v <= 100; v += 25) bins.push(v);
+  const hx = v => H.l + (v + 112.5) / 225 * (H.w - H.l - H.r);
+  const RUNS = 10000;
+
+  function simulate() {
+    const p = Number(pInput.value);
+    document.getElementById("p-out").textContent = p.toFixed(2);
+    const counts = new Map(bins.map(b => [b, 0]));
+    let games = 0, wins = 0;
+    for (let k = 0; k < RUNS; k++) {
+      let w = 0, l = 0, bal = 0;
+      while (live(w, l)) {
+        const b = bet(w, l);
+        if (Math.random() < p) { bal += b; w++; } else { bal -= b; l++; }
+        games++;
+      }
+      const bin = Math.round(bal / 25) * 25;
+      counts.set(bin, (counts.get(bin) || 0) + 1);
+      if (w === N) wins++;
+    }
+    const off = RUNS - counts.get(100) - counts.get(-100);
+    document.getElementById("stats").innerHTML =
+      `<span>Series won <b style="color:var(--grass)">${counts.get(100).toLocaleString()}</b></span>` +
+      `<span>Series lost <b style="color:var(--brick)">${counts.get(-100).toLocaleString()}</b></span>` +
+      `<span>Ended anywhere else <b>${off}</b></span>` +
+      `<span>Average series length <b>${(games / RUNS).toFixed(2)}</b> games</span>`;
+
+    hist.replaceChildren();
+    const hy = c => H.h - H.b - c / RUNS * (H.h - H.t - H.b);
+    for (const f of [0, 0.25, 0.5, 0.75, 1]) {
+      el("line", { x1: H.l, x2: H.w - H.r, y1: hy(f * RUNS), y2: hy(f * RUNS), style: "stroke: var(--chalk)" }, hist);
+      const t = el("text", { x: H.l - 8, y: hy(f * RUNS) + 4, "text-anchor": "end", "font-size": 11, style: "fill: var(--muted)" }, hist);
+      t.textContent = (f * 100) + "%";
+    }
+    const bw = (H.w - H.l - H.r) / bins.length * 0.7;
+    for (const b of bins) {
+      const c = counts.get(b);
+      const color = b > 0 ? "var(--grass)" : b < 0 ? "var(--brick)" : "var(--muted)";
+      if (c > 0) el("rect", { x: hx(b) - bw / 2, y: hy(c), width: bw, height: H.h - H.b - hy(c), style: `fill: ${color}` }, hist);
+      else el("line", { x1: hx(b) - bw / 2, x2: hx(b) + bw / 2, y1: H.h - H.b, y2: H.h - H.b, "stroke-width": 3, style: "stroke: var(--chalk)" }, hist);
+      const t = el("text", { x: hx(b), y: H.h - H.b + 18, "text-anchor": "middle", "font-size": 11, style: "fill: var(--muted)" }, hist);
+      t.textContent = b > 0 ? "+" + b : b < 0 ? "−" + Math.abs(b) : "0";
+    }
+    el("line", { x1: H.l, x2: H.w - H.r, y1: H.h - H.b, y2: H.h - H.b, style: "stroke: var(--ink)" }, hist);
+    const cap = el("text", { x: H.w - H.r, y: H.h - 4, "text-anchor": "end", "font-size": 11, style: "fill: var(--muted)" }, hist);
+    cap.textContent = "final balance, $";
+  }
+  pInput.addEventListener("input", simulate);
+  document.getElementById("btn-sim").addEventListener("click", simulate);
+
+  // Open on a played-out example so the ledger is populated: 1–0, 1–1, 2–1, 2–2, 3–2, 4–2.
+  path = [[0, 0]];
+  [true, false, true, false, true, true].forEach(won => { const [w, l] = path[path.length - 1]; path.push(won ? [w + 1, l] : [w, l + 1]); });
+  render();
+  simulate();
+})();
+</script>
