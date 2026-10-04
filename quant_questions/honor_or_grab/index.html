@@ -1,0 +1,840 @@
+<title>Honor or Grab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+  /* Layout: financial-newspaper column on salmon paper; the live game and its decision matrix lead, analyses follow as boxed charts. */
+  :root {
+    --paper: #fff1e5;
+    --box: #fff7f0;
+    --ink: #33302e;
+    --muted: #66605c;
+    --rule: #ccc1b7;
+    --grid: #ecdccd;
+    --honor: #0d7680;
+    --honor-soft: #d4e7e3;
+    --grab: #990f3d;
+    --grab-soft: #f4d6db;
+    --bonus: #ff8833;
+    --bonus-soft: #ffe2c8;
+    --s1: #0f5499; --s2: #990f3d; --s3: #0d7680; --s4: #ff8833;
+    --s5: #593380; --s6: #00994d; --s7: #b07a4a; --s8: #8a8380;
+    --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --font-label: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    --font-data: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --paper: #1f1b19; --box: #292421; --ink: #f2e6dc; --muted: #b3a69b; --rule: #4a423c; --grid: #352f2b;
+      --honor: #5fc3c9; --honor-soft: #1d3a3c; --grab: #ef7a9c; --grab-soft: #4a2130; --bonus: #ffa25c; --bonus-soft: #4a3020;
+      --s1: #7fb2e8; --s2: #ef7a9c; --s3: #5fc3c9; --s4: #ffa25c; --s5: #b996e0; --s6: #5fd08e; --s7: #d9a877; --s8: #b3aca8;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #1f1b19; --box: #292421; --ink: #f2e6dc; --muted: #b3a69b; --rule: #4a423c; --grid: #352f2b;
+    --honor: #5fc3c9; --honor-soft: #1d3a3c; --grab: #ef7a9c; --grab-soft: #4a2130; --bonus: #ffa25c; --bonus-soft: #4a3020;
+    --s1: #7fb2e8; --s2: #ef7a9c; --s3: #5fc3c9; --s4: #ffa25c; --s5: #b996e0; --s6: #5fd08e; --s7: #d9a877; --s8: #b3aca8;
+  }
+
+  body { background: var(--paper); color: var(--ink); font: 400 1.0625rem/1.65 var(--font-body); padding-inline: 20px; padding-block: 44px 72px; }
+  main { max-width: 1040px; margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; }
+  section, header { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .prose { max-width: 66ch; }
+  .prose > * + * { margin-top: 0.85em; }
+  p { margin: 0; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; line-height: 1.1; font-weight: 600; }
+  h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); letter-spacing: -0.01em; }
+  h2 { font-size: 1.65rem; border-top: 4px solid var(--ink); padding-top: 10px; }
+  .label { font: 600 0.74rem/1.2 var(--font-label); text-transform: uppercase; letter-spacing: 0.08em; color: var(--grab); }
+  .sub { font: 400 0.82rem/1.45 var(--font-label); color: var(--muted); }
+  .mono, td, .num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+  a { color: var(--s1); }
+  mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+
+  .standfirst { font-size: 1.25rem; line-height: 1.5; color: var(--muted); max-width: 60ch; }
+  .rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0; border-block: 1px solid var(--rule); }
+  .rule { padding: 12px 14px; display: grid; gap: 4px; border-right: 1px solid var(--rule); }
+  .rule:last-child { border-right: 0; }
+  .rule .pay { font: 600 1.05rem/1.2 var(--font-data); }
+  .h { color: var(--honor); } .g { color: var(--grab); } .b { color: var(--bonus); }
+
+  .box { background: var(--box); border: 1px solid var(--rule); padding: 18px; display: grid; gap: 14px; align-content: start; }
+  .settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px 16px; }
+  .field { display: grid; gap: 4px; }
+  .field label { font: 600 0.72rem/1.2 var(--font-label); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+  input[type="number"], select {
+    font: 400 0.95rem/1.2 var(--font-data); color: var(--ink); background: var(--paper);
+    border: 1px solid var(--rule); border-radius: 0; padding: 7px 8px; width: 100%; box-sizing: border-box;
+  }
+  details summary { cursor: pointer; font: 600 0.85rem/1.2 var(--font-label); color: var(--muted); }
+  details[open] summary { margin-bottom: 12px; }
+
+  button {
+    font: 600 0.88rem/1 var(--font-label); padding: 11px 16px; border: 1px solid var(--rule);
+    background: var(--box); color: var(--ink); cursor: pointer; border-radius: 0;
+  }
+  button:hover:not(:disabled) { border-color: var(--ink); }
+  button:disabled { opacity: 0.4; cursor: default; }
+  button.primary { background: var(--ink); border-color: var(--ink); color: var(--box); }
+  button.small { padding: 7px 10px; font-size: 0.78rem; }
+  button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .spacer { flex: 1; }
+
+  .verdict { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0; border-top: 4px solid var(--ink); border-bottom: 1px solid var(--rule); }
+  .verdict > div { padding: 14px 16px 16px 0; display: grid; gap: 6px; align-content: start; }
+  .verdict > div + div { border-left: 1px solid var(--rule); padding-left: 16px; }
+  .verdict .big { font: 600 1.6rem/1.15 var(--font-display); }
+  @media (max-width: 700px) { .verdict > div + div { border-left: 0; border-top: 1px solid var(--rule); padding-left: 0; } }
+
+  .play { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 20px; align-items: start; }
+  @media (max-width: 860px) { .play { grid-template-columns: 1fr; } }
+  .roundbar { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+  .roundbar .big { font: 600 1.4rem/1.1 var(--font-display); }
+  .pill { font: 600 0.72rem/1 var(--font-label); text-transform: uppercase; letter-spacing: 0.06em; padding: 5px 8px; }
+  .pill.bonus { background: var(--bonus); color: #fff; }
+  .pill.normal { border: 1px solid var(--rule); color: var(--muted); }
+
+  .rivals { display: grid; gap: 0; border-top: 1px solid var(--rule); }
+  .rival { display: grid; grid-template-columns: 4.6rem minmax(0, 1fr) auto; align-items: center; gap: 10px; padding-block: 8px; border-bottom: 1px solid var(--rule); }
+  .rival .name { font: 600 0.85rem/1.1 var(--font-label); }
+  .toggle { display: inline-flex; }
+  .toggle button { padding: 8px 11px; font-size: 0.8rem; }
+  .toggle button + button { border-left: 0; }
+  .toggle button[aria-pressed="true"].th { background: var(--honor); border-color: var(--honor); color: var(--box); }
+  .toggle button[aria-pressed="true"].tg { background: var(--grab); border-color: var(--grab); color: var(--box); }
+  @media (max-width: 460px) { .rival { grid-template-columns: 1fr auto; } .rival select { grid-column: 1 / -1; grid-row: 2; } }
+
+  .matrix-wrap { overflow-x: auto; }
+  table.matrix { border-collapse: separate; border-spacing: 3px; margin-inline: auto; }
+  table.matrix th { font: 600 0.72rem/1.2 var(--font-label); color: var(--muted); padding: 4px 6px; text-transform: none; letter-spacing: 0; border: 0; text-align: center; }
+  table.matrix th.corner { font-size: 0.66rem; text-align: right; line-height: 1.25; }
+  table.matrix td { width: 3.4rem; height: 3rem; padding: 0; text-align: center; vertical-align: middle; border: 0; font-family: var(--font-data); }
+  table.matrix td .d { display: block; font-weight: 600; font-size: 1rem; line-height: 1.1; }
+  table.matrix td .p { display: block; font-size: 0.7rem; opacity: 0.9; }
+  table.matrix td.H { background: var(--honor-soft); color: var(--honor); }
+  table.matrix td.G { background: var(--grab-soft); color: var(--grab); }
+  table.matrix td.self { background: repeating-linear-gradient(135deg, transparent 0 5px, var(--grid) 5px 6px); }
+  table.matrix td.unknown { background: var(--grid); color: var(--muted); }
+  table.matrix td.total { background: transparent; color: var(--ink); font-weight: 600; width: auto; padding-inline: 10px; text-align: right; border-left: 2px solid var(--ink); }
+  table.matrix tr.you th { color: var(--s1); }
+  .tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tabs button { padding: 6px 9px; font: 600 0.75rem/1 var(--font-data); }
+  .tabs button[aria-pressed="true"] { background: var(--ink); color: var(--box); border-color: var(--ink); }
+  .tabs button.bonus-tab { box-shadow: inset 0 -3px 0 var(--bonus); }
+  .override { font: 600 0.8rem/1.3 var(--font-label); color: var(--bonus); }
+
+  .scroll { overflow-x: auto; }
+  table.board { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+  table.board th { font: 600 0.7rem/1.2 var(--font-label); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); text-align: right; padding: 6px 8px; border-bottom: 2px solid var(--ink); white-space: nowrap; }
+  table.board th:first-child, table.board td:first-child { text-align: left; }
+  table.board td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+  table.board tr.bonus-row td:first-child { color: var(--bonus); font-weight: 600; }
+  table.board tfoot td { font-weight: 600; border-top: 2px solid var(--ink); border-bottom: 0; }
+  table.board .you { background: color-mix(in srgb, var(--s1) 8%, transparent); }
+
+  .charts2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  @media (max-width: 860px) { .charts2 { grid-template-columns: 1fr; } }
+  svg.chart { display: block; width: 100%; height: auto; overflow: visible; }
+  svg.chart text { font-family: var(--font-label); font-size: 11px; fill: var(--muted); }
+  svg.chart .gridline { stroke: var(--grid); }
+  svg.chart .axis { stroke: var(--ink); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font: 400 0.8rem/1.3 var(--font-label); color: var(--muted); }
+  .legend i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: -1px; }
+
+  table.deal { border-collapse: collapse; font-family: var(--font-data); }
+  table.deal th { font: 600 0.72rem/1.2 var(--font-label); color: var(--muted); padding: 6px 10px; text-align: center; }
+  table.deal td { padding: 12px 16px; text-align: center; border: 1px solid var(--rule); font-weight: 600; }
+  table.deal td span { display: block; font-size: 0.7rem; font-weight: 400; color: var(--muted); }
+
+  .ladder { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+  .ladder th { font: 600 0.7rem/1.2 var(--font-label); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); text-align: right; padding: 6px 8px; border-bottom: 2px solid var(--ink); }
+  .ladder th:nth-child(2), .ladder td:nth-child(2) { text-align: left; }
+  .ladder td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--rule); }
+  .ladder td.name { font-family: var(--font-label); font-weight: 600; }
+  .ladder .bar { display: block; height: 10px; }
+  .dom { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0; border: 1px solid var(--rule); }
+  .dom div { padding: 8px 6px; display: grid; gap: 4px; text-align: center; border-right: 1px solid var(--rule); }
+  .dom div:last-child { border-right: 0; }
+  .dom .n { font: 600 0.95rem/1 var(--font-data); }
+  .dom .t { font: 600 0.68rem/1.2 var(--font-label); text-transform: uppercase; letter-spacing: 0.04em; }
+  .dom .cur { outline: 2px solid var(--ink); outline-offset: -2px; }
+  @media (max-width: 520px) { .dom { grid-template-columns: repeat(4, minmax(0, 1fr)); } .dom div { border-bottom: 1px solid var(--rule); } }
+
+  .strategies { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0 16px; border-top: 1px solid var(--rule); }
+  .strategies div { padding: 10px 0 12px; border-bottom: 1px solid var(--rule); display: grid; gap: 2px; }
+  .strategies b { font: 600 0.9rem/1.3 var(--font-label); }
+  .strategies span { font-size: 0.95rem; color: var(--muted); }
+  ol.findings { margin: 0; padding-left: 1.3em; display: grid; gap: 10px; max-width: 70ch; }
+  footer { color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--rule); padding-top: 18px; }
+</style>
+
+<main>
+  <header>
+    <span class="label">Brain teasers</span>
+    <h1>Honor or Grab</h1>
+    <p class="standfirst">Several teams strike a deal with every other team, round after round. In every round each team decides, rival by rival, whether to honor that deal or grab. Grabbing always pays more on its own, but if everyone grabs, everyone loses.</p>
+    <div class="rules" aria-label="Scoring rules">
+      <div class="rule"><span class="sub">Both honor</span><span class="pay h">+6 each</span></div>
+      <div class="rule"><span class="sub">One grabs, one honors</span><span class="pay"><span class="g">+14</span> / <span class="h">−6</span></span></div>
+      <div class="rule"><span class="sub">Both grab</span><span class="pay g">−4 each</span></div>
+      <div class="rule"><span class="sub">Every decision is grab</span><span class="pay g">−12 each</span></div>
+      <div class="rule"><span class="sub">Every decision is honor</span><span class="pay h">+15 each</span></div>
+      <div class="rule"><span class="sub">Bonus round</span><span class="pay b">all scores ×3</span></div>
+    </div>
+    <p class="sub">A round is a decision matrix: each team makes one decision toward each other team, and every pair of teams settles its deal from the two decisions between them. A team's round score is the sum of its deals. When every decision in the matrix is the same, the −12 or +15 rule replaces the sums. Bonus rounds come at random and are announced before teams decide.</p>
+    <div class="verdict" id="verdict"></div>
+  </header>
+
+  <section>
+    <h2>Game settings</h2>
+    <div class="box">
+      <div class="settings">
+        <div class="field"><label for="set-n">Teams</label><input type="number" id="set-n" min="2" max="8" value="4"></div>
+        <div class="field"><label for="set-m">Rounds</label><input type="number" id="set-m" min="1" max="30" value="5"></div>
+        <div class="field"><label for="set-x">Bonus multiplier</label><input type="number" id="set-x" min="1" max="10" step="0.5" value="3"></div>
+        <div class="field"><label for="set-q">Bonus chance per round</label><input type="number" id="set-q" min="0" max="1" step="0.05" value="0.25"></div>
+      </div>
+      <details>
+        <summary>Edit the scoring rules</summary>
+        <div class="settings">
+          <div class="field"><label for="pay-hh">Both honor</label><input type="number" id="pay-hh" value="6"></div>
+          <div class="field"><label for="pay-gh">Grabber gets</label><input type="number" id="pay-gh" value="14"></div>
+          <div class="field"><label for="pay-hg">Honorer gets</label><input type="number" id="pay-hg" value="-6"></div>
+          <div class="field"><label for="pay-gg">Both grab</label><input type="number" id="pay-gg" value="-4"></div>
+          <div class="field"><label for="pay-ag">All grab</label><input type="number" id="pay-ag" value="-12"></div>
+          <div class="field"><label for="pay-ah">All honor</label><input type="number" id="pay-ah" value="15"></div>
+        </div>
+      </details>
+      <p class="sub">Every game and chart on this page uses these settings and updates when you change them.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Play a game</h2>
+    <p class="prose">You are Team A. Set your decision toward each rival, then play the round. Each rival follows the strategy you pick for it. Rivals decide at the same moment you do, so they only react to earlier rounds.</p>
+    <div class="play">
+      <div class="box">
+        <div class="roundbar"><span class="big" id="round-title">Round 1 of 5</span><span id="round-pill"></span></div>
+        <div class="row">
+          <span class="label">Your decision toward each rival</span><span class="spacer"></span>
+          <button type="button" class="small" id="all-h">Honor all</button>
+          <button type="button" class="small" id="all-g">Grab all</button>
+        </div>
+        <div class="rivals" id="rivals"></div>
+        <div class="row">
+          <button type="button" class="primary" id="btn-play">Play round 1</button>
+          <span class="spacer"></span>
+          <button type="button" id="btn-new">New game</button>
+        </div>
+        <span class="sub" id="round-note"></span>
+      </div>
+      <div class="box">
+        <div class="row"><span class="label" id="matrix-title">Decision matrix</span><span class="spacer"></span><div class="tabs" id="round-tabs" role="group" aria-label="Show round"></div></div>
+        <div class="matrix-wrap"><table class="matrix" id="matrix"></table></div>
+        <span class="sub">Each row is one team's decisions toward the team in each column. The small number is what that deal paid the row team. <span id="override-note" class="override"></span></span>
+      </div>
+    </div>
+    <div class="charts2">
+      <div class="box">
+        <span class="label">Score by round</span>
+        <div class="scroll"><table class="board" id="board"></table></div>
+      </div>
+      <div class="box">
+        <span class="label">Running total by team</span>
+        <svg class="chart" id="race" viewBox="0 0 480 280" role="img" aria-label="Cumulative score of each team by round"></svg>
+        <div class="legend" id="race-legend"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>One round: grabbing wins</h2>
+    <div class="charts2">
+      <div class="prose">
+        <p>Each deal on its own is a prisoner's dilemma. Whatever the rival decides toward you, grabbing pays more: 14 instead of 6 if they honor, and −4 instead of −6 if they grab.</p>
+        <table class="deal" aria-label="Payoffs of one deal">
+          <tr><th></th><th>Rival honors</th><th>Rival grabs</th></tr>
+          <tr><th>You honor</th><td class="h">+6<span>rival +6</span></td><td class="h">−6<span>rival +14</span></td></tr>
+          <tr><th>You grab</th><td class="g">+14<span>rival −6</span></td><td class="g">−4<span>rival −4</span></td></tr>
+        </table>
+        <p id="stage-text"></p>
+      </div>
+      <div class="box">
+        <span class="label">Your score in one round, honoring all or grabbing all</span>
+        <svg class="chart" id="stage" viewBox="0 0 480 270" role="img" aria-label="Grouped bars of honor-all and grab-all payoffs"></svg>
+        <div class="legend"><span><i style="background: var(--honor)"></i>you honor every rival</span><span><i style="background: var(--grab)"></i>you grab every rival</span></div>
+        <span class="sub">Across: how many rivals honor you. The rivals honor each other.</span>
+      </div>
+    </div>
+    <p class="prose">The −12 and +15 rules only apply when the whole matrix agrees, so they matter most in small games. The strip shows whether grabbing every deal is your best move in one round, by team count.</p>
+    <div class="dom" id="dom"></div>
+    <div class="box">
+      <span class="label">Total points for the whole table, by number of teams grabbing everyone</span>
+      <svg class="chart" id="welfare" viewBox="0 0 900 200" role="img" aria-label="Total points across all teams for each number of all-out grabbers"></svg>
+      <p class="sub" id="welfare-note"></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Many rounds: the shadow of the future</h2>
+    <div class="charts2">
+      <div class="prose">
+        <p>With a fixed, known number of rounds, cooperation unravels from the back. Everyone grabs in the last round because nothing follows it. That makes the second-to-last round effectively the last, and so on back to round one.</p>
+        <p>Cooperation can hold when the end is uncertain. Suppose that after each round the game goes on with probability \(\delta\), and a team you grab grabs you for good, while the others keep honoring you. Grabbing is then a trade: a one-off gain now against a loss in every round after.</p>
+        <p id="shadow-text"></p>
+      </div>
+      <div class="box">
+        <span class="label">Continuation chance needed to keep everyone honoring</span>
+        <svg class="chart" id="shadow" viewBox="0 0 480 280" role="img" aria-label="Required continuation probability as the bonus chance varies"></svg>
+        <div class="legend"><span><i style="background: var(--ink)"></i>normal round</span><span><i style="background: var(--bonus)"></i>bonus round</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Strategy tournament</h2>
+    <div class="prose">
+      <p>Eight strategies play every possible line-up of teams, with random bonus rounds, many times over. Each strategy decides separately toward every rival, so reciprocal strategies can reward one team and punish another in the same round. The ladder ranks them by average total score per game under the current settings.</p>
+    </div>
+    <div class="strategies" id="strategy-list"></div>
+    <div class="charts2">
+      <div class="box">
+        <div class="row"><span class="label">Average score per game</span><span class="spacer"></span><button type="button" class="small" id="btn-tourney">Run again</button></div>
+        <div class="scroll"><table class="ladder" id="ladder"></table></div>
+        <p class="sub" id="ladder-note"></p>
+      </div>
+      <div class="box">
+        <span class="label">Average score per round as games get longer</span>
+        <svg class="chart" id="length" viewBox="0 0 480 300" role="img" aria-label="Average per-round score of each strategy against number of rounds"></svg>
+        <div class="legend" id="length-legend"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Evolution: which strategies take over</h2>
+    <div class="prose">
+      <p>Start with an equal mix of all eight strategies. Each generation, a strategy's share grows in proportion to how well it scores against teams drawn from the current mix. This tests what survives once the easy targets are gone.</p>
+    </div>
+    <div class="box">
+      <div class="row"><span class="label">Population share by generation</span><span class="spacer"></span><button type="button" class="small" id="btn-evolve">Run again</button></div>
+      <svg class="chart" id="evolution" viewBox="0 0 900 300" role="img" aria-label="Stacked area of strategy shares over generations"></svg>
+      <div class="legend" id="evo-legend"></div>
+      <p class="sub" id="evo-note"></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>What to play</h2>
+    <ol class="findings" id="findings"></ol>
+    <p class="sub">The simulations run in your browser and mirror <a href="solver.py">solver.py</a>, which is covered by the unit tests in <a href="test/test_solver.py">test/test_solver.py</a>.</p>
+  </section>
+
+  <footer>An original brain teaser. Rules from the game description, analysis and simulations original.</footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<script>
+(() => {
+  const H = "H", G = "G", NS = "http://www.w3.org/2000/svg";
+  const TEAM = "ABCDEFGH";
+
+  // ---------- RNG ----------
+  function rngFrom(seed) {
+    let a = seed >>> 0;
+    return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  }
+  let seedCounter = 20261005;
+  const freshRng = () => rngFrom(seedCounter++);
+
+  // ---------- Rules ----------
+  const $ = id => document.getElementById(id);
+  function readRules() {
+    const num = (id, d, lo, hi) => { let v = Number($(id).value); if (!Number.isFinite(v)) v = d; if (lo !== undefined) v = Math.max(lo, Math.min(hi, v)); return v; };
+    return {
+      teams: Math.round(num("set-n", 4, 2, 8)), rounds: Math.round(num("set-m", 5, 1, 30)),
+      multiplier: num("set-x", 3, 1, 10), bonusChance: num("set-q", 0.25, 0, 1),
+      hh: num("pay-hh", 6), gh: num("pay-gh", 14), hg: num("pay-hg", -6), gg: num("pay-gg", -4), allGrab: num("pay-ag", -12), allHonor: num("pay-ah", 15),
+    };
+  }
+  let R = readRules();
+
+  const pair = (a, b, r) => a === H ? (b === H ? r.hh : r.hg) : (b === H ? r.gh : r.gg);
+  function unanimity(m) {
+    let h = 0, g = 0;
+    for (let i = 0; i < m.length; i++) for (let j = 0; j < m.length; j++) if (i !== j) m[i][j] === H ? h++ : g++;
+    return g === 0 ? H : h === 0 ? G : null;
+  }
+  function roundScores(m, r, bonus) {
+    const f = bonus ? r.multiplier : 1, u = unanimity(m);
+    if (u === G) return m.map(() => r.allGrab * f);
+    if (u === H) return m.map(() => r.allHonor * f);
+    return m.map((row, i) => f * row.reduce((s, c, j) => j === i ? s : s + pair(c, m[j][i], r), 0));
+  }
+  const uniform = (n, c) => Array.from({ length: n }, (_, i) => Array.from({ length: n }, (_, j) => i === j ? null : c));
+  function bestReply(others, r) {
+    // Your score for honoring h deals when every other decision is `others`.
+    return Array.from({ length: r.teams }, (_, h) => {
+      const m = uniform(r.teams, others);
+      for (let j = 1; j < r.teams; j++) m[0][j] = j <= h ? H : G;
+      return roundScores(m, r, false)[0];
+    });
+  }
+  function grabDominant(r) {
+    if (!(r.gh > r.hh && r.gg > r.hg)) return false;
+    return [H, G].every(o => { const s = bestReply(o, r); return s.slice(1).every(v => s[0] > v); });
+  }
+  function honorDominant(r) {
+    if (!(r.hh > r.gh && r.hg > r.gg)) {
+      // Pairwise grab is better, so honor can only win through the unanimity rules; check both uniform profiles.
+      return [H, G].every(o => { const s = bestReply(o, r); return s.slice(0, -1).every(v => s[s.length - 1] > v); }) && r.teams === 2;
+    }
+    return true;
+  }
+  function stageRow(k, r) {
+    return [H, G].map(mine => {
+      const m = uniform(r.teams, H);
+      for (let i = 1; i < r.teams; i++) { m[i][0] = i <= k ? H : G; m[0][i] = mine; }
+      return roundScores(m, r, false)[0];
+    });
+  }
+  function threshold(r, M) {
+    const n = r.teams, E = 1 + r.bonusChance * (r.multiplier - 1);
+    let worst = { need: 0, k: null, gain: 0, loss: 0 };
+    for (let k = 1; k < n; k++) {
+      const gain = k * r.gh + (n - 1 - k) * r.hh - r.allHonor;
+      const future = k * r.gg + (n - 1 - k) * r.hh;
+      const loss = r.allHonor - future;
+      if (gain <= 0) continue;
+      const need = loss <= 0 ? 1 : M * gain / (M * gain + E * loss);
+      if (need > worst.need) worst = { need, k, gain, loss };
+    }
+    return { ...worst, E };
+  }
+
+  // ---------- Strategies (decision toward one rival) ----------
+  const tft = (me, them, hist) => hist.length ? hist[hist.length - 1].m[them][me] : H;
+  const STRATS = [
+    { name: "Always honor", color: "var(--s3)", desc: "Honors every rival, every round.", fn: () => H },
+    { name: "Always grab", color: "var(--s2)", desc: "Grabs every rival, every round.", fn: () => G },
+    { name: "Tit-for-tat", color: "var(--s1)", desc: "Honors a rival first, then does to it what it did to you last round.", fn: tft },
+    { name: "Grim trigger", color: "var(--s5)", desc: "Honors a rival until it grabs you once, then grabs that rival for good.", fn: (me, them, hist) => hist.some(h => h.m[them][me] === G) ? G : H },
+    { name: "Pavlov", color: "var(--s6)", desc: "Per rival: repeats its last decision if that deal paid off, otherwise switches.", fn: (me, them, hist, bonus, rnd, r) => {
+        if (!hist.length) return H; const m = hist[hist.length - 1].m;
+        return pair(m[me][them], m[them][me], r) > 0 ? m[me][them] : (m[me][them] === H ? G : H); } },
+    { name: "Bonus grabber", color: "var(--s4)", desc: "Plays tit-for-tat, but grabs every rival on bonus rounds.", fn: (me, them, hist, bonus) => bonus ? G : tft(me, them, hist) },
+    { name: "Endgame defector", color: "var(--s7)", desc: "Plays tit-for-tat, but grabs every rival in the final round.", fn: (me, them, hist, bonus, rnd, r) => rnd === r.rounds - 1 ? G : tft(me, them, hist) },
+    { name: "Coin flip", color: "var(--s8)", desc: "Honors or grabs each rival at random, 50/50.", fn: (me, them, hist, bonus, rnd, r, rng) => rng() < 0.5 ? H : G },
+  ];
+
+  function decideRow(s, me, n, hist, bonus, rnd, r, rng) {
+    return Array.from({ length: n }, (_, j) => j === me ? null : STRATS[s].fn(me, j, hist, bonus, rnd, r, rng));
+  }
+  function playGame(idx, r, rng) {
+    const n = idx.length;
+    const bonuses = Array.from({ length: r.rounds }, () => rng() < r.bonusChance);
+    const hist = [], totals = idx.map(() => 0);
+    for (let rnd = 0; rnd < r.rounds; rnd++) {
+      const m = idx.map((s, i) => decideRow(s, i, n, hist, bonuses[rnd], rnd, r, rng));
+      roundScores(m, r, bonuses[rnd]).forEach((v, i) => totals[i] += v);
+      hist.push({ m, bonus: bonuses[rnd] });
+    }
+    return totals;
+  }
+
+  function multisets(k, n) {
+    const out = [];
+    const rec = (start, acc) => { if (acc.length === k) { out.push(acc.slice()); return; } for (let i = start; i < n; i++) { acc.push(i); rec(i, acc); acc.pop(); } };
+    rec(0, []);
+    return out;
+  }
+  function tournament(r, gamesPerGroup, maxGroups, rng) {
+    let groups = multisets(r.teams, STRATS.length);
+    if (groups.length > maxGroups) groups = Array.from({ length: maxGroups }, () => groups[Math.floor(rng() * groups.length)]);
+    const sum = STRATS.map(() => 0), cnt = STRATS.map(() => 0);
+    for (const g of groups) for (let k = 0; k < gamesPerGroup; k++) {
+      const t = playGame(g, r, rng);
+      g.forEach((s, i) => { sum[s] += t[i]; cnt[s]++; });
+    }
+    return STRATS.map((s, i) => ({ i, name: s.name, score: cnt[i] ? sum[i] / cnt[i] : 0 }));
+  }
+
+  // ---------- SVG helpers ----------
+  const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); if (parent) parent.appendChild(e); return e; };
+  const text = (parent, x, y, s, attrs = {}) => { const t = el("text", { x, y, ...attrs }, parent); t.textContent = s; return t; };
+  function niceTicks(lo, hi, count = 5) {
+    if (lo === hi) { lo -= 1; hi += 1; }
+    const raw = (hi - lo) / count, mag = 10 ** Math.floor(Math.log10(raw));
+    const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= raw);
+    const start = Math.floor(lo / step) * step, end = Math.ceil(hi / step) * step;
+    const ticks = []; for (let v = start; v <= end + step / 2; v += step) ticks.push(+v.toFixed(10));
+    return ticks;
+  }
+  const fmt = v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(Math.round(v * 10) / 10).toLocaleString();
+  const fmtPlain = v => (v < 0 ? "−" : "") + Math.abs(Math.round(v * 10) / 10).toLocaleString();
+  function typesetMath() {
+    const mj = window.MathJax;
+    if (mj && mj.startup && mj.startup.promise) mj.startup.promise.then(() => mj.typesetPromise()).catch(() => {});
+  }
+
+  // ---------- Verdict ----------
+  function analysis(r) {
+    return {
+      rows: Array.from({ length: r.teams }, (_, k) => { const [h, g] = stageRow(k, r); return { k, h, g }; }),
+      grabDom: grabDominant(r), honorDom: honorDominant(r),
+      normal: threshold(r, 1), bonus: threshold(r, r.multiplier),
+    };
+  }
+  function renderVerdict(a, r) {
+    const stage = a.honorDom ? "Honor" : a.grabDom ? "Grab every deal" : "It depends";
+    const stageNote = a.honorDom ? `With ${r.teams} teams the +${r.allHonor} all-honor reward makes honoring the better move whatever the rival does.`
+      : a.grabDom ? `Grabbing each deal beats honoring it whatever the rivals do, so everyone grabs and scores ${fmt(r.allGrab)}.`
+      : `The unanimity rules make the best reply depend on what the rivals do.`;
+    $("verdict").innerHTML = `
+      <div><span class="label">One round</span><span class="big">${stage}</span><span class="sub">${stageNote}</span></div>
+      <div><span class="label">Known number of rounds</span><span class="big">${a.honorDom ? "Honor" : "Grab every round"}</span><span class="sub">${a.honorDom ? "There is no dilemma to unravel." : "Backward induction from the last round unravels any cooperation."}</span></div>
+      <div><span class="label">Uncertain end</span><span class="big">Reciprocate, rival by rival</span><span class="sub">Honoring holds if the game continues with probability at least ${a.normal.need.toFixed(2)} (${a.bonus.need.toFixed(2)} on a bonus round). Grab in a round you know is the last.</span></div>`;
+  }
+
+  // ---------- Stage chart, dominance, welfare ----------
+  function renderStage(a, r) {
+    const svg = $("stage"); svg.replaceChildren();
+    const W = 480, Hh = 270, L = 46, Rr = 10, T = 12, B = 40;
+    const vals = a.rows.flatMap(x => [x.h, x.g, 0]);
+    const ticks = niceTicks(Math.min(...vals), Math.max(...vals));
+    const y = v => Hh - B - (v - ticks[0]) / (ticks[ticks.length - 1] - ticks[0]) * (Hh - T - B);
+    ticks.forEach(t => { el("line", { x1: L, x2: W - Rr, y1: y(t), y2: y(t), class: "gridline" }, svg); text(svg, L - 6, y(t) + 4, fmtPlain(t), { "text-anchor": "end" }); });
+    const band = (W - L - Rr) / a.rows.length, bw = Math.min(26, band * 0.32);
+    a.rows.forEach((x, i) => {
+      const cx = L + band * (i + 0.5);
+      [[x.h, "var(--honor)", -1], [x.g, "var(--grab)", 1]].forEach(([v, c, side]) => {
+        const x0 = cx + (side < 0 ? -bw - 2 : 2);
+        el("rect", { x: x0, y: Math.min(y(v), y(0)), width: bw, height: Math.max(1, Math.abs(y(v) - y(0))), style: `fill:${c}` }, svg);
+        text(svg, x0 + bw / 2, v >= 0 ? y(v) - 4 : y(v) + 12, fmtPlain(v), { "text-anchor": "middle", style: `fill:${c}; font-weight:600` });
+      });
+      text(svg, cx, Hh - B + 18, x.k, { "text-anchor": "middle" });
+    });
+    el("line", { x1: L, x2: W - Rr, y1: y(0), y2: y(0), class: "axis" }, svg);
+    text(svg, W - Rr, Hh - 4, "rivals honoring you", { "text-anchor": "end" });
+
+    const top = a.rows[a.rows.length - 1];
+    $("stage-text").innerHTML = a.honorDom
+      ? `With ${r.teams} teams the unanimity rules flip the dilemma: honoring is better whatever the rival does.`
+      : `Added up over a round, grabbing everyone beats honoring everyone in every column. If all rivals honor you, honoring them all earns ${fmt(top.h)} but grabbing them all earns ${fmt(top.g)}. ${a.grabDom ? `So in a single round everyone grabs everyone, and the matrix lands on ${fmt(r.allGrab)} each, against ${fmt(r.allHonor)} had every decision been honor.` : `The unanimity rules leave a corner case where grabbing everything is not quite best, shown in the strip below.`}`;
+
+    const dom = $("dom"); dom.replaceChildren();
+    for (let n = 2; n <= 8; n++) {
+      const rn = { ...r, teams: n };
+      const st = grabDominant(rn) ? ["Grab dominant", "var(--grab)"] : honorDominant(rn) ? ["Honor dominant", "var(--honor)"] : ["Depends", "var(--bonus)"];
+      const d = document.createElement("div");
+      if (n === r.teams) d.className = "cur";
+      d.innerHTML = `<span class="n">${n} teams</span><span class="t" style="color:${st[1]}">${st[0]}</span>`;
+      d.title = n === 3 && st[0] === "Depends" ? "Against two total grabbers, honoring exactly one of them scores better than the all-grab penalty." : "";
+      dom.appendChild(d);
+    }
+
+    const wsvg = $("welfare"); wsvg.replaceChildren();
+    const totals = Array.from({ length: r.teams + 1 }, (_, g) => {
+      const m = Array.from({ length: r.teams }, (_, i) => Array.from({ length: r.teams }, (_, j) => i === j ? null : i < g ? G : H));
+      return roundScores(m, r, false).reduce((s, v) => s + v, 0);
+    });
+    const W2 = 900, H2 = 200, L2 = 52, B2 = 34, T2 = 18;
+    const t2 = niceTicks(Math.min(0, ...totals), Math.max(0, ...totals), 4);
+    const y2 = v => H2 - B2 - (v - t2[0]) / (t2[t2.length - 1] - t2[0]) * (H2 - T2 - B2);
+    t2.forEach(t => { el("line", { x1: L2, x2: W2 - 10, y1: y2(t), y2: y2(t), class: "gridline" }, wsvg); text(wsvg, L2 - 6, y2(t) + 4, fmtPlain(t), { "text-anchor": "end" }); });
+    const band2 = (W2 - L2 - 10) / totals.length, best = Math.max(...totals);
+    totals.forEach((v, g) => {
+      const cx = L2 + band2 * (g + 0.5), bw2 = Math.min(60, band2 * 0.5);
+      el("rect", { x: cx - bw2 / 2, y: Math.min(y2(v), y2(0)), width: bw2, height: Math.max(1, Math.abs(y2(v) - y2(0))), style: `fill:${v === best ? "var(--honor)" : v < 0 ? "var(--grab)" : "var(--rule)"}` }, wsvg);
+      text(wsvg, cx, v >= 0 ? y2(v) - 5 : y2(v) + 13, fmtPlain(v), { "text-anchor": "middle", style: "fill: var(--ink); font-weight: 600" });
+      text(wsvg, cx, H2 - B2 + 18, `${g} of ${r.teams}`, { "text-anchor": "middle" });
+    });
+    el("line", { x1: L2, x2: W2 - 10, y1: y2(0), y2: y2(0), class: "axis" }, wsvg);
+    const tied = totals.map((v, g) => v === best ? g : -1).filter(g => g >= 0);
+    $("welfare-note").textContent = tied.length > 1
+      ? `The table as a whole does best with ${tied.join(" or ")} teams grabbing everyone (${fmtPlain(best)} points). A lone grabber takes points from the honorers without shrinking the total, which is why the temptation is so strong.`
+      : `The table as a whole does best with ${tied[0]} team${tied[0] === 1 ? "" : "s"} grabbing everyone (${fmtPlain(best)} points). Every extra grabber shrinks the total.`;
+  }
+
+  // ---------- Shadow chart ----------
+  function renderShadow(a, r) {
+    const svg = $("shadow"); svg.replaceChildren();
+    const W = 480, Hh = 280, L = 44, Rr = 14, T = 14, B = 40;
+    const x = q => L + q * (W - L - Rr), y = d => Hh - B - d * (Hh - T - B);
+    [0, 0.25, 0.5, 0.75, 1].forEach(t => { el("line", { x1: L, x2: W - Rr, y1: y(t), y2: y(t), class: "gridline" }, svg); text(svg, L - 6, y(t) + 4, t.toFixed(2), { "text-anchor": "end" }); text(svg, x(t), Hh - B + 18, t.toFixed(2), { "text-anchor": "middle" }); });
+    el("line", { x1: L, x2: W - Rr, y1: y(0), y2: y(0), class: "axis" }, svg);
+    text(svg, W - Rr, Hh - 4, "bonus chance per round", { "text-anchor": "end" });
+    [[1, "var(--ink)"], [r.multiplier, "var(--bonus)"]].forEach(([M, c]) => {
+      let d = ""; for (let i = 0; i <= 50; i++) { const q = i / 50; d += (i ? "L" : "M") + x(q).toFixed(1) + " " + y(threshold({ ...r, bonusChance: q }, M).need).toFixed(1); }
+      el("path", { d, fill: "none", "stroke-width": 2.2, style: `stroke:${c}` }, svg);
+      const now = threshold(r, M).need;
+      el("circle", { cx: x(r.bonusChance), cy: y(now), r: 5, style: `fill:${c}; stroke: var(--box)`, "stroke-width": 2 }, svg);
+      text(svg, x(r.bonusChance) + 8, y(now) - 8, now.toFixed(2), { style: `fill:${c}; font-weight:600` });
+    });
+    el("line", { x1: x(r.bonusChance), x2: x(r.bonusChance), y1: T, y2: Hh - B, "stroke-dasharray": "3 3", style: "stroke: var(--muted)" }, svg);
+
+    const t = a.normal, k = t.k;
+    $("shadow-text").innerHTML = k === null
+      ? `With these rules no grab beats full cooperation, so honoring is stable at any \\(\\delta\\).`
+      : `The most tempting move is to grab <b>${k === 1 ? "just one rival" : k + " rivals"}</b> while honoring the rest. That gains ${fmtPlain(t.gain)} over the all-honor ${fmt(r.allHonor)} this round, then costs ${fmtPlain(t.loss)} in every later round once ${k === 1 ? "that rival grabs" : "they grab"} you back. Future rounds average a ×${t.E.toFixed(2)} multiplier, so honoring is stable when $$\\delta \\ge \\frac{M \\times ${fmtPlain(t.gain)}}{M \\times ${fmtPlain(t.gain)} + ${t.E.toFixed(2)} \\times ${fmtPlain(t.loss)}}$$ where \\(M\\) is this round's multiplier. That gives <b>${a.normal.need.toFixed(2)}</b> on a normal round and <b>${a.bonus.need.toFixed(2)}</b> on a bonus round.${k === 1 && r.teams > 2 ? ` Grabbing a single rival is more tempting than grabbing everyone because it breaks the +${r.allHonor} rule without provoking the whole table.` : ""}`;
+    typesetMath();
+  }
+
+  // ---------- Tournament ----------
+  function renderStrategyList() {
+    $("strategy-list").innerHTML = STRATS.map(s => `<div><b><i style="display:inline-block;width:10px;height:10px;margin-right:6px;background:${s.color}"></i>${s.name}</b><span>${s.desc}</span></div>`).join("");
+  }
+  function renderTournament(r) {
+    const rng = freshRng();
+    const groupsCount = multisets(r.teams, STRATS.length).length;
+    const res = tournament(r, 20, 600, rng).sort((p, q) => q.score - p.score);
+    const max = Math.max(...res.map(x => Math.abs(x.score)), 1);
+    $("ladder").innerHTML = `<thead><tr><th>#</th><th>Strategy</th><th>Score</th><th style="width:38%"></th></tr></thead><tbody>` +
+      res.map((x, k) => `<tr><td>${k + 1}</td><td class="name">${x.name}</td><td>${fmtPlain(x.score)}</td><td><span class="bar" style="width:${Math.abs(x.score) / max * 100}%; background:${x.score >= 0 ? STRATS[x.i].color : "var(--grab-soft)"}"></span></td></tr>`).join("") + "</tbody>";
+    $("ladder-note").textContent = `${Math.min(groupsCount, 600).toLocaleString()} line-ups${groupsCount > 600 ? ` sampled from ${groupsCount.toLocaleString()}` : ""} × 20 games each, ${r.rounds} round${r.rounds === 1 ? "" : "s"} per game.`;
+    return res;
+  }
+  const LENGTH_STRATS = [1, 2, 6, 5, 0];
+  function renderLength(r) {
+    const svg = $("length"); svg.replaceChildren();
+    const ms = [1, 2, 3, 5, 8, 12, 20, 30];
+    const rng = freshRng();
+    const data = ms.map(m => { const res = tournament({ ...r, rounds: m }, 4, 200, rng); return LENGTH_STRATS.map(i => res[i].score / m); });
+    const W = 480, Hh = 300, L = 44, Rr = 14, T = 14, B = 40;
+    const lx = m => L + Math.log(m) / Math.log(30) * (W - L - Rr);
+    const all = data.flat();
+    const ticks = niceTicks(Math.min(...all, 0), Math.max(...all), 5);
+    const y = v => Hh - B - (v - ticks[0]) / (ticks[ticks.length - 1] - ticks[0]) * (Hh - T - B);
+    ticks.forEach(t => { el("line", { x1: L, x2: W - Rr, y1: y(t), y2: y(t), class: "gridline" }, svg); text(svg, L - 6, y(t) + 4, fmtPlain(t), { "text-anchor": "end" }); });
+    ms.forEach(m => text(svg, lx(m), Hh - B + 18, m, { "text-anchor": "middle" }));
+    el("line", { x1: L, x2: W - Rr, y1: y(0), y2: y(0), class: "axis" }, svg);
+    text(svg, W - Rr, Hh - 4, "rounds per game (log scale)", { "text-anchor": "end" });
+    LENGTH_STRATS.forEach((si, j) => {
+      let d = ""; ms.forEach((m, k) => d += (k ? "L" : "M") + lx(m).toFixed(1) + " " + y(data[k][j]).toFixed(1));
+      el("path", { d, fill: "none", "stroke-width": 2, style: `stroke:${STRATS[si].color}` }, svg);
+      ms.forEach((m, k) => el("circle", { cx: lx(m), cy: y(data[k][j]), r: 3, style: `fill:${STRATS[si].color}` }, svg));
+    });
+    $("length-legend").innerHTML = LENGTH_STRATS.map(i => `<span><i style="background:${STRATS[i].color}"></i>${STRATS[i].name}</span>`).join("");
+  }
+
+  // ---------- Evolution ----------
+  function renderEvolution(r) {
+    const svg = $("evolution"); svg.replaceChildren();
+    const rng = freshRng();
+    const GENS = 40, SAMPLES = 60;
+    let x = STRATS.map(() => 1 / STRATS.length);
+    const hist = [x.slice()];
+    const draw = () => { let u = rng(), acc = 0; for (let i = 0; i < x.length; i++) { acc += x[i]; if (u <= acc) return i; } return x.length - 1; };
+    for (let g = 0; g < GENS; g++) {
+      const fit = STRATS.map((_, s) => {
+        if (x[s] < 1e-4) return 0;
+        let tot = 0;
+        for (let k = 0; k < SAMPLES; k++) { const group = [s]; for (let j = 1; j < r.teams; j++) group.push(draw()); tot += playGame(group, r, rng)[0]; }
+        return tot / SAMPLES;
+      });
+      const live = fit.filter((_, s) => x[s] >= 1e-4);
+      const lo = Math.min(...live), span = Math.max(...live) - lo || 1;
+      const w = x.map((xi, s) => xi < 1e-4 ? 0 : xi * (1 + 1.5 * (fit[s] - lo) / span));
+      const sum = w.reduce((p, q) => p + q, 0);
+      x = w.map(v => v / sum);
+      hist.push(x.slice());
+    }
+    const W = 900, Hh = 300, L = 44, Rr = 140, T = 10, B = 34;
+    const gx = g => L + g / GENS * (W - L - Rr), gy = v => Hh - B - v * (Hh - T - B);
+    const cum = hist.map(row => { let acc = 0; return row.map(v => (acc += v)); });
+    STRATS.forEach((s, i) => {
+      let d = "";
+      cum.forEach((row, g) => d += (g ? "L" : "M") + gx(g).toFixed(1) + " " + gy(row[i]).toFixed(1));
+      for (let g = GENS; g >= 0; g--) d += "L" + gx(g).toFixed(1) + " " + gy(i ? cum[g][i - 1] : 0).toFixed(1);
+      el("path", { d: d + "Z", style: `fill:${s.color}`, "fill-opacity": 0.9 }, svg);
+    });
+    [0, 0.25, 0.5, 0.75, 1].forEach(t => text(svg, L - 6, gy(t) + 4, `${t * 100}%`, { "text-anchor": "end" }));
+    [0, 10, 20, 30, 40].forEach(g => text(svg, gx(g), Hh - B + 18, g, { "text-anchor": "middle" }));
+    text(svg, gx(GENS), Hh - 2, "generation", { "text-anchor": "end" });
+    const final = hist[hist.length - 1];
+    let lastY = -Infinity;
+    final.map((v, i) => ({ v, i, mid: (i ? cum[GENS][i - 1] : 0) + v / 2 })).filter(o => o.v > 0.04).sort((p, q) => q.mid - p.mid).forEach(({ v, i, mid }) => {
+      const ly = Math.max(gy(mid) + 4, lastY + 13); lastY = ly;
+      text(svg, gx(GENS) + 8, ly, `${STRATS[i].name} ${(v * 100).toFixed(0)}%`, { style: `fill:${STRATS[i].color}; font-weight:600` });
+    });
+    $("evo-legend").innerHTML = STRATS.map(s => `<span><i style="background:${s.color}"></i>${s.name}</span>`).join("");
+    const order = final.map((v, i) => [v, i]).sort((p, q) => q[0] - p[0]);
+    $("evo-note").textContent = `After ${GENS} generations: ${order.filter(([v]) => v > 0.04).map(([v, i]) => `${STRATS[i].name} ${(v * 100).toFixed(0)}%`).join(", ")}.`;
+    return order;
+  }
+
+  function renderFindings(a, r, ladder, evo) {
+    const top = ladder[0].name, evoTop = STRATS[evo[0][1]].name;
+    const rankOf = name => ladder.findIndex(x => x.name === name) + 1;
+    const items = [];
+    if (a.honorDom) items.push(`<b>With ${r.teams} teams, just honor.</b> The all-honor reward outweighs the gain from grabbing, so there is no dilemma.`);
+    else items.push(`<b>In a one-off round, or one you know is the last, grab.</b> Each deal is a prisoner's dilemma, so a one-off round ends with every decision grab and everyone on ${fmt(r.allGrab)}.`);
+    items.push(`<b>Treat each rival separately.</b> Per-rival decisions let you keep cooperating with teams that honor you while punishing the one that grabbed. That is why reciprocal strategies score well: the tournament winner here is <b>${top}</b>, and evolution is led by <b>${evoTop}</b>.`);
+    items.push(`<b>The real temptation is grabbing one rival, not everyone.</b> It gains the most per unit of retaliation. Honoring holds only if the game is at least ${a.normal.need.toFixed(2)} likely to continue, and ${a.bonus.need.toFixed(2)} on a ×${r.multiplier} bonus round. Expect grabs on bonus rounds.`);
+    items.push(`<b>Grab in the final round.</b> Nothing follows it, so no rival can punish you. The endgame defector exploits this and ranks #${rankOf("Endgame defector")} of 8.`);
+    items.push(`<b>Never grab everyone, every round.</b> Always grab ranks #${rankOf("Always grab")} of 8. Reciprocators all turn on it, while it gains nothing from them. Always honor ranks #${rankOf("Always honor")}: generous, but easily exploited.`);
+    $("findings").innerHTML = items.map(s => `<li>${s}</li>`).join("");
+  }
+
+  // ---------- Live game ----------
+  const DEFAULT_OPP = [2, 1, 5, 6, 3, 4, 0];
+  let game, view = null;
+  function newGame() {
+    const rng = freshRng();
+    const prev = game ? game.opp : [];
+    const opp = Array.from({ length: R.teams - 1 }, (_, i) => prev[i] ?? DEFAULT_OPP[i % DEFAULT_OPP.length]);
+    game = { rng, opp, mine: Array.from({ length: R.teams }, (_, j) => j === 0 ? null : H), bonuses: Array.from({ length: R.rounds }, () => rng() < R.bonusChance), hist: [], scores: [] };
+    view = null;
+    renderRivals();
+    renderGame();
+  }
+  function renderRivals() {
+    const box = $("rivals"); box.replaceChildren();
+    game.opp.forEach((s, i) => {
+      const j = i + 1, row = document.createElement("div"); row.className = "rival";
+      row.innerHTML = `<span class="name">Team ${TEAM[j]}</span>
+        <select id="opp-${i}" aria-label="Strategy of Team ${TEAM[j]}">${STRATS.map((st, k) => `<option value="${k}"${k === s ? " selected" : ""}>${st.name}</option>`).join("")}</select>
+        <span class="toggle" role="group" aria-label="Your decision toward Team ${TEAM[j]}">
+          <button type="button" class="th" id="dec-${j}-h" aria-pressed="${game.mine[j] === H}">Honor</button><button type="button" class="tg" id="dec-${j}-g" aria-pressed="${game.mine[j] === G}">Grab</button>
+        </span>`;
+      row.querySelector("select").addEventListener("change", e => { game.opp[i] = Number(e.target.value); renderRace(); });
+      row.querySelector(`#dec-${j}-h`).addEventListener("click", () => setMine(j, H));
+      row.querySelector(`#dec-${j}-g`).addEventListener("click", () => setMine(j, G));
+      box.appendChild(row);
+    });
+  }
+  function setMine(j, c) {
+    game.mine[j] = c;
+    $(`dec-${j}-h`).setAttribute("aria-pressed", String(c === H));
+    $(`dec-${j}-g`).setAttribute("aria-pressed", String(c === G));
+    if (view === null) renderMatrix();
+  }
+  function playRound() {
+    const rnd = game.hist.length;
+    if (rnd >= R.rounds) return;
+    const bonus = game.bonuses[rnd], n = R.teams;
+    const m = [game.mine.slice(), ...game.opp.map((s, i) => decideRow(s, i + 1, n, game.hist, bonus, rnd, R, game.rng))];
+    game.hist.push({ m, bonus });
+    game.scores.push(roundScores(m, R, bonus));
+    view = rnd;
+    renderGame();
+  }
+  function renderGame() {
+    const rnd = game.hist.length, done = rnd >= R.rounds, n = R.teams;
+    $("round-title").textContent = done ? "Game over" : `Round ${rnd + 1} of ${R.rounds}`;
+    $("round-pill").innerHTML = done ? "" : game.bonuses[rnd] ? `<span class="pill bonus">Bonus ×${R.multiplier}</span>` : `<span class="pill normal">Normal round</span>`;
+    $("btn-play").textContent = done ? "Game over" : `Play round ${rnd + 1}`;
+    $("btn-play").disabled = done;
+    const totals = Array.from({ length: n }, (_, i) => game.scores.reduce((s, r) => s + r[i], 0));
+    if (done) {
+      const best = Math.max(...totals), winners = totals.map((t, i) => t === best ? TEAM[i] : null).filter(Boolean);
+      $("round-note").textContent = `Winner: Team ${winners.join(" & ")}. Start a new game to play again.`;
+    } else $("round-note").textContent = rnd ? `Your total so far: ${fmt(totals[0])}` : "Rivals decide at the same moment you do.";
+
+    // round tabs
+    const tabs = $("round-tabs"); tabs.replaceChildren();
+    const mk = (label, v, bonus) => { const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.setAttribute("aria-pressed", String(view === v)); if (bonus) b.classList.add("bonus-tab"); b.addEventListener("click", () => { view = v; renderMatrix(); renderTabsState(); }); tabs.appendChild(b); };
+    game.hist.forEach((h, k) => mk(`R${k + 1}`, k, h.bonus));
+    if (!done) mk("Next", null, game.bonuses[rnd]);
+    renderMatrix();
+
+    let html = `<thead><tr><th>Round</th>${Array.from({ length: n }, (_, i) => `<th${i ? "" : ' class="you"'}>${i ? TEAM[i] : "You"}</th>`).join("")}</tr></thead><tbody>`;
+    for (let k = 0; k < R.rounds; k++) {
+      const played = k < rnd;
+      html += `<tr class="${played && game.bonuses[k] ? "bonus-row" : ""}"><td>${k + 1}${played && game.bonuses[k] ? ` ×${R.multiplier}` : ""}</td>` +
+        Array.from({ length: n }, (_, i) => `<td${i ? "" : ' class="you"'}>${played ? fmt(game.scores[k][i]) : `<span style="color:var(--rule)">·</span>`}</td>`).join("") + "</tr>";
+    }
+    html += `</tbody><tfoot><tr><td>Total</td>${totals.map((t, i) => `<td${i ? "" : ' class="you"'}>${fmt(t)}</td>`).join("")}</tr></tfoot>`;
+    $("board").innerHTML = html;
+    renderRace();
+  }
+  function renderTabsState() {
+    [...$("round-tabs").children].forEach((b, k) => b.setAttribute("aria-pressed", String(k < game.hist.length ? view === k : view === null)));
+  }
+  function renderMatrix() {
+    const n = R.teams, pending = view === null;
+    const h = pending ? null : game.hist[view];
+    const scores = pending ? null : game.scores[view];
+    const f = h && h.bonus ? R.multiplier : 1;
+    const u = h ? unanimity(h.m) : null;
+    $("matrix-title").textContent = pending ? `Round ${game.hist.length + 1}: your decisions so far` : `Round ${view + 1} decision matrix${h.bonus ? ` · bonus ×${R.multiplier}` : ""}`;
+    $("override-note").textContent = u === H ? `Every decision was honor, so the +${R.allHonor} rule replaced the sums.` : u === G ? `Every decision was grab, so the ${R.allGrab} rule replaced the sums.` : "";
+    let html = `<tr><th class="corner">from ↓<br>toward →</th>${Array.from({ length: n }, (_, j) => `<th>${TEAM[j]}</th>`).join("")}<th>${pending ? "" : "Score"}</th></tr>`;
+    for (let i = 0; i < n; i++) {
+      html += `<tr class="${i === 0 ? "you" : ""}"><th>${i === 0 ? "You A" : TEAM[i]}</th>`;
+      for (let j = 0; j < n; j++) {
+        if (i === j) { html += `<td class="self" aria-label="no deal with itself"></td>`; continue; }
+        if (pending) {
+          if (i === 0) html += `<td class="${game.mine[j]}"><span class="d">${game.mine[j]}</span><span class="p">you</span></td>`;
+          else html += `<td class="unknown"><span class="d">?</span></td>`;
+          continue;
+        }
+        const c = h.m[i][j], p = u ? null : pair(c, h.m[j][i], R) * f;
+        html += `<td class="${c}" title="Team ${TEAM[i]} ${c === H ? "honors" : "grabs"} Team ${TEAM[j]}"><span class="d">${c}</span><span class="p">${p === null ? "·" : fmt(p)}</span></td>`;
+      }
+      html += pending ? "<td></td></tr>" : `<td class="total">${fmt(scores[i])}</td></tr>`;
+    }
+    $("matrix").innerHTML = html;
+  }
+  const TEAM_COLORS = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)", "var(--s5)", "var(--s6)", "var(--s7)", "var(--s8)"];
+  function renderRace() {
+    const svg = $("race"); svg.replaceChildren();
+    const n = R.teams, m = R.rounds;
+    const W = 480, Hh = 280, L = 46, Rr = 64, T = 14, B = 34;
+    const cum = Array.from({ length: n }, (_, i) => { let acc = 0; return [0, ...game.scores.map(r => (acc += r[i]))]; });
+    const vals = cum.flat();
+    const ticks = niceTicks(Math.min(0, ...vals, R.allGrab * Math.min(m, 3)), Math.max(0, ...vals, R.allHonor * Math.min(m, 3)), 5);
+    const x = k => L + k / m * (W - L - Rr), y = v => Hh - B - (v - ticks[0]) / (ticks[ticks.length - 1] - ticks[0]) * (Hh - T - B);
+    game.bonuses.forEach((b, k) => { if (b && k < game.hist.length) el("rect", { x: x(k), y: T, width: x(k + 1) - x(k), height: Hh - T - B, style: "fill: var(--bonus-soft)" }, svg); });
+    ticks.forEach(t => { el("line", { x1: L, x2: W - Rr, y1: y(t), y2: y(t), class: "gridline" }, svg); text(svg, L - 6, y(t) + 4, fmtPlain(t), { "text-anchor": "end" }); });
+    for (let k = 0; k <= m; k++) if (m <= 12 || k % 5 === 0) text(svg, x(k), Hh - B + 18, k, { "text-anchor": "middle" });
+    el("line", { x1: L, x2: W - Rr, y1: y(0), y2: y(0), class: "axis" }, svg);
+    text(svg, W - Rr, Hh - 2, "after round", { "text-anchor": "end" });
+    cum.forEach((series, i) => {
+      if (series.length < 2) return;
+      let d = ""; series.forEach((v, k) => d += (k ? "L" : "M") + x(k).toFixed(1) + " " + y(v).toFixed(1));
+      el("path", { d, fill: "none", "stroke-width": i ? 2 : 3.2, style: `stroke:${TEAM_COLORS[i]}` }, svg);
+      el("circle", { cx: x(series.length - 1), cy: y(series[series.length - 1]), r: 4, style: `fill:${TEAM_COLORS[i]}` }, svg);
+    });
+    if (game.hist.length) {
+      const ends = cum.map((s, i) => ({ i, v: s[s.length - 1] })).sort((p, q) => q.v - p.v);
+      let lastY = -Infinity;
+      ends.forEach(({ i, v }) => { const ly = Math.max(y(v) + 4, lastY + 13); lastY = ly; text(svg, x(game.hist.length) + 8, ly, `${TEAM[i]} ${fmt(v)}`, { style: `fill:${TEAM_COLORS[i]}; font-weight:600` }); });
+    } else text(svg, (L + W - Rr) / 2, y(0) - 10, "Play round 1 to start the race", { "text-anchor": "middle" });
+    $("race-legend").innerHTML = Array.from({ length: n }, (_, i) => `<span><i style="background:${TEAM_COLORS[i]}"></i>${i ? TEAM[i] + " · " + STRATS[game.opp[i - 1]].name : "You (A)"}</span>`).join("");
+  }
+
+  // ---------- Wiring ----------
+  $("btn-play").addEventListener("click", playRound);
+  $("btn-new").addEventListener("click", newGame);
+  $("all-h").addEventListener("click", () => { for (let j = 1; j < R.teams; j++) setMine(j, H); });
+  $("all-g").addEventListener("click", () => { for (let j = 1; j < R.teams; j++) setMine(j, G); });
+
+  let ladder, evo;
+  function renderAnalysis() {
+    const a = analysis(R);
+    renderVerdict(a, R);
+    renderStage(a, R);
+    renderShadow(a, R);
+    ladder = renderTournament(R);
+    renderLength(R);
+    evo = renderEvolution(R);
+    renderFindings(a, R, ladder, evo);
+  }
+  $("btn-tourney").addEventListener("click", () => { ladder = renderTournament(R); renderFindings(analysis(R), R, ladder, evo); });
+  $("btn-evolve").addEventListener("click", () => { evo = renderEvolution(R); renderFindings(analysis(R), R, ladder, evo); });
+  let pending;
+  document.querySelectorAll(".settings input").forEach(inp => inp.addEventListener("change", () => {
+    clearTimeout(pending);
+    pending = setTimeout(() => { R = readRules(); game = null; newGame(); renderAnalysis(); }, 60);
+  }));
+
+  renderStrategyList();
+  newGame();
+  renderAnalysis();
+})();
+</script>
