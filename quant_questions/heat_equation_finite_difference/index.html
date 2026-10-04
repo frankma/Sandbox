@@ -1,37 +1,38 @@
 <title>Heat-Equation Finite Difference</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
 <script>
   window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]] }, svg: { fontCache: "global" } };
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
 <style>
-  /* Layout: lab-notebook column of prose; figures break out wider, each a framed plate on graph-paper ground. */
+  /* Layout: financial-newspaper column on salmon paper; figures as boxed exhibits with hairline rules. */
   :root {
-    --paper: #f5f7f8;
-    --plate: #ffffff;
-    --ink: #172026;
-    --muted: #56656d;
-    --rule: #d3dce0;
-    --grid: #e7edf0;
-    --ember: #c2401a;
-    --frost: #2b6c8c;
-    --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
-    --font-body: "Source Serif 4", "Iowan Old Style", Georgia, serif;
-    --font-data: "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+    --paper: #fff1e5;
+    --plate: #fff7f0;
+    --ink: #33302e;
+    --muted: #66605c;
+    --rule: #ccc1b7;
+    --grid: #ecdccd;
+    --ember: #990f3d;
+    --frost: #0f5499;
+    --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --font-data: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
+    --font-label: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --paper: #0f1518; --plate: #161e22; --ink: #e2e9ec; --muted: #94a3aa;
-      --rule: #2a363c; --grid: #1f292e; --ember: #ff7d50; --frost: #73b6d8;
+      --paper: #1f1b19; --plate: #292421; --ink: #f2e6dc; --muted: #b3a69b;
+      --rule: #4a423c; --grid: #352f2b; --ember: #ef7a9c; --frost: #7fb2e8;
     }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --paper: #0f1518; --plate: #161e22; --ink: #e2e9ec; --muted: #94a3aa;
-    --rule: #2a363c; --grid: #1f292e; --ember: #ff7d50; --frost: #73b6d8;
+      --paper: #1f1b19; --plate: #292421; --ink: #f2e6dc; --muted: #b3a69b;
+      --rule: #4a423c; --grid: #352f2b; --ember: #ef7a9c; --frost: #7fb2e8;
   }
 
   body {
@@ -46,14 +47,14 @@
   section, header { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
   mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
   h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.12; }
-  h1 { font-size: clamp(2.1rem, 5vw, 3.3rem); font-weight: 700; letter-spacing: -0.02em; }
-  h2 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.01em; }
+  h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 600; letter-spacing: -0.01em; }
+  h2 { font-size: 1.65rem; font-weight: 600; border-top: 4px solid var(--ink); padding-top: 10px; }
   h3 { font-size: 1.05rem; font-weight: 500; }
   p { margin: 0; }
   .prose > * + * { margin-top: 0.9em; }
   .label {
-    font: 600 0.72rem/1 var(--font-data);
-    text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted);
+    font: 600 0.74rem/1 var(--font-label);
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--ember);
   }
   .mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
   a { color: var(--frost); }
@@ -70,7 +71,7 @@
   .plate {
     background: var(--plate);
     border: 1px solid var(--rule);
-    border-radius: 4px;
+    border-radius: 0;
     padding: 20px;
     display: grid; gap: 16px;
   }
@@ -414,7 +415,7 @@
   const F = { w: 640, h: 330, l: 52, r: 96, t: 10, b: 40 };
   const fx = t => F.l + t * (F.w - F.l - F.r);
   const fy = x => F.h - F.b - x * (F.h - F.t - F.b);
-  const RAMP = [[0, [35, 33, 74]], [0.25, [107, 42, 110]], [0.5, [194, 64, 26]], [0.75, [242, 158, 76]], [1, [251, 231, 161]]];
+  const RAMP = [[0, [15, 84, 153]], [0.3, [13, 118, 128]], [0.55, [242, 223, 206]], [0.8, [255, 136, 51]], [1, [153, 15, 61]]];
   function heat(u) {
     u = Math.max(0, Math.min(1, u));
     for (let k = 1; k < RAMP.length; k++) {
@@ -439,7 +440,7 @@
   for (const x of [0, 0.5, 1]) txt(field, F.l - 8, fy(x) + 4, x, { "text-anchor": "end" });
   txt(field, F.w - F.r, F.h - 4, "t", { "text-anchor": "end" });
   txt(field, F.l - 30, F.t + 10, "x", { "text-anchor": "middle" });
-  const fieldMarker = el("line", { y1: F.t, y2: F.h - F.b, "stroke-width": 1.5, "stroke-dasharray": "4 3", stroke: "#ffffff", "stroke-opacity": 0.85 }, field);
+  const fieldMarker = el("line", { y1: F.t, y2: F.h - F.b, "stroke-width": 1.5, "stroke-dasharray": "4 3", stroke: "#33302e", "stroke-opacity": 0.9 }, field);
   // colour bar
   const bx = F.w - F.r + 26, bw = 14;
   for (let k = 0; k < 50; k++) {

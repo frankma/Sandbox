@@ -1,45 +1,46 @@
 <title>Binomial Tree Betting Scheme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Libre+Franklin:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
 <script>
   window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]] }, svg: { fontCache: "global" } };
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
 <style>
-  /* Layout: a scorebook. Ruled columns of prose, the betting lattice as the centre spread, ledger and odds panels beside it. */
+  /* Layout: financial-newspaper column on salmon paper; lattice as the centre exhibit, ledger and odds as boxed sidebars. */
   :root {
-    --field: #f2f4f1;
-    --card: #ffffff;
-    --ink: #17201b;
-    --muted: #5b675f;
-    --line: #d4dbd5;
-    --grass: #1d6a45;
-    --grass-soft: #dcebe2;
-    --brick: #a6402c;
-    --brick-soft: #f3dfd9;
-    --chalk: #e5ebe6;
-    --font-display: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", sans-serif;
-    --font-body: "Libre Franklin", "Franklin Gothic Book", "Helvetica Neue", Arial, sans-serif;
+    --field: #fff1e5;
+    --card: #fff7f0;
+    --ink: #33302e;
+    --muted: #66605c;
+    --line: #ccc1b7;
+    --grass: #0d7680;
+    --grass-soft: #d4e7e3;
+    --brick: #990f3d;
+    --brick-soft: #f4d6db;
+    --chalk: #f2dfce;
+    --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+    --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
     --font-data: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
+    --font-label: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       color-scheme: dark;
-      --field: #101512; --card: #171e1a; --ink: #e3eae5; --muted: #95a39a; --line: #2b3630;
-      --grass: #5cc28e; --grass-soft: #1d3a2b; --brick: #f08a72; --brick-soft: #43251e; --chalk: #222b26;
+      --field: #1f1b19; --card: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c;
+      --grass: #5fc3c9; --grass-soft: #1d3a3c; --brick: #ef7a9c; --brick-soft: #4a2130; --chalk: #352f2b;
     }
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --field: #101512; --card: #171e1a; --ink: #e3eae5; --muted: #95a39a; --line: #2b3630;
-    --grass: #5cc28e; --grass-soft: #1d3a2b; --brick: #f08a72; --brick-soft: #43251e; --chalk: #222b26;
+      --field: #1f1b19; --card: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c;
+      --grass: #5fc3c9; --grass-soft: #1d3a3c; --brick: #ef7a9c; --brick-soft: #4a2130; --chalk: #352f2b;
   }
 
   body {
     background: var(--field);
     color: var(--ink);
-    font: 400 1rem/1.65 var(--font-body);
+    font: 400 1.0625rem/1.65 var(--font-body);
     padding-inline: 20px;
     padding-block: 44px 72px;
   }
@@ -48,10 +49,10 @@
   .prose { max-width: 64ch; }
   .prose > * + * { margin-top: 0.85em; }
   p { margin: 0; }
-  h1, h2 { font-family: var(--font-display); text-transform: uppercase; margin: 0; text-wrap: balance; line-height: 1; }
-  h1 { font-size: clamp(2.6rem, 7vw, 4.4rem); font-weight: 700; letter-spacing: 0.01em; }
-  h2 { font-size: 1.9rem; font-weight: 600; letter-spacing: 0.02em; }
-  .label { font: 600 0.72rem/1.2 var(--font-data); text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); }
+  h1, h2 { font-family: var(--font-display); margin: 0; text-wrap: balance; line-height: 1.1; }
+  h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 600; letter-spacing: -0.01em; }
+  h2 { font-size: 1.65rem; font-weight: 600; border-top: 4px solid var(--ink); padding-top: 10px; }
+  .label { font: 600 0.74rem/1.2 var(--font-label); text-transform: uppercase; letter-spacing: 0.08em; color: var(--brick); }
   .mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
   a { color: var(--grass); }
   mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
@@ -60,11 +61,11 @@
     display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 28px; align-items: end;
     border-block: 3px double var(--ink); padding-block: 18px;
   }
-  .verdict .bet { grid-row: span 2; font: 700 clamp(3.4rem, 11vw, 6rem)/0.9 var(--font-display); color: var(--grass); font-variant-numeric: tabular-nums; }
+  .verdict .bet { grid-row: span 2; font: 600 clamp(3.2rem, 10vw, 5.4rem)/0.95 var(--font-display); color: var(--grass); font-variant-numeric: tabular-nums; }
   .verdict p { color: var(--muted); max-width: 52ch; }
   @media (max-width: 520px) { .verdict { grid-template-columns: 1fr; } .verdict .bet { grid-row: auto; } }
 
-  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 3px; padding: 18px; display: grid; gap: 14px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 0; padding: 18px; display: grid; gap: 14px; }
   .spread { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
   @media (max-width: 900px) { .spread { grid-template-columns: 1fr; } }
   .scroll { overflow-x: auto; }
@@ -72,7 +73,7 @@
 
   .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   button {
-    font: 600 0.95rem/1 var(--font-display); text-transform: uppercase; letter-spacing: 0.06em;
+    font: 600 0.85rem/1 var(--font-label); letter-spacing: 0.02em;
     padding: 10px 14px; border-radius: 3px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer;
   }
   button:hover:not(:disabled) { border-color: var(--ink); }
@@ -94,7 +95,7 @@
   .ledger .w { color: var(--grass); font-weight: 600; }
   .ledger .l { color: var(--brick); font-weight: 600; }
   .ledger tfoot td { font-weight: 600; border-bottom: 0; border-top: 2px solid var(--ink); }
-  .status { font: 600 1.25rem/1.1 var(--font-display); text-transform: uppercase; letter-spacing: 0.04em; }
+  .status { font: 600 1.2rem/1.25 var(--font-display); }
 
   .grid-card { display: grid; grid-template-columns: auto repeat(4, minmax(0, 1fr)); gap: 4px; font: 400 0.9rem/1 var(--font-data); font-variant-numeric: tabular-nums; max-width: 460px; }
   .grid-card .h { color: var(--muted); font-size: 0.72rem; display: grid; place-items: center; padding: 6px; }
