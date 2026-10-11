@@ -36,6 +36,7 @@
   }
 
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body {
     background: var(--paper); color: var(--ink); margin: 0;
     font: 400 1rem/1.55 var(--font-display);
@@ -56,7 +57,8 @@
   .layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
   @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
 
-  .board-wrap { display: grid; justify-items: center; min-width: 0; }
+  .board-wrap { display: grid; justify-items: center; gap: 12px; min-width: 0; }
+  .nojs { border: 1px solid var(--reveal); color: var(--reveal); background: var(--box); padding: 12px 14px; font: 400 0.95rem/1.5 var(--font-label); max-width: 46ch; }
   .board {
     position: relative; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
     background: var(--box); border: 1px solid var(--rule); padding: 6px;
@@ -132,6 +134,7 @@
 
   <div class="layout">
     <div class="board-wrap" id="board-wrap">
+      <p class="nojs" id="nojs"><b>The game is not running.</b> This screen is probably a preview that does not run the game. On iPhone or iPad, tap Share, then Open in Safari (or another browser).</p>
       <div class="board" id="board">
         <div class="cells" id="cells" role="grid" aria-label="Letter grid"></div>
         <svg class="overlay" id="overlay" aria-hidden="true"></svg>
@@ -322,6 +325,7 @@
   }
 
   function start() {
+    $("nojs").hidden = true;
     drag = null; anchor = null;
     $("title-word").textContent = S.word;
     document.title = "Finding " + S.word;
@@ -567,8 +571,14 @@
     render();
   });
 
+  // refit the grid whenever the space around it changes (rotation, split view, late font loads)
   let rz;
-  window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(sizeBoard, 80); });
+  const refit = () => { clearTimeout(rz); rz = setTimeout(sizeBoard, 60); };
+  window.addEventListener("resize", refit);
+  window.addEventListener("orientationchange", refit);
+  window.addEventListener("load", refit);
+  if (window.ResizeObserver) new ResizeObserver(refit).observe($("board-wrap"));
+  document.fonts?.ready?.then(refit);
 
   // keep the current puzzle when the page is updated while open
   window.claude?.hot?.snapshot?.(() => S && { ...S, found: [...S.found] });
