@@ -1,9 +1,10 @@
 import logging
+from pathlib import Path
 
 import numpy as np
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, request, send_file
 
-from sudoku.generator import DIFFICULTY_GIVENS, generate
+from sudoku.generator import generate
 from sudoku.solver import SudokuSolver
 from sudoku.sudoku import Sudoku
 
@@ -12,6 +13,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 RANK = 3
+PAGE = Path(__file__).with_name('index.html')  # self-contained page; also opens directly as a file
 
 
 def _sudoku_from_payload(payload) -> Sudoku:
@@ -21,7 +23,7 @@ def _sudoku_from_payload(payload) -> Sudoku:
 
 @app.route('/')
 def index():
-    return render_template('index.html', difficulties=list(DIFFICULTY_GIVENS.keys()), rank=RANK)
+    return send_file(PAGE)
 
 
 @app.route('/api/new', methods=['POST'])
