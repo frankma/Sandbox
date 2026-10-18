@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sudoku</title>
+<style>
+    :root {
+        --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+        --sans: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+        --mono: ui-monospace, Menlo, Consolas, monospace;
+
+        --paper: #fff1e5;
+        --paper-deep: #f2dfce;
+        --cell: #fff8f1;
+        --given-bg: #f6e3d2;
+        --ink: #33302e;
+        --ink-soft: #5f5a56;
+        --muted: #8c847e;
+        --rule: #d9c8b9;
+        --rule-strong: #33302e;
+        --claret: #990f3d;
+        --teal: #0d7680;
+        --on-teal: #fff1e5;
+        --single-bg: rgba(13, 118, 128, 0.15);
+        --trial-bg: rgba(204, 133, 0, 0.22);
+        --hint-bg: rgba(15, 84, 153, 0.16);
+        --conflict-bg: rgba(204, 0, 0, 0.14);
+        --conflict-ink: #b3001b;
+        --shadow: rgba(51, 48, 46, 0.18);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --paper: #211e1b;
+            --paper-deep: #2c2825;
+            --cell: #282420;
+            --given-bg: #322d29;
+            --ink: #f2e5d7;
+            --ink-soft: #cdbfb2;
+            --muted: #9a8f86;
+            --rule: #4a433d;
+            --rule-strong: #e6d6c6;
+            --claret: #e8668f;
+            --teal: #45b8c1;
+            --on-teal: #1b1816;
+            --single-bg: rgba(69, 184, 193, 0.2);
+            --trial-bg: rgba(230, 160, 40, 0.24);
+            --hint-bg: rgba(111, 163, 224, 0.24);
+            --conflict-bg: rgba(240, 80, 80, 0.24);
+            --conflict-ink: #ff9a9a;
+            --shadow: rgba(0, 0, 0, 0.45);
+        }
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: var(--serif);
+    }
+
+    .page {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 28px 16px 40px;
+    }
+
+    .kicker {
+        font: 600 11px/1.2 var(--sans);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--claret);
+    }
+
+    h1 {
+        margin: 6px 0 6px;
+        font-weight: 400;
+        font-size: 42px;
+        line-height: 1.05;
+        letter-spacing: -0.01em;
+    }
+
+    .standfirst {
+        margin: 0 0 18px;
+        font-size: 17px;
+        line-height: 1.4;
+        color: var(--ink-soft);
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(9, 1fr);
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        background: var(--cell);
+        border: 2px solid var(--rule-strong);
+    }
+
+    .cell {
+        display: flex;
+        border-right: 1px solid var(--rule);
+        border-bottom: 1px solid var(--rule);
+        min-width: 0;
+    }
+
+    .cell.block-right { border-right: 2px solid var(--rule-strong); }
+    .cell.block-bottom { border-bottom: 2px solid var(--rule-strong); }
+    .cell.last-col { border-right: 0; }
+    .cell.last-row { border-bottom: 0; }
+
+    .cell input {
+        display: block;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: var(--teal);
+        text-align: center;
+        font: 500 clamp(18px, 5.4vw, 26px)/1 var(--sans);
+        font-variant-numeric: tabular-nums;
+        caret-color: transparent;
+        outline: none;
+        cursor: pointer;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+
+    .cell input:focus { box-shadow: inset 0 0 0 2px var(--claret); }
+
+    .cell.given { background: var(--given-bg); }
+    .cell.given input { color: var(--ink); font-weight: 700; cursor: default; }
+
+    .cell.fill-single { background: var(--single-bg); }
+    .cell.fill-trial { background: var(--trial-bg); }
+    .cell.fill-hint { background: var(--hint-bg); }
+    .cell.conflict { background: var(--conflict-bg); }
+    .cell.conflict input { color: var(--conflict-ink); }
+
+    .status {
+        min-height: 22px;
+        margin: 12px 0;
+        font: 14px/1.5 var(--sans);
+        color: var(--ink-soft);
+    }
+
+    .controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 12px;
+        padding: 12px 0;
+        border-top: 1px solid var(--rule);
+        border-bottom: 1px solid var(--rule);
+    }
+
+    .group { display: flex; align-items: center; gap: 8px; }
+
+    button, select {
+        font: 600 14px/1 var(--sans);
+        padding: 9px 14px;
+        border: 1px solid var(--ink);
+        border-radius: 2px;
+        background: transparent;
+        color: var(--ink);
+        cursor: pointer;
+    }
+
+    select { padding-right: 10px; }
+
+    button:hover:not(:disabled), select:hover:not(:disabled) { background: var(--paper-deep); }
+
+    button.primary {
+        background: var(--teal);
+        border-color: var(--teal);
+        color: var(--on-teal);
+    }
+
+    button.primary:hover:not(:disabled) { background: var(--teal); filter: brightness(1.08); }
+
+    button:disabled, select:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .speed {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font: 600 11px/1 var(--sans);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+
+    .speed input { width: 96px; accent-color: var(--teal); }
+
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 16px;
+        margin-top: 14px;
+        font: 12px/1.4 var(--sans);
+        color: var(--ink-soft);
+    }
+
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+    .swatch {
+        width: 12px;
+        height: 12px;
+        border: 1px solid var(--rule);
+        display: inline-block;
+    }
+
+    .swatch.given { background: var(--given-bg); }
+    .swatch.user { background: var(--teal); border-color: var(--teal); }
+    .swatch.single { background: var(--single-bg); }
+    .swatch.trial { background: var(--trial-bg); }
+    .swatch.hint { background: var(--hint-bg); }
+    .swatch.conflict { background: var(--conflict-bg); }
+
+    .engine {
+        margin-top: 20px;
+        padding-top: 10px;
+        border-top: 1px solid var(--rule);
+        font: 11px/1.5 var(--mono);
+        color: var(--muted);
+    }
+
+    .candidate-tooltip {
+        position: fixed;
+        z-index: 10;
+        display: none;
+        grid-template-columns: repeat(3, 22px);
+        grid-template-rows: repeat(3, 22px);
+        gap: 2px;
+        padding: 6px;
+        background: var(--paper);
+        border: 1px solid var(--rule-strong);
+        box-shadow: 0 6px 16px var(--shadow);
+        pointer-events: none;
+    }
+
+    .candidate-tooltip.visible { display: grid; }
+
+    .candidate-tooltip .digit {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font: 12px/1 var(--sans);
+        font-variant-numeric: tabular-nums;
+    }
+
+    .candidate-tooltip .digit.active { color: var(--teal); background: var(--single-bg); font-weight: 700; }
+    .candidate-tooltip .digit.inactive { color: var(--muted); opacity: 0.35; }
+</style>
+</head>
+<body>
+<main class="page">
+    <div class="kicker">Puzzles</div>
+    <h1>Sudoku</h1>
+    <p class="standfirst">Fill every row, column and box with 1–9. Hover an empty square to see which digits still fit.</p>
+
+    <div id="grid" class="grid" aria-label="Sudoku grid"></div>
+
+    <div id="status" class="status" role="status"></div>
+
+    <div class="controls">
+        <div class="group">
+            <select id="difficulty" aria-label="Difficulty">
+                <option value="easy">Easy</option>
+                <option value="medium" selected>Medium</option>
+                <option value="hard">Hard</option>
+                <option value="expert">Expert</option>
+            </select>
+            <button id="new-btn" class="primary">New puzzle</button>
+        </div>
+        <div class="group">
+            <button id="solve-btn">Solve step-by-step</button>
+            <label class="speed">Speed
+                <input type="range" id="speed" min="10" max="500" value="390">
+            </label>
+        </div>
+        <div class="group">
+            <button id="hint-btn">Hint</button>
+            <button id="reset-btn">Reset</button>
+        </div>
+    </div>
+
+    <div class="legend">
+        <span><i class="swatch given"></i>Given</span>
+        <span><i class="swatch user"></i>Your entry</span>
+        <span><i class="swatch single"></i>Logical fill</span>
+        <span><i class="swatch trial"></i>Guessed fill</span>
+        <span><i class="swatch hint"></i>Hint</span>
+        <span><i class="swatch conflict"></i>Conflict</span>
+    </div>
+
+    <div id="engine" class="engine"></div>
+</main>
+
+<script>
+// Engine: a JavaScript port of sudoku/generator.py and sudoku/solver.py (LOGICAL method),
+// used when the page is opened as a plain file. When served by sudoku/webapp/app.py,
+// the page calls the Python solver through the /api endpoints instead.
+const SudokuEngine = (function () {
+    const RANK = 3;
+    const SIZE = RANK * RANK;
+    const CELLS = SIZE * SIZE;
+    const DIFFICULTY_GIVENS = { easy: 40, medium: 32, hard: 28, expert: 24 };
+
+    const UNITS = [];
+    const PEERS = [];
+    for (let r = 0; r < SIZE; r++) UNITS.push(Array.from({ length: SIZE }, (_, c) => r * SIZE + c));
+    for (let c = 0; c < SIZE; c++) UNITS.push(Array.from({ length: SIZE }, (_, r) => r * SIZE + c));
+    for (let br = 0; br < RANK; br++) {
+        for (let bc = 0; bc < RANK; bc++) {
+            const unit = [];
+            for (let dr = 0; dr < RANK; dr++) {
+                for (let dc = 0; dc < RANK; dc++) unit.push((br * RANK + dr) * SIZE + bc * RANK + dc);
+            }
+            UNITS.push(unit);
+        }
+    }
+    for (let i = 0; i < CELLS; i++) {
+        const peers = new Set();
+        for (const unit of UNITS) {
+            if (unit.includes(i)) unit.forEach(j => { if (j !== i) peers.add(j); });
+        }
+        PEERS.push([...peers]);
+    }
+
+    function scanCandidates(grid, i) {
+        if (grid[i]) return [];
+        const used = new Set();
+        for (const p of PEERS[i]) if (grid[p]) used.add(grid[p]);
+        const out = [];
+        for (let v = 1; v <= SIZE; v++) if (!used.has(v)) out.push(v);
+        return out;
+    }
+
+    function isValid(grid) {
+        for (const unit of UNITS) {
+            const seen = new Set();
+            for (const i of unit) {
+                const v = grid[i];
+                if (!v) continue;
+                if (seen.has(v)) return false;
+                seen.add(v);
+            }
+        }
+        return true;
+    }
+
+    // Mirrors SudokuSolver.__init__: candidates for every empty cell, empty sets dropped.
+    function makeState(grid) {
+        const g = grid.slice();
+        const cand = new Map();
+        let unfilled = 0;
+        for (let i = 0; i < CELLS; i++) {
+            if (g[i]) continue;
+            unfilled += 1;
+            const c = scanCandidates(g, i);
+            if (c.length) cand.set(i, c);
+        }
+        return { grid: g, cand, unfilled };
+    }
+
+    function cloneState(s) {
+        const cand = new Map();
+        for (const [k, v] of s.cand) cand.set(k, v.slice());
+        return { grid: s.grid.slice(), cand, unfilled: s.unfilled };
+    }
+
+    function isFulfilled(s) {
+        return s.unfilled === 0 && isValid(s.grid);
+    }
+
+    // Mirrors Sudoku.fill_coord: fill, roll back if it breaks a row/column/block.
+    function fillCell(s, i, v) {
+        const prev = s.grid[i];
+        s.grid[i] = v;
+        for (const p of PEERS[i]) {
+            if (s.grid[p] === v) {
+                s.grid[i] = prev;
+                return false;
+            }
+        }
+        s.unfilled -= 1;
+        return true;
+    }
+
+    // Mirrors SudokuSolver.fill_coordinates.
+    function fillCoordinates(s, entries) {
+        let allFilled = true;
+        const refresh = new Map();
+        for (const [i, v] of entries) {
+            const ok = fillCell(s, i, v);
+            allFilled = allFilled && ok;
+            for (const p of PEERS[i]) {
+                if (s.grid[p]) continue;
+                if (!refresh.has(p)) refresh.set(p, new Set());
+                refresh.get(p).add(v);
+            }
+        }
+        const next = new Map();
+        for (const [k, values] of s.cand) {
+            const remove = refresh.get(k);
+            const kept = remove ? values.filter(v => !remove.has(v)) : values;
+            if (kept.length) next.set(k, kept);
+        }
+        s.cand = next;
+        return allFilled;
+    }
+
+    // Mirrors auto_reduction / auto_reduction_steps.
+    function autoReduction(s, steps) {
+        for (;;) {
+            const forced = [];
+            for (const [k, values] of s.cand) if (values.length === 1) forced.push([k, values[0]]);
+            if (!forced.length) return;
+            for (const [k] of forced) s.cand.delete(k);
+            if (steps) for (const [k, v] of forced) steps.push([k, v, 'single']);
+            fillCoordinates(s, forced);
+        }
+    }
+
+    function minCoord(s) {
+        let best = -1;
+        let bestLen = Infinity;
+        for (const [k, values] of s.cand) {
+            if (values.length < bestLen) {
+                best = k;
+                bestLen = values.length;
+            }
+        }
+        return best;
+    }
+
+    // Mirrors trial_fill_steps: returns only the successful branch's steps.
+    function trialFillSteps(s) {
+        const steps = [];
+        autoReduction(s, steps);
+        if (isFulfilled(s)) return { ok: true, steps, state: s };
+        if (!s.cand.size) return { ok: false };
+        const coord = minCoord(s);
+        const values = s.cand.get(coord);
+        s.cand.delete(coord);
+        for (const v of values) {
+            const branch = cloneState(s);
+            fillCoordinates(branch, [[coord, v]]);
+            const branchSteps = [];
+            autoReduction(branch, branchSteps);
+            if (branch.unfilled > branch.cand.size) continue;
+            let tail = [];
+            let final = branch;
+            if (!isFulfilled(branch)) {
+                const sub = trialFillSteps(branch);
+                if (!sub.ok) continue;
+                tail = sub.steps;
+                final = sub.state;
+            }
+            return { ok: true, steps: steps.concat([[coord, v, 'trial']], branchSteps, tail), state: final };
+        }
+        return { ok: false };
+    }
+
+    function solveSteps(grid) {
+        const result = trialFillSteps(makeState(grid));
+        if (!result.ok) return { solved: false, steps: [] };
+        return {
+            solved: isFulfilled(result.state),
+            steps: result.steps.map(([i, value, technique]) => ({
+                row: Math.floor(i / SIZE), col: i % SIZE, value, technique,
+            })),
+        };
+    }
+
+    // Mirrors SudokuSolver.hint.
+    function hint(grid) {
+        const s = makeState(grid);
+        if (isFulfilled(s)) return null;
+        for (const [k, values] of s.cand) {
+            if (values.length === 1) {
+                return { row: Math.floor(k / SIZE), col: k % SIZE, value: values[0], technique: 'single' };
+            }
+        }
+        if (!s.cand.size) return null;
+        const solved = trialFillSteps(cloneState(s));
+        if (!solved.ok || !isFulfilled(solved.state)) return null;
+        const k = minCoord(s);
+        return { row: Math.floor(k / SIZE), col: k % SIZE, value: solved.state.grid[k], technique: 'trial' };
+    }
+
+    function shuffle(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    // Mirrors generator._fill_randomly.
+    function fillRandomly(grid) {
+        const i = grid.indexOf(0);
+        if (i < 0) return true;
+        for (const v of shuffle(scanCandidates(grid, i))) {
+            grid[i] = v;
+            if (fillRandomly(grid)) return true;
+            grid[i] = 0;
+        }
+        return false;
+    }
+
+    // Mirrors generator._count_solutions / _count_rec.
+    function countSolutions(grid, limit = 2) {
+        const counter = { n: 0 };
+        countRec(makeState(grid), limit, counter);
+        return counter.n;
+    }
+
+    function countRec(s, limit, counter) {
+        if (counter.n >= limit) return;
+        autoReduction(s, null);
+        if (s.unfilled > s.cand.size) return;
+        if (isFulfilled(s)) {
+            counter.n += 1;
+            return;
+        }
+        if (!s.cand.size) return;
+        const coord = minCoord(s);
+        const values = s.cand.get(coord);
+        s.cand.delete(coord);
+        for (const v of values) {
+            if (counter.n >= limit) return;
+            const branch = cloneState(s);
+            if (fillCoordinates(branch, [[coord, v]])) countRec(branch, limit, counter);
+        }
+    }
+
+    // Mirrors generator.generate.
+    function generate(difficulty = 'medium') {
+        const puzzle = new Array(CELLS).fill(0);
+        fillRandomly(puzzle);
+        const target = Math.min(DIFFICULTY_GIVENS[difficulty] || 32, CELLS);
+        let givens = CELLS;
+        for (const i of shuffle([...Array(CELLS).keys()])) {
+            if (givens <= target) break;
+            const backup = puzzle[i];
+            puzzle[i] = 0;
+            if (countSolutions(puzzle, 2) === 1) givens -= 1;
+            else puzzle[i] = backup;
+        }
+        return puzzle;
+    }
+
+    return { SIZE, RANK, generate, solveSteps, hint, countSolutions, isValid };
+})();
+
+(function () {
+    const { SIZE, RANK } = SudokuEngine;
+    const gridEl = document.getElementById('grid');
+    const statusEl = document.getElementById('status');
+    const engineEl = document.getElementById('engine');
+    const newBtn = document.getElementById('new-btn');
+    const solveBtn = document.getElementById('solve-btn');
+    const hintBtn = document.getElementById('hint-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const difficultySel = document.getElementById('difficulty');
+    const speedSlider = document.getElementById('speed');
+
+    let givenGrid = emptyGrid();
+    let currentGrid = emptyGrid();
+    let inputs = [];
+    let busy = false;
+
+    function emptyGrid() {
+        return Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+    }
+
+    const flatten = grid => grid.flat();
+    const unflatten = flat => Array.from({ length: SIZE }, (_, r) => flat.slice(r * SIZE, (r + 1) * SIZE));
+
+    // ---- engine selection: Python API when served by Flask, in-page port otherwise ----
+
+    class ApiUnavailable extends Error {}
+
+    let useApi = location.protocol === 'http:' || location.protocol === 'https:';
+
+    async function postJSON(url, body) {
+        let res;
+        try {
+            res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+        } catch (err) {
+            throw new ApiUnavailable(err.message);
+        }
+        if (res.status === 404 || res.status === 405) throw new ApiUnavailable(`HTTP ${res.status}`);
+        let data;
+        try {
+            data = await res.json();
+        } catch (err) {
+            throw new ApiUnavailable('response was not JSON');
+        }
+        if (!res.ok) throw new Error(data.error || 'request failed');
+        return data;
+    }
+
+    const apiEngine = {
+        async newPuzzle(difficulty) {
+            return (await postJSON('/api/new', { difficulty })).grid;
+        },
+        async solveSteps(grid) {
+            const data = await postJSON('/api/solve_steps', { grid });
+            return { solved: data.solved, steps: data.steps };
+        },
+        async hint(grid) {
+            return (await postJSON('/api/hint', { grid })).hint;
+        },
+    };
+
+    const localEngine = {
+        newPuzzle: difficulty => unflatten(SudokuEngine.generate(difficulty)),
+        solveSteps: grid => SudokuEngine.solveSteps(flatten(grid)),
+        hint: grid => SudokuEngine.hint(flatten(grid)),
+    };
+
+    const nextFrame = () => new Promise(resolve => setTimeout(resolve, 20));
+
+    async function runEngine(method, arg) {
+        if (useApi) {
+            try {
+                return await apiEngine[method](arg);
+            } catch (err) {
+                if (!(err instanceof ApiUnavailable)) throw err;
+                useApi = false;
+                showEngine();
+            }
+        }
+        await nextFrame();  // let the status line paint before the synchronous work
+        return localEngine[method](arg);
+    }
+
+    function showEngine() {
+        engineEl.textContent = useApi
+            ? 'Solver: sudoku/solver.py (Python, via the local Flask server)'
+            : 'Solver: in-page JavaScript port of sudoku/solver.py — no server needed';
+    }
+
+    // ---- candidate tooltip ----
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'candidate-tooltip';
+    for (let d = 1; d <= SIZE; d++) {
+        const span = document.createElement('span');
+        span.className = 'digit';
+        span.textContent = String(d);
+        span.dataset.digit = String(d);
+        tooltip.appendChild(span);
+    }
+    document.body.appendChild(tooltip);
+
+    function computeCandidates(grid, r, c) {
+        if (grid[r][c]) return [];
+        const used = new Set();
+        for (let i = 0; i < SIZE; i++) {
+            if (grid[r][i]) used.add(grid[r][i]);
+            if (grid[i][c]) used.add(grid[i][c]);
+        }
+        const br = Math.floor(r / RANK) * RANK, bc = Math.floor(c / RANK) * RANK;
+        for (let dr = 0; dr < RANK; dr++) {
+            for (let dc = 0; dc < RANK; dc++) {
+                const v = grid[br + dr][bc + dc];
+                if (v) used.add(v);
+            }
+        }
+        const candidates = [];
+        for (let v = 1; v <= SIZE; v++) if (!used.has(v)) candidates.push(v);
+        return candidates;
+    }
+
+    function showCandidates(r, c, cellEl) {
+        if (busy || givenGrid[r][c] || currentGrid[r][c]) {
+            hideCandidates();
+            return;
+        }
+        const candidates = computeCandidates(currentGrid, r, c);
+        tooltip.querySelectorAll('.digit').forEach(span => {
+            const d = Number(span.dataset.digit);
+            span.className = 'digit ' + (candidates.includes(d) ? 'active' : 'inactive');
+        });
+        tooltip.classList.add('visible');
+        const rect = cellEl.getBoundingClientRect();
+        const tw = tooltip.offsetWidth || 86;
+        const left = window.innerWidth - rect.right > tw + 12 ? rect.right + 6 : rect.left - tw - 6;
+        tooltip.style.left = `${Math.max(4, left)}px`;
+        tooltip.style.top = `${Math.max(4, rect.top - 6)}px`;
+    }
+
+    function hideCandidates() {
+        tooltip.classList.remove('visible');
+    }
+
+    // ---- grid ----
+
+    function buildGrid() {
+        gridEl.innerHTML = '';
+        inputs = [];
+        for (let r = 0; r < SIZE; r++) {
+            const row = [];
+            for (let c = 0; c < SIZE; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                if ((c + 1) % RANK === 0) cell.classList.add('block-right');
+                if ((r + 1) % RANK === 0) cell.classList.add('block-bottom');
+                if (c === SIZE - 1) cell.classList.add('last-col');
+                if (r === SIZE - 1) cell.classList.add('last-row');
+
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.inputMode = 'numeric';
+                input.maxLength = 1;
+                input.autocomplete = 'off';
+                input.setAttribute('aria-label', `Row ${r + 1}, column ${c + 1}`);
+                input.dataset.row = r;
+                input.dataset.col = c;
+                input.addEventListener('input', onCellInput);
+                input.addEventListener('keydown', onCellKeydown);
+
+                cell.addEventListener('mouseenter', () => showCandidates(r, c, cell));
+                cell.addEventListener('mouseleave', hideCandidates);
+
+                cell.appendChild(input);
+                gridEl.appendChild(cell);
+                row.push({ cell, input });
+            }
+            inputs.push(row);
+        }
+    }
+
+    function onCellKeydown(e) {
+        const r = Number(e.target.dataset.row);
+        const c = Number(e.target.dataset.col);
+        const move = (dr, dc) => {
+            const nr = r + dr, nc = c + dc;
+            if (nr >= 0 && nr < SIZE && nc >= 0 && nc < SIZE) inputs[nr][nc].input.focus();
+        };
+        if (e.key === 'ArrowUp') { e.preventDefault(); move(-1, 0); }
+        else if (e.key === 'ArrowDown') { e.preventDefault(); move(1, 0); }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); move(0, -1); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); move(0, 1); }
+        else if ((e.key === 'Backspace' || e.key === 'Delete') && !busy && !givenGrid[r][c]) {
+            currentGrid[r][c] = 0;
+            e.target.value = '';
+            inputs[r][c].cell.classList.remove('fill-single', 'fill-trial', 'fill-hint');
+            refreshConflicts();
+        }
+    }
+
+    function onCellInput(e) {
+        const r = Number(e.target.dataset.row);
+        const c = Number(e.target.dataset.col);
+        if (busy || givenGrid[r][c]) {
+            e.target.value = currentGrid[r][c] ? String(currentGrid[r][c]) : '';
+            return;
+        }
+        const digit = e.target.value.replace(/[^1-9]/g, '').slice(-1);
+        e.target.value = digit;
+        currentGrid[r][c] = digit ? Number(digit) : 0;
+        inputs[r][c].cell.classList.remove('fill-single', 'fill-trial', 'fill-hint');
+        hideCandidates();
+        refreshConflicts();
+    }
+
+    function render() {
+        for (let r = 0; r < SIZE; r++) {
+            for (let c = 0; c < SIZE; c++) {
+                const { cell, input } = inputs[r][c];
+                const isGiven = givenGrid[r][c] !== 0;
+                const value = currentGrid[r][c];
+                input.value = value ? String(value) : '';
+                input.readOnly = isGiven;
+                input.tabIndex = isGiven ? -1 : 0;
+                cell.classList.toggle('given', isGiven);
+                cell.classList.remove('fill-single', 'fill-trial', 'fill-hint');
+            }
+        }
+        refreshConflicts();
+    }
+
+    function refreshConflicts() {
+        const conflicted = new Set();
+        const groups = [];
+        for (let i = 0; i < SIZE; i++) {
+            groups.push(Array.from({ length: SIZE }, (_, c) => [i, c]));
+            groups.push(Array.from({ length: SIZE }, (_, r) => [r, i]));
+        }
+        for (let br = 0; br < RANK; br++) {
+            for (let bc = 0; bc < RANK; bc++) {
+                const block = [];
+                for (let r = br * RANK; r < br * RANK + RANK; r++) {
+                    for (let c = bc * RANK; c < bc * RANK + RANK; c++) block.push([r, c]);
+                }
+                groups.push(block);
+            }
+        }
+        for (const group of groups) {
+            const seen = new Map();
+            for (const [r, c] of group) {
+                const v = currentGrid[r][c];
+                if (!v) continue;
+                if (seen.has(v)) {
+                    conflicted.add(seen.get(v));
+                    conflicted.add(`${r},${c}`);
+                } else {
+                    seen.set(v, `${r},${c}`);
+                }
+            }
+        }
+        for (let r = 0; r < SIZE; r++) {
+            for (let c = 0; c < SIZE; c++) {
+                inputs[r][c].cell.classList.toggle('conflict', conflicted.has(`${r},${c}`));
+            }
+        }
+        return conflicted.size > 0;
+    }
+
+    function setStatus(text) { statusEl.textContent = text; }
+
+    function setBusy(value) {
+        busy = value;
+        [newBtn, solveBtn, hintBtn, resetBtn, difficultySel].forEach(el => { el.disabled = value; });
+        if (value) hideCandidates();
+    }
+
+    // ---- actions ----
+
+    async function newPuzzle() {
+        if (busy) return;
+        setBusy(true);
+        setStatus('Generating…');
+        try {
+            const grid = await runEngine('newPuzzle', difficultySel.value);
+            givenGrid = grid.map(row => row.slice());
+            currentGrid = grid.map(row => row.slice());
+            render();
+            const givens = flatten(givenGrid).filter(Boolean).length;
+            setStatus(`New ${difficultySel.value} puzzle — ${givens} givens, one unique solution.`);
+        } catch (err) {
+            setStatus(err.message);
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function solveStepByStep() {
+        if (busy) return;
+        if (refreshConflicts()) {
+            setStatus('Fix the highlighted conflicts before solving.');
+            return;
+        }
+        setBusy(true);
+        setStatus('Thinking…');
+        try {
+            const result = await runEngine('solveSteps', currentGrid);
+            if (!result.solved) {
+                setStatus('No solution exists from the current entries.');
+                return;
+            }
+            const guesses = result.steps.filter(s => s.technique === 'trial').length;
+            setStatus(`Filling ${result.steps.length} squares…`);
+            await animateSteps(result.steps);
+            setStatus(guesses
+                ? `Solved — ${result.steps.length} squares, ${guesses} needed a guess.`
+                : `Solved — ${result.steps.length} squares, all by pure logic.`);
+        } catch (err) {
+            setStatus(err.message);
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    function animateSteps(steps) {
+        return new Promise(resolve => {
+            let i = 0;
+            function step() {
+                if (i >= steps.length) { resolve(); return; }
+                const { row, col, value, technique } = steps[i];
+                currentGrid[row][col] = value;
+                const { cell, input } = inputs[row][col];
+                input.value = String(value);
+                cell.classList.remove('fill-single', 'fill-trial', 'fill-hint', 'conflict');
+                cell.classList.add(technique === 'trial' ? 'fill-trial' : 'fill-single');
+                i += 1;
+                // slider reads left = slow, right = fast; re-read each step so changes apply live
+                setTimeout(step, 510 - Number(speedSlider.value));
+            }
+            step();
+        });
+    }
+
+    async function hint() {
+        if (busy) return;
+        if (refreshConflicts()) {
+            setStatus('Fix the highlighted conflicts before asking for a hint.');
+            return;
+        }
+        setBusy(true);
+        setStatus('Looking for a hint…');
+        try {
+            const result = await runEngine('hint', currentGrid);
+            if (!result) {
+                setStatus('No hint available — the puzzle is solved or has no solution from here.');
+                return;
+            }
+            const { row, col, value, technique } = result;
+            currentGrid[row][col] = value;
+            const { cell, input } = inputs[row][col];
+            input.value = String(value);
+            cell.classList.add('fill-hint');
+            setStatus(technique === 'single'
+                ? `Hint: row ${row + 1}, column ${col + 1} can only be ${value}.`
+                : `Hint: row ${row + 1}, column ${col + 1} is ${value} — this one needed deeper search.`);
+        } catch (err) {
+            setStatus(err.message);
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    function reset() {
+        if (busy) return;
+        currentGrid = givenGrid.map(row => row.slice());
+        render();
+        setStatus('Reset to the original givens.');
+    }
+
+    newBtn.addEventListener('click', newPuzzle);
+    solveBtn.addEventListener('click', solveStepByStep);
+    hintBtn.addEventListener('click', hint);
+    resetBtn.addEventListener('click', reset);
+    window.addEventListener('scroll', hideCandidates, { passive: true });
+
+    showEngine();
+    buildGrid();
+    render();
+    newPuzzle();
+})();
+</script>
+</body>
+</html>
