@@ -1,4 +1,5 @@
 import time
+from pathlib import Path
 
 import streamlit as st
 
@@ -11,31 +12,48 @@ SIZE = RANK * RANK
 
 st.set_page_config(page_title='Sudoku', page_icon='🧩', layout='centered')
 
-CELL_COLORS = {
-    'given': '#cfd3dc',
-    'user': '#5b8def',
-    'single': 'rgba(63, 178, 127, 0.35)',
-    'trial': 'rgba(224, 168, 59, 0.35)',
-    'hint': 'rgba(216, 114, 216, 0.4)',
-    'conflict': 'rgba(224, 85, 63, 0.35)',
-}
+# paper-theme tokens only: its base rules (button, input, table, ...) would fight Streamlit's own widget styles
+PAPER_TOKENS = Path(__file__).with_name('theme').joinpath('paper.css').read_text().split('/* base */')[0]
+PAPER_TOKENS = '\n'.join(line for line in PAPER_TOKENS.splitlines() if line.strip())  # a blank line ends st.markdown's HTML block
+FONTS = ('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600'
+         '&family=IBM+Plex+Sans:wght@400;600&display=swap')
 
 st.markdown(
-    """
+    f"""
     <style>
-    .sdk-table { border-collapse: collapse; margin: 0 auto 8px auto; }
-    .sdk-table td {
-        width: 40px; height: 40px; text-align: center; vertical-align: middle;
-        font-size: 18px; font-weight: 600; border: 1px solid #3a3d47;
-    }
-    .sdk-table tr:nth-child(3n+1) td { border-top: 2px solid #cfd3dc; }
-    .sdk-table td:nth-child(3n+1) { border-left: 2px solid #cfd3dc; }
-    .sdk-table { border: 2px solid #cfd3dc; }
-    .sdk-table td[title] { cursor: help; }
+    @import url('{FONTS}');
+    {PAPER_TOKENS}
+    .sdk-table {{ border-collapse: collapse; margin: 0 auto 8px auto; border: 2px solid var(--ink); background: var(--surface); }}
+    .sdk-table td {{
+        width: 40px; height: 40px; padding: 0; text-align: center; vertical-align: middle;
+        font: 500 18px/1 var(--mono); font-variant-numeric: tabular-nums;
+        color: var(--oxford); background: var(--surface); border: 1px solid var(--line);
+    }}
+    .sdk-table tr:nth-child(3n+1) td {{ border-top: 2px solid var(--ink); }}
+    .sdk-table td:nth-child(3n+1) {{ border-left: 2px solid var(--ink); }}
+    .sdk-table td.given {{ background: var(--code); color: var(--ink); font-weight: 600; }}
+    .sdk-table td.fill-single {{ background: var(--teal-soft); }}
+    .sdk-table td.fill-trial {{ background: var(--mandarin-soft); }}
+    .sdk-table td.fill-hint {{ background: var(--oxford-soft); }}
+    .sdk-table td.conflict {{ background: var(--claret-soft); color: var(--claret); }}
+    .sdk-table td[title] {{ cursor: help; }}
+    .sdk-legend {{ display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px;
+                   font: 400 12px/1.4 var(--sans); color: var(--muted); margin-bottom: 8px; }}
+    .sdk-legend i {{ display: inline-block; width: 11px; height: 11px; margin-right: 5px; vertical-align: -1px;
+                     border: 1px solid var(--line); }}
     </style>
     """,
     unsafe_allow_html=True,
 )
+
+LEGEND = ('<div class="sdk-legend">'
+          '<span><i style="background:var(--code)"></i>Given</span>'
+          '<span><i style="background:var(--oxford);border-color:var(--oxford)"></i>Your entry</span>'
+          '<span><i style="background:var(--teal-soft)"></i>Logical fill</span>'
+          '<span><i style="background:var(--mandarin-soft)"></i>Guessed fill</span>'
+          '<span><i style="background:var(--oxford-soft)"></i>Hint</span>'
+          '<span><i style="background:var(--claret-soft)"></i>Conflict</span>'
+          '</div>')
 
 
 def _candidates(grid, r, c):
@@ -95,23 +113,24 @@ def _render_html(grid, given, conflicts, highlight) -> str:
         for c in range(SIZE):
             value = grid[r][c]
             text = str(value) if value else '&nbsp;'
+            classes = []
+            if given[r][c]:
+                classes.append('given')
             if (r, c) in conflicts:
-                color = CELL_COLORS['conflict']
+                classes.append('conflict')
             elif (r, c) in highlight:
-                color = CELL_COLORS[highlight[(r, c)]]
-            else:
-                color = 'transparent'
-            font_color = CELL_COLORS['given'] if given[r][c] else CELL_COLORS['user']
+                classes.append('fill-' + highlight[(r, c)])
+            class_attr = f' class="{" ".join(classes)}"' if classes else ''
             title_attr = ''
             if not value:
                 candidates = _candidates(grid, r, c)
                 label = ', '.join(str(v) for v in candidates) if candidates else 'none'
                 title_attr = f' title="Possible: {label}"'
             cells_html.append(
-                f'<td style="background:{color};color:{font_color}"{title_attr}>{text}</td>'
+                f'<td{class_attr}{title_attr}>{text}</td>'
             )
         rows_html.append('<tr>' + ''.join(cells_html) + '</tr>')
-    return '<table class="sdk-table">' + ''.join(rows_html) + '</table>'
+    return '<table class="sdk-table">' + ''.join(rows_html) + '</table>' + LEGEND
 
 
 if 'given' not in st.session_state:
