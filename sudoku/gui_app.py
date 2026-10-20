@@ -11,11 +11,11 @@ from sudoku.sudoku import Sudoku
 RANK = 3
 SIZE = RANK * RANK
 
-PAPER_CSS = Path(__file__).resolve().parents[1].joinpath('theme', 'paper.css')
+PAPER_CSS = Path(__file__).with_name('paper.css')
 
 
 def _paper_tokens() -> dict:
-    """The light :root token block of theme/paper.css (tkinter has no dark-mode switch, so light only)."""
+    """The light :root token block of paper.css (tkinter has no dark-mode switch, so light only)."""
     block = PAPER_CSS.read_text().split('@media')[0]
     return dict(re.findall(r'--([\w-]+):\s*([^;]+);', block))
 
