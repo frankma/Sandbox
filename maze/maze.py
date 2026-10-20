@@ -9,7 +9,7 @@ class Maze(object):
         self.length, self.width = np.shape(grid)
         self.start_coordinate = start_coordinate
         self.end_coordinate = end_coordinate
-        self.moves = zip([0, 1, 0, -1], [1, 0, -1, 0])  # East - South - West - North
+        self.moves = list(zip([0, 1, 0, -1], [1, 0, -1, 0]))  # East - South - West - North
         if not (self.check_coordinate(start_coordinate) and self.check_coordinate(end_coordinate)):
             raise ValueError('invalid start/end coordinate')
         pass

@@ -26,6 +26,13 @@ class TestMaze(TestCase):
         self.assertTrue(no_access_2.__len__() == 0)
         pass
 
+    def test_explore_neighbours_repeatable(self):
+        first = self.simple_maze.explore_neighbours((1, 2))
+        second = self.simple_maze.explore_neighbours((1, 2))
+        self.assertEqual(sorted(first), [(1, 1), (1, 3)])
+        self.assertEqual(first, second)
+        pass
+
     def test_display(self):
         self.simple_maze.display()
         pass

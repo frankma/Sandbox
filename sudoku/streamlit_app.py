@@ -1,7 +1,10 @@
+import sys
 import time
 from pathlib import Path
 
 import streamlit as st
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # `streamlit run` only puts this folder on the path
 
 from sudoku.generator import DIFFICULTY_GIVENS, generate
 from sudoku.solver import SudokuSolver
@@ -13,7 +16,7 @@ SIZE = RANK * RANK
 st.set_page_config(page_title='Sudoku', page_icon='🧩', layout='centered')
 
 # paper-theme tokens only: its base rules (button, input, table, ...) would fight Streamlit's own widget styles
-PAPER_TOKENS = Path(__file__).with_name('theme').joinpath('paper.css').read_text().split('/* base */')[0]
+PAPER_TOKENS = Path(__file__).with_name('paper.css').read_text().split('/* base */')[0]
 PAPER_TOKENS = '\n'.join(line for line in PAPER_TOKENS.splitlines() if line.strip())  # a blank line ends st.markdown's HTML block
 FONTS = ('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600'
          '&family=IBM+Plex+Sans:wght@400;600&display=swap')
