@@ -1,40 +1,119 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Binomial Tree Betting Scheme</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <script>
   window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]] }, svg: { fontCache: "global" } };
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
 <style>
   /* Layout: financial-newspaper column on salmon paper; lattice as the centre exhibit, ledger and odds as boxed sidebars. */
-  :root {
-    --field: #fff1e5;
-    --card: #fff7f0;
-    --ink: #33302e;
-    --muted: #66605c;
-    --line: #ccc1b7;
-    --grass: #0d7680;
-    --grass-soft: #d4e7e3;
-    --brick: #990f3d;
-    --brick-soft: #f4d6db;
-    --chalk: #f2dfce;
-    --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
-    --font-body: "Source Serif 4", Georgia, "Times New Roman", serif;
-    --font-data: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace;
-    --font-label: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      color-scheme: dark;
-      --field: #1f1b19; --card: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c;
-      --grass: #5fc3c9; --grass-soft: #1d3a3c; --brick: #ef7a9c; --brick-soft: #4a2130; --chalk: #352f2b;
-    }
-  }
-  :root[data-theme="dark"] {
+  /* paper-theme (theme.css from the skill, unchanged) */
+/* paper-theme: salmon-paper financial-newspaper house style.
+   Tokens first (light, then dark twice: OS preference unless the host forces light, and host-forced dark),
+   then base elements. Page-specific CSS goes after this block and uses only these tokens. */
+:root {
+  /* surfaces and ink */
+  --bg: #fff1e5;        /* paper */
+  --surface: #fff7f0;   /* boxed exhibits, inputs, tiles */
+  --ink: #33302e;
+  --muted: #66605c;
+  --line: #ccc1b7;      /* hairline rules and borders */
+  --grid: #ecdccd;      /* chart gridlines */
+  --axis: #a39a92;      /* chart axis lines */
+  --code: #f2dfce;      /* wheat: code, table stripes, empty cells */
+  /* named accents (UI, not chart series) */
+  --claret: #990f3d; --claret-soft: #f4d6db;
+  --oxford: #0f5499; --oxford-soft: #d6e2ef;
+  --teal: #0d7680;   --teal-soft: #d4e7e3;
+  --mandarin: #cc5a0a; --mandarin-soft: #ffe2c8;
+  /* roles */
+  --label: var(--claret);      /* eyebrows, kicker labels */
+  --link: var(--oxford);
+  --accent: var(--oxford);     /* highlight in diagrams, selected state */
+  --accent-soft: var(--oxford-soft);
+  --tail: var(--claret);       /* losses, breaches, the bad outcome */
+  --tail-soft: var(--claret-soft);
+  --hedge: var(--teal);        /* gains, offsets, the good outcome */
+  --hedge-soft: var(--teal-soft);
+  /* categorical chart slots, in this order; validated on --bg and --surface (CVD, contrast, lightness) */
+  --s1: #0f5499; --s2: #990f3d; --s3: #0a8f9c; --s4: #cc5a0a; --s5: #6f45ad; --s6: #008a4c;
+  /* status: reserved, always with an icon or a word */
+  --good: #0b7a3e; --warning: #b36b00; --critical: #c00000;
+  --good-ink: #0b6b36; --warning-ink: #8a5300; --critical-ink: #a30000;
+  /* type */
+  --display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --body: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --sans: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1f1b19; --surface: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c; --grid: #352f2b;
+    --axis: #6b625b; --code: #352f2b;
+    --claret: #ef7a9c; --claret-soft: #4a2130; --oxford: #7fb2e8; --oxford-soft: #1c2b3d;
+    --teal: #5fc3c9; --teal-soft: #1d3a3c; --mandarin: #ffa25c; --mandarin-soft: #4a3020;
+    --s1: #4f95e3; --s2: #c4456d; --s3: #22a3b2; --s4: #d9762a; --s5: #9b73d6; --s6: #3aad5c;
+    --good: #4cc27a; --warning: #e6a23c; --critical: #f0605a;
+    --good-ink: #4cc27a; --warning-ink: #e6a23c; --critical-ink: #f0605a;
     color-scheme: dark;
-      --field: #1f1b19; --card: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c;
-      --grass: #5fc3c9; --grass-soft: #1d3a3c; --brick: #ef7a9c; --brick-soft: #4a2130; --chalk: #352f2b;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1f1b19; --surface: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c; --grid: #352f2b;
+  --axis: #6b625b; --code: #352f2b;
+  --claret: #ef7a9c; --claret-soft: #4a2130; --oxford: #7fb2e8; --oxford-soft: #1c2b3d;
+  --teal: #5fc3c9; --teal-soft: #1d3a3c; --mandarin: #ffa25c; --mandarin-soft: #4a3020;
+  --s1: #4f95e3; --s2: #c4456d; --s3: #22a3b2; --s4: #d9762a; --s5: #9b73d6; --s6: #3aad5c;
+  --good: #4cc27a; --warning: #e6a23c; --critical: #f0605a;
+  --good-ink: #4cc27a; --warning-ink: #e6a23c; --critical-ink: #f0605a;
+  color-scheme: dark;
+}
+
+/* base */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--ink); font: 400 17px/1.6 var(--body); margin: 0; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(32px, 5vw, 48px); line-height: 1.08; letter-spacing: -0.01em; }
+h2 { font-size: 26px; line-height: 1.15; }
+h3 { font-size: 19px; line-height: 1.25; }
+p { margin: 0; }
+a { color: var(--link); }
+.eyebrow, .kicker { font: 600 12px/1.2 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--label); }
+.lede, .standfirst { font-size: 20px; line-height: 1.5; color: var(--muted); max-width: 60ch; }
+.rule-top { border-top: 4px solid var(--ink); padding-top: 10px; }
+code { font-family: var(--mono); font-size: 0.85em; background: var(--code); padding: 1px 5px; border-radius: 0; }
+pre { font-family: var(--mono); font-size: 13px; line-height: 1.55; background: var(--code); padding: 14px 16px; margin: 0; overflow-x: auto; }
+figure { margin: 0; }
+figcaption { font: 400 13.5px/1.5 var(--sans); color: var(--muted); }
+table { border-collapse: collapse; width: 100%; font: 400 14px/1.4 var(--sans); font-variant-numeric: tabular-nums; }
+th { font: 600 11.5px/1.2 var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+     text-align: left; padding: 7px 10px; border-bottom: 2px solid var(--ink); vertical-align: bottom; }
+td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.num, th.num { text-align: right; font-family: var(--mono); }
+button { font: 600 14px/1 var(--sans); padding: 10px 14px; border: 1px solid var(--line); border-radius: 0;
+         background: var(--surface); color: var(--ink); cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--ink); }
+button.primary, button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+button:disabled { opacity: 0.4; cursor: default; }
+:focus-visible { outline: 2px solid var(--oxford); outline-offset: 2px; }
+input, select { font: 400 15px/1.2 var(--mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+                border-radius: 0; padding: 7px 8px; }
+footer { font: 400 13px/1.5 var(--sans); color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+/* charts and diagrams stretch to their figure; never style bare `svg`, or MathJax formulas blow up in Safari */
+figure > svg, .fig-scroll > svg { display: block; width: 100%; height: auto; }
+mjx-container svg { display: inline; max-width: none; }
+mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+
+  /* the page's own token names, mapped onto the paper theme */
+  :root {
+    --field: var(--bg); --card: var(--surface);
+    --grass: var(--hedge); --grass-soft: var(--hedge-soft); --brick: var(--tail); --brick-soft: var(--tail-soft);
+    --chalk: var(--code);
+    --font-display: var(--display); --font-body: var(--body); --font-data: var(--mono); --font-label: var(--sans);
   }
 
   body {
@@ -59,7 +138,7 @@
 
   .verdict {
     display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 28px; align-items: end;
-    border-block: 3px double var(--ink); padding-block: 18px;
+    border-top: 4px solid var(--ink); border-bottom: 1px solid var(--line); padding-block: 18px;
   }
   .verdict .bet { grid-row: span 2; font: 600 clamp(3.2rem, 10vw, 5.4rem)/0.95 var(--font-display); color: var(--grass); font-variant-numeric: tabular-nums; }
   .verdict p { color: var(--muted); max-width: 52ch; }
@@ -67,14 +146,14 @@
 
   .panel { background: var(--card); border: 1px solid var(--line); border-radius: 0; padding: 18px; display: grid; gap: 14px; }
   .spread { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
-  @media (max-width: 900px) { .spread { grid-template-columns: 1fr; } }
+  @media (max-width: 900px) { .spread { grid-template-columns: minmax(0, 1fr); } }
   .scroll { overflow-x: auto; }
   #lattice { display: block; width: 100%; min-width: 600px; height: auto; }
 
   .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   button {
     font: 600 0.85rem/1 var(--font-label); letter-spacing: 0.02em;
-    padding: 10px 14px; border-radius: 3px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer;
+    padding: 10px 14px; border-radius: 0; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer;
   }
   button:hover:not(:disabled) { border-color: var(--ink); }
   button:disabled { opacity: 0.4; cursor: default; }
@@ -84,8 +163,7 @@
   button:focus-visible, input:focus-visible { outline: 2px solid var(--grass); outline-offset: 2px; }
   .seg { display: inline-flex; }
   .seg button { border-radius: 0; }
-  .seg button:first-child { border-radius: 3px 0 0 3px; }
-  .seg button:last-child { border-radius: 0 3px 3px 0; border-left: 0; }
+  .seg button:last-child { border-left: 0; }
   .spacer { flex: 1; }
 
   .ledger { width: 100%; border-collapse: collapse; font: 400 0.85rem/1.3 var(--font-data); font-variant-numeric: tabular-nums; }
@@ -99,12 +177,12 @@
 
   .grid-card { display: grid; grid-template-columns: auto repeat(4, minmax(0, 1fr)); gap: 4px; font: 400 0.9rem/1 var(--font-data); font-variant-numeric: tabular-nums; max-width: 460px; }
   .grid-card .h { color: var(--muted); font-size: 0.72rem; display: grid; place-items: center; padding: 6px; }
-  .grid-card .c { display: grid; place-items: center; height: 54px; border-radius: 2px; font-weight: 600; }
+  .grid-card .c { display: grid; place-items: center; height: 54px; font-weight: 600; }
   .two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; align-items: start; }
-  @media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) { .two { grid-template-columns: minmax(0, 1fr); } }
 
   .odds { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
-  .odds input { flex: 1 1 200px; accent-color: var(--grass); }
+  .odds input { flex: 1 1 200px; accent-color: var(--oxford); }
   .stats { display: flex; flex-wrap: wrap; gap: 8px 24px; font: 400 0.85rem/1.4 var(--font-data); font-variant-numeric: tabular-nums; }
   .stats b { font-weight: 600; }
   #hist { display: block; width: 100%; height: auto; }
@@ -118,6 +196,9 @@
   svg text { font-family: var(--font-data); }
   footer { color: var(--muted); font-size: 0.88rem; border-top: 1px solid var(--line); padding-top: 18px; }
   @media (prefers-reduced-motion: no-preference) { .node rect, .edge { transition: fill 160ms, stroke 160ms, opacity 160ms; } }
+
+  /* paper-theme base rules this page needs to undo */
+  input[type="range"] { padding: 0; border: 0; background: transparent; }
 </style>
 
 <main>
@@ -270,7 +351,7 @@
     const g = el("g", { class: "node" }, svg);
     const terminal = !live(w, l);
     const won = w === N;
-    const rect = el("rect", { x: x - 32, y: y - 19, width: 64, height: 38, rx: 3, "stroke-width": 1.5 }, g);
+    const rect = el("rect", { x: x - 32, y: y - 19, width: 64, height: 38, "stroke-width": 1.5 }, g);
     const rec = el("text", { x, y: y - 5, "text-anchor": "middle", "font-size": 10 }, g);
     rec.textContent = `${w}–${l}`;
     const num = el("text", { x, y: y + 11, "text-anchor": "middle", "font-size": 13, "font-weight": 600 }, g);
