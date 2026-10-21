@@ -1,0 +1,1103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Threshold</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  /* Layout: one reading column; the grid exhibit leads (board left, controls rail right, stacking under 900px), then the threshold curve, then a short method note. */
+  /* paper-theme (theme.css from the skill, unchanged) */
+/* paper-theme: salmon-paper financial-newspaper house style.
+   Tokens first (light, then dark twice: OS preference unless the host forces light, and host-forced dark),
+   then base elements. Page-specific CSS goes after this block and uses only these tokens. */
+:root {
+  /* surfaces and ink */
+  --bg: #fff1e5;        /* paper */
+  --surface: #fff7f0;   /* boxed exhibits, inputs, tiles */
+  --ink: #33302e;
+  --muted: #66605c;
+  --line: #ccc1b7;      /* hairline rules and borders */
+  --grid: #ecdccd;      /* chart gridlines */
+  --axis: #a39a92;      /* chart axis lines */
+  --code: #f2dfce;      /* wheat: code, table stripes, empty cells */
+  /* named accents (UI, not chart series) */
+  --claret: #990f3d; --claret-soft: #f4d6db;
+  --oxford: #0f5499; --oxford-soft: #d6e2ef;
+  --teal: #0d7680;   --teal-soft: #d4e7e3;
+  --mandarin: #cc5a0a; --mandarin-soft: #ffe2c8;
+  /* roles */
+  --label: var(--claret);      /* eyebrows, kicker labels */
+  --link: var(--oxford);
+  --accent: var(--oxford);     /* highlight in diagrams, selected state */
+  --accent-soft: var(--oxford-soft);
+  --tail: var(--claret);       /* losses, breaches, the bad outcome */
+  --tail-soft: var(--claret-soft);
+  --hedge: var(--teal);        /* gains, offsets, the good outcome */
+  --hedge-soft: var(--teal-soft);
+  /* categorical chart slots, in this order; validated on --bg and --surface (CVD, contrast, lightness) */
+  --s1: #0f5499; --s2: #990f3d; --s3: #0a8f9c; --s4: #cc5a0a; --s5: #6f45ad; --s6: #008a4c;
+  /* status: reserved, always with an icon or a word */
+  --good: #0b7a3e; --warning: #b36b00; --critical: #c00000;
+  --good-ink: #0b6b36; --warning-ink: #8a5300; --critical-ink: #a30000;
+  /* type */
+  --display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --body: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --sans: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1f1b19; --surface: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c; --grid: #352f2b;
+    --axis: #6b625b; --code: #352f2b;
+    --claret: #ef7a9c; --claret-soft: #4a2130; --oxford: #7fb2e8; --oxford-soft: #1c2b3d;
+    --teal: #5fc3c9; --teal-soft: #1d3a3c; --mandarin: #ffa25c; --mandarin-soft: #4a3020;
+    --s1: #4f95e3; --s2: #c4456d; --s3: #22a3b2; --s4: #d9762a; --s5: #9b73d6; --s6: #3aad5c;
+    --good: #4cc27a; --warning: #e6a23c; --critical: #f0605a;
+    --good-ink: #4cc27a; --warning-ink: #e6a23c; --critical-ink: #f0605a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1f1b19; --surface: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c; --grid: #352f2b;
+  --axis: #6b625b; --code: #352f2b;
+  --claret: #ef7a9c; --claret-soft: #4a2130; --oxford: #7fb2e8; --oxford-soft: #1c2b3d;
+  --teal: #5fc3c9; --teal-soft: #1d3a3c; --mandarin: #ffa25c; --mandarin-soft: #4a3020;
+  --s1: #4f95e3; --s2: #c4456d; --s3: #22a3b2; --s4: #d9762a; --s5: #9b73d6; --s6: #3aad5c;
+  --good: #4cc27a; --warning: #e6a23c; --critical: #f0605a;
+  --good-ink: #4cc27a; --warning-ink: #e6a23c; --critical-ink: #f0605a;
+  color-scheme: dark;
+}
+
+/* base */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--ink); font: 400 17px/1.6 var(--body); margin: 0; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(32px, 5vw, 48px); line-height: 1.08; letter-spacing: -0.01em; }
+h2 { font-size: 26px; line-height: 1.15; }
+h3 { font-size: 19px; line-height: 1.25; }
+p { margin: 0; }
+a { color: var(--link); }
+.eyebrow, .kicker { font: 600 12px/1.2 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--label); }
+.lede, .standfirst { font-size: 20px; line-height: 1.5; color: var(--muted); max-width: 60ch; }
+.rule-top { border-top: 4px solid var(--ink); padding-top: 10px; }
+code { font-family: var(--mono); font-size: 0.85em; background: var(--code); padding: 1px 5px; border-radius: 0; }
+pre { font-family: var(--mono); font-size: 13px; line-height: 1.55; background: var(--code); padding: 14px 16px; margin: 0; overflow-x: auto; }
+figure { margin: 0; }
+figcaption { font: 400 13.5px/1.5 var(--sans); color: var(--muted); }
+table { border-collapse: collapse; width: 100%; font: 400 14px/1.4 var(--sans); font-variant-numeric: tabular-nums; }
+th { font: 600 11.5px/1.2 var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+     text-align: left; padding: 7px 10px; border-bottom: 2px solid var(--ink); vertical-align: bottom; }
+td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.num, th.num { text-align: right; font-family: var(--mono); }
+button { font: 600 14px/1 var(--sans); padding: 10px 14px; border: 1px solid var(--line); border-radius: 0;
+         background: var(--surface); color: var(--ink); cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--ink); }
+button.primary, button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+button:disabled { opacity: 0.4; cursor: default; }
+:focus-visible { outline: 2px solid var(--oxford); outline-offset: 2px; }
+input, select { font: 400 15px/1.2 var(--mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+                border-radius: 0; padding: 7px 8px; }
+footer { font: 400 13px/1.5 var(--sans); color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+/* charts and diagrams stretch to their figure; never style bare `svg`, or MathJax formulas blow up in Safari */
+figure > svg, .fig-scroll > svg { display: block; width: 100%; height: auto; }
+mjx-container svg { display: inline; max-width: none; }
+mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+
+  /* page */
+  main { max-width: 1040px; margin: 0 auto; padding: 40px 20px 56px; }
+  header .lede { margin-top: 14px; }
+  header h1 { margin-top: 8px; }
+  section { margin-top: 52px; }
+  section > h2 { margin-bottom: 8px; }
+  section > p { max-width: 66ch; }
+  section > p + p { margin-top: 12px; }
+
+  .verdict { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 4px solid var(--ink); border-bottom: 1px solid var(--line); margin-top: 28px; }
+  .verdict > div { padding: 12px 14px 14px; border-left: 1px solid var(--line); min-width: 0; }
+  .verdict > div:first-child { border-left: 0; padding-left: 0; }
+  .verdict .val { font: 500 26px/1.15 var(--mono); font-variant-numeric: tabular-nums; margin-top: 6px; }
+  .verdict .val.word { font: 600 26px/1.15 var(--display); }
+  .verdict .note { font: 400 12.5px/1.4 var(--sans); color: var(--muted); margin-top: 4px; }
+  .status-yes { color: var(--good-ink); }
+  .status-no { color: var(--critical-ink); }
+
+  .exhibit { background: var(--surface); border: 1px solid var(--line); border-radius: 0; padding: 20px; margin-top: 18px; }
+  .exhibit > .kicker { display: block; margin-bottom: 12px; }
+  .board-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 24px; align-items: start; }
+  .board { position: relative; width: 100%; aspect-ratio: 1 / 1; }
+  .board canvas { display: block; width: 100%; height: 100%; cursor: crosshair; touch-action: manipulation; }
+  .edge { font: 600 11px/1 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; padding: 0 0 6px; }
+  .edge.bottom { padding: 6px 0 0; }
+
+  .rail { display: flex; flex-direction: column; gap: 18px; }
+  .ctl label { display: flex; justify-content: space-between; align-items: baseline; font: 600 12px/1.2 var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .ctl label output { font: 500 15px/1 var(--mono); letter-spacing: 0; text-transform: none; color: var(--ink); }
+  .ctl input[type=range] { width: 100%; accent-color: var(--oxford); margin: 0; }
+  .ctl .hint { font: 400 12px/1.4 var(--sans); color: var(--muted); margin-top: 4px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .row button { flex: 1 1 auto; }
+  .row.tight { flex: 0 0 auto; }
+  .seg { display: flex; }
+  .seg button { flex: 1; padding: 8px 6px; font-size: 13px; white-space: nowrap; }
+  .seg button + button { margin-left: -1px; }
+  .seed { display: flex; gap: 8px; }
+  .seed input { width: 100%; min-width: 0; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font: 400 12.5px/1.3 var(--sans); color: var(--muted); margin-top: 14px; }
+  .legend > span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend > [hidden] { display: none; }
+  .sw { width: 12px; height: 12px; display: inline-block; border: 1px solid var(--line); }
+  .sw.blocked { background: var(--ink); border-color: var(--ink); }
+  .sw.open { background: var(--surface); }
+  .sw.wet { background: var(--s1); border-color: var(--s1); }
+  .sw.front { background: var(--s4); border-color: var(--s4); }
+  .sw.path { background: var(--s2); border-color: var(--s2); }
+  .sw.cut { background: var(--code); }
+  .sw.prev { background: transparent; border: 2px solid var(--s2); }
+  figcaption { margin-top: 12px; }
+
+  .exhibit .verdict { margin: 0 0 18px; }
+  .exhibit .verdict .val, .exhibit .verdict .val.word { font-size: 22px; }
+  .tbl-wrap { margin-top: 18px; }
+  .tbl-wrap .chart-title { margin-bottom: 6px; }
+  tr.current td { font-weight: 600; color: var(--ink); }
+  tr.current td:first-child { border-left: 3px solid var(--s1); }
+  td.busy { color: var(--muted); }
+
+  .chart-title { font: 600 15px/1.3 var(--sans); color: var(--ink); }
+  .chart-sub { font: 400 13px/1.4 var(--sans); color: var(--muted); margin-top: 2px; }
+  .chart-bar { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .chart-box { position: relative; }
+  .chart-box svg { display: block; width: 100%; height: auto; }
+  .tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); padding: 6px 8px; font: 500 12px/1.4 var(--mono); color: var(--ink); white-space: nowrap; display: none; }
+  .tip b { font-family: var(--sans); font-weight: 600; }
+
+  footer { margin-top: 52px; }
+
+  @media (max-width: 900px) {
+    .board-wrap { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    main { padding: 28px 16px 44px; }
+    .verdict { grid-template-columns: 1fr 1fr; }
+    .verdict > div:nth-child(3) { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); }
+    .verdict > div:nth-child(4) { border-top: 1px solid var(--line); }
+    .verdict .val, .verdict .val.word { font-size: 21px; }
+    .exhibit { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div class="eyebrow">Sandbox · Percolation</div>
+    <h1>The Threshold</h1>
+    <p class="lede">Open each cell of an N×N grid with probability p, pour water in along the top row and let it spread breadth-first. Does it reach the bottom? Below a critical p almost never; above it almost always.</p>
+    <div class="verdict" aria-live="polite">
+      <div><div class="kicker">Result</div><div class="val word" id="vResult">—</div><div class="note" id="vResultNote">Press Flood to pour</div></div>
+      <div><div class="kicker">Open cells</div><div class="val" id="vOpen">—</div><div class="note" id="vOpenNote">—</div></div>
+      <div><div class="kicker">Wet cells</div><div class="val" id="vWet">0</div><div class="note" id="vWetNote">reached from the top</div></div>
+      <div><div class="kicker">BFS layers</div><div class="val" id="vLayer">0</div><div class="note">steps of the flood</div></div>
+    </div>
+  </header>
+
+  <section>
+    <h2 class="rule-top">The grid</h2>
+    <div class="exhibit">
+      <span class="kicker">Exhibit 1 · Breadth-first flood</span>
+      <div class="board-wrap">
+        <div>
+          <div class="edge"><span>Top · source</span><span id="edgeTop"></span></div>
+          <div class="board"><canvas id="board" aria-label="Percolation grid"></canvas></div>
+          <div class="edge bottom"><span>Bottom · target</span><span id="edgeBottom"></span></div>
+        </div>
+        <div class="rail">
+          <div class="ctl">
+            <label for="n">Grid size N <output id="nOut"></output></label>
+            <input type="range" id="n" min="4" max="120" step="1" value="30">
+          </div>
+          <div class="ctl">
+            <label for="p">Open probability p <output id="pOut"></output></label>
+            <input type="range" id="p" min="0" max="1" step="0.01" value="0.59">
+            <div class="hint">Same seed, higher p: cells only open, never close.</div>
+          </div>
+          <div class="ctl">
+            <label>Flood speed</label>
+            <div class="seg" role="group" aria-label="Flood speed">
+              <button data-speed="slow">Slow</button>
+              <button data-speed="normal" aria-pressed="true">Normal</button>
+              <button data-speed="fast">Fast</button>
+              <button data-speed="instant">Instant</button>
+            </div>
+          </div>
+          <div class="row">
+            <button class="primary" id="flood">Flood</button>
+            <button id="step">Step</button>
+            <button id="drain">Drain</button>
+          </div>
+          <div class="ctl">
+            <label for="seed">Seed</label>
+            <div class="seed">
+              <input id="seed" inputmode="numeric" value="">
+              <button id="newGrid">New grid</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="legend">
+        <span><i class="sw blocked"></i>Blocked</span>
+        <span><i class="sw open"></i>Open, dry</span>
+        <span><i class="sw wet"></i>Wet</span>
+        <span><i class="sw front"></i>Flood front</span>
+        <span><i class="sw path"></i>Shortest top-to-bottom path</span>
+      </div>
+      <figcaption>Click or tap a cell to toggle it open or blocked. Water moves to the four neighbours (up, down, left, right), one layer per step. Keys: space floods, S steps, D drains, G draws a new grid.</figcaption>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="rule-top">Where the threshold sits</h2>
+    <p>One grid is a coin toss near the critical point. Repeat it many times for each p and the chance of a spanning path turns into an S-curve. The bigger the grid, the steeper the S, closing in on a step at p<sub>c</sub> ≈ 0.5927, the site-percolation threshold of the infinite square lattice.</p>
+    <div class="exhibit">
+      <span class="kicker">Exhibit 2 · Monte Carlo</span>
+      <div class="chart-bar">
+        <div>
+          <div class="chart-title">Share of grids that percolate, by p</div>
+          <div class="chart-sub" id="chartSub">—</div>
+        </div>
+        <div class="row tight">
+          <div class="seg" role="group" aria-label="Trials per p">
+            <button data-trials="50" aria-pressed="true">50 trials</button>
+            <button data-trials="200">200</button>
+            <button data-trials="500">500</button>
+          </div>
+          <button id="rerun">Run again</button>
+        </div>
+      </div>
+      <div class="chart-box" id="chartBox">
+        <svg id="chart" viewBox="0 0 720 360" role="img" aria-label="Percolation probability against p"></svg>
+        <div class="tip" id="tip"></div>
+      </div>
+      <figcaption>Each point is the share of random N×N grids, at that p, with an open path from top to bottom. Dashed line: infinite-lattice threshold. Marker: the p set above.</figcaption>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="rule-top">How the flood works</h2>
+    <p>Every open cell in the top row is a source and enters the queue at layer 0. Each step takes the whole current layer, wets every open, still-dry neighbour, and makes those the next layer. The flood stops when a layer adds nothing, so every cell reachable from the top ends up wet.</p>
+    <p>The grid percolates if any bottom-row cell is wet. Because breadth-first search reaches cells in order of distance, the first bottom cell to get wet ends the shortest open route from the top; following each cell's parent back up draws it in claret.</p>
+  </section>
+
+  <section>
+    <h2 class="rule-top">The flip side: rot</h2>
+    <p>Turn the question round. Start with a sound structure, every cell intact, and let cells rot one at a time in a random order. The top keeps its link to the bottom for a long while, then one more rotten cell cuts it. On a large grid that happens when about 40.7% of the cells have gone.</p>
+    <div class="exhibit">
+      <span class="kicker">Exhibit 3 · Rot mode</span>
+      <div class="verdict" aria-live="polite">
+        <div><div class="kicker">Link</div><div class="val word" id="rStatus">—</div><div class="note" id="rStatusNote">Press Rot to start</div></div>
+        <div><div class="kicker">Rotten</div><div class="val" id="rRot">0%</div><div class="note" id="rRotNote">—</div></div>
+        <div><div class="kicker">Broke at</div><div class="val" id="rBreak">—</div><div class="note" id="rBreakNote">—</div></div>
+        <div><div class="kicker">Wall</div><div class="val" id="rWall">—</div><div class="note">rotten cells joined edge to edge</div></div>
+      </div>
+      <div class="board-wrap">
+        <div>
+          <div class="edge"><span>Top</span><span id="rEdgeTop"></span></div>
+          <div class="board"><canvas id="rotBoard" aria-label="Rot grid"></canvas></div>
+          <div class="edge bottom"><span>Bottom</span><span id="rEdgeBottom"></span></div>
+        </div>
+        <div class="rail">
+          <div class="ctl">
+            <label for="rotN">Grid size N <output id="rotNOut"></output></label>
+            <input type="range" id="rotN" min="4" max="120" step="1" value="30">
+          </div>
+          <div class="ctl">
+            <label>Damage</label>
+            <div class="seg" role="group" aria-label="Damage">
+              <button data-rotmode="random" aria-pressed="true">Random rot</button>
+              <button data-rotmode="targeted">Targeted attack</button>
+            </div>
+            <div class="hint" id="rotModeHint">Each cell rots once, in a shuffled order.</div>
+          </div>
+          <div class="ctl">
+            <label>Rot speed</label>
+            <div class="seg" role="group" aria-label="Rot speed">
+              <button data-rotspeed="slow">Slow</button>
+              <button data-rotspeed="normal" aria-pressed="true">Normal</button>
+              <button data-rotspeed="fast">Fast</button>
+              <button data-rotspeed="instant">Instant</button>
+            </div>
+          </div>
+          <div class="row">
+            <button class="primary" id="rotPlay">Rot</button>
+            <button id="rotStep">Step</button>
+            <button id="rotReset">Restore</button>
+          </div>
+          <div class="ctl">
+            <label for="rotSeed">Seed</label>
+            <div class="seed">
+              <input id="rotSeed" inputmode="numeric" value="">
+              <button id="rotNew">New order</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="legend">
+        <span><i class="sw open"></i>Intact, reached from the top</span>
+        <span><i class="sw cut"></i>Intact, cut off from the top</span>
+        <span><i class="sw blocked"></i>Rotten</span>
+        <span><i class="sw front"></i>Latest rot (after a break: the one that broke it)</span>
+        <span><i class="sw path"></i>Blocking wall: rotten cluster touching left and right</span>
+      </div>
+      <figcaption>After every rot the page reruns the four-neighbour flood from the top row over the intact cells, the same rule as Exhibit 1, and stops at the first rot that leaves the bottom row dry. Rotten cells block when they touch at a corner, so the wall is grouped eight ways. Targeted attack rots one cheapest diagonal-connected wall, one cell per column, from left to right.</figcaption>
+    </div>
+
+    <div class="exhibit">
+      <span class="kicker">Exhibit 4 · Monte Carlo of the break</span>
+      <div class="chart-bar">
+        <div>
+          <div class="chart-title">Where random rot breaks the link, run by run</div>
+          <div class="chart-sub" id="histSub">—</div>
+        </div>
+        <div class="row tight">
+          <div class="seg" role="group" aria-label="Runs">
+            <button data-runs="300">300 runs</button>
+            <button data-runs="1000" aria-pressed="true">1,000</button>
+            <button data-runs="3000">3,000</button>
+          </div>
+          <button id="histRerun">Run again</button>
+        </div>
+      </div>
+      <div class="chart-box" id="histBox">
+        <svg id="hist" viewBox="0 0 720 320" role="img" aria-label="Histogram of the rotten share at the moment the grid breaks"></svg>
+        <div class="tip" id="histTip"></div>
+      </div>
+      <div class="legend">
+        <span><i class="sw wet"></i><span id="histLegCur">This grid size</span></span>
+        <span id="histLegPrevWrap" hidden><i class="sw prev"></i><span id="histLegPrev"></span></span>
+        <span><span>Dashed: 1 − p<sub>c</sub> ≈ 0.4073, the infinite-lattice rot threshold</span></span>
+      </div>
+      <figcaption>Each run rots the cells of an N×N grid in a fresh random order and records the rotten share at the moment the top loses the bottom. Bars: share of runs per percentage point of rot, so sizes compare on one scale. The grid size follows the slider in Exhibit 3; change it to see the spread narrow.</figcaption>
+      <div class="tbl-wrap">
+        <div class="chart-bar">
+          <div class="chart-title">Spread by grid size</div>
+          <button id="histCompare">Add N = 8, 16, 32, 64, 120</button>
+        </div>
+        <table>
+          <thead><tr><th class="num">N</th><th class="num">Runs</th><th class="num">Mean break</th><th class="num">Spread (sd, pts)</th><th class="num">vs 40.73% (pts)</th></tr></thead>
+          <tbody id="histRows"><tr><td colspan="5">running…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="rule-top">Why 40%: the dual threshold</h2>
+    <p>Intact cells pass the flood through their four side neighbours. Look at the same grid from the rot's side and the condition turns over: the top is cut off from the bottom exactly when a cluster of rotten cells runs from the left edge to the right edge. Rot needs only a corner to block, since water cannot squeeze diagonally between two rotten cells, so rot clusters join eight ways. It is the board game Hex in another shape: one side's path is the other side's wall.</p>
+    <p>So the two questions share one boundary. Four-neighbour percolation of intact cells and eight-neighbour percolation of rot are a matching pair of lattices, and their thresholds add up to one: p<sub>c</sub> + p<sub>c</sub>* = 1. With p<sub>c</sub> ≈ 0.592746 for the intact cells, rot spans at p<sub>c</sub>* ≈ 0.407254. Exhibit 4 is Exhibit 2 read from the other side: each run's break fraction is the spot where that run's own S-curve would jump, and as N grows those spots crowd in on the dashed line.</p>
+    <p>Random rot and an attacker are different stories. Rot falling at random has to claim about 41% of the grid before a wall forms by chance. An attacker who chooses the cells needs one per column, N cells, 1/N of the grid: 3.3% at N = 30, under 1% at N = 120. A percolation threshold measures robustness to random damage, not to aimed damage.</p>
+    <p><strong>Connectivity is not strength.</strong> These exhibits ask only whether some path survives. Just before the break, that path is a thin, stringy cluster hanging on single cells; the current it could carry falls to zero at the threshold (in two dimensions roughly as (p − p<sub>c</sub>)<sup>1.3</sup>) and its stiffness falls faster still. A real structure carries load, and each failure shifts load onto its neighbours, so failures cascade and it can give way well before its last path is cut. Read 40% as an upper bound on the random rot a structure survives, not as a safety margin.</p>
+  </section>
+
+  <footer>Original simulation; nothing is fetched. Grids come from a seeded generator (mulberry32), so a seed reproduces the grid. Each cell draws one uniform number u and is open when u &lt; p. The threshold p<sub>c</sub> ≈ 0.592746 is the published estimate for site percolation on the square lattice. Rot mode shuffles the cells with the same generator; its histogram follows Newman and Ziff, adding rotten cells in random order and joining eight-way neighbours with union-find until one cluster touches both sides.</footer>
+</main>
+
+<script>
+(() => {
+  const PC = 0.592746;
+  const $ = id => document.getElementById(id);
+  const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+  // ---------- RNG ----------
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  // ---------- state ----------
+  const S = {
+    N: 30, p: 0.59, seed: 0,
+    u: null,           // uniform draw per cell
+    override: null,    // -1 none, 0 blocked, 1 open (from clicks)
+    open: null,        // Uint8Array
+    depth: null,       // Int32Array, -1 dry
+    parent: null,      // Int32Array
+    frontier: [], layer: 0, started: false, done: false,
+    hit: -1, path: null, pathSet: null,
+    timer: null, speed: 'normal'
+  };
+  const SPEED = { slow: 260, normal: 90, fast: 25 };
+
+  function newGrid(seed) {
+    S.seed = seed >>> 0;
+    $('seed').value = S.seed;
+    const r = mulberry32(S.seed), n = S.N * S.N;
+    S.u = new Float64Array(n);
+    for (let i = 0; i < n; i++) S.u[i] = r();
+    S.override = new Int8Array(n).fill(-1);
+    applyP();
+  }
+  function applyP() {
+    const n = S.N * S.N;
+    S.open = new Uint8Array(n);
+    for (let i = 0; i < n; i++) S.open[i] = S.override[i] === -1 ? (S.u[i] < S.p ? 1 : 0) : S.override[i];
+    drain();
+  }
+  function drain() {
+    stop();
+    const n = S.N * S.N;
+    S.depth = new Int32Array(n).fill(-1);
+    S.parent = new Int32Array(n).fill(-1);
+    S.frontier = []; S.layer = 0; S.started = false; S.done = false;
+    S.hit = -1; S.path = null; S.pathSet = null;
+    render();
+  }
+
+  // ---------- BFS ----------
+  function seedTop() {
+    S.started = true;
+    for (let c = 0; c < S.N; c++) if (S.open[c]) { S.depth[c] = 0; S.frontier.push(c); }
+    if (!S.frontier.length) finish();
+  }
+  function stepLayer() {
+    if (S.done) return false;
+    if (!S.started) { seedTop(); return !S.done; }
+    const N = S.N, next = [], d = S.layer + 1;
+    for (const c of S.frontier) {
+      const r = (c / N) | 0, k = c - r * N;
+      const nb = [];
+      if (r > 0) nb.push(c - N);
+      if (r < N - 1) nb.push(c + N);
+      if (k > 0) nb.push(c - 1);
+      if (k < N - 1) nb.push(c + 1);
+      for (const m of nb) {
+        if (S.open[m] && S.depth[m] === -1) {
+          S.depth[m] = d; S.parent[m] = c; next.push(m);
+          if (S.hit === -1 && m >= N * (N - 1)) S.hit = m;
+        }
+      }
+    }
+    if (!next.length) { finish(); return false; }
+    S.frontier = next; S.layer = d;
+    return true;
+  }
+  function finish() {
+    S.done = true; S.frontier = [];
+    if (S.hit !== -1) {
+      S.path = []; S.pathSet = new Set();
+      for (let c = S.hit; c !== -1; c = S.parent[c]) { S.path.push(c); S.pathSet.add(c); }
+    }
+    stop();
+  }
+  function flood() {
+    if (S.done) drain();
+    stop();
+    if (S.speed === 'instant') { while (stepLayer()); render(); return; }
+    $('flood').textContent = 'Pause';
+    S.timer = setInterval(() => { const more = stepLayer(); render(); if (!more) stop(); }, SPEED[S.speed]);
+  }
+  function stop() {
+    if (S.timer) clearInterval(S.timer);
+    S.timer = null;
+    $('flood').textContent = S.done ? 'Flood again' : (S.started ? 'Resume' : 'Flood');
+  }
+
+  // ---------- board render ----------
+  const cv = $('board'), ctx = cv.getContext('2d');
+  let C = {};
+  function readColors() {
+    C = { surface: css('--surface'), ink: css('--ink'), wet: css('--s1'), front: css('--s4'), path: css('--s2'), line: css('--line'), code: css('--code') };
+  }
+  function render() {
+    const rect = cv.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const W = Math.max(1, Math.round(rect.width * dpr));
+    if (cv.width !== W) { cv.width = W; cv.height = W; }
+    const N = S.N, cell = W / N;
+    const gap = cell > 9 * dpr ? Math.max(1, Math.round(dpr)) : 0;
+    ctx.fillStyle = C.line; ctx.fillRect(0, 0, W, W);
+    const frontSet = S.done ? null : new Set(S.frontier);
+    for (let r = 0; r < N; r++) {
+      const y0 = Math.round(r * cell), y1 = Math.round((r + 1) * cell);
+      for (let k = 0; k < N; k++) {
+        const i = r * N + k;
+        const x0 = Math.round(k * cell), x1 = Math.round((k + 1) * cell);
+        let col;
+        if (!S.open[i]) col = C.ink;
+        else if (S.pathSet && S.pathSet.has(i)) col = C.path;
+        else if (frontSet && frontSet.has(i)) col = C.front;
+        else if (S.depth[i] >= 0) col = C.wet;
+        else col = C.surface;
+        ctx.fillStyle = col;
+        ctx.fillRect(x0, y0, x1 - x0 - gap, y1 - y0 - gap);
+      }
+    }
+    updateStats();
+  }
+  function updateStats() {
+    const n = S.N * S.N;
+    let open = 0, wet = 0;
+    for (let i = 0; i < n; i++) { open += S.open[i]; if (S.depth[i] >= 0) wet++; }
+    $('vOpen').textContent = (100 * open / n).toFixed(1) + '%';
+    $('vOpenNote').textContent = `${open.toLocaleString()} of ${n.toLocaleString()} cells`;
+    $('vWet').textContent = wet.toLocaleString();
+    $('vWetNote').textContent = open ? `${(100 * wet / open).toFixed(0)}% of open cells` : 'reached from the top';
+    $('vLayer').textContent = S.started ? S.layer : 0;
+    let topOpen = 0, botWet = 0;
+    for (let k = 0; k < S.N; k++) { topOpen += S.open[k]; if (S.depth[n - S.N + k] >= 0) botWet++; }
+    $('edgeTop').textContent = `${topOpen} open`;
+    $('edgeBottom').textContent = `${botWet} wet`;
+    const res = $('vResult'), note = $('vResultNote');
+    res.className = 'val word';
+    if (S.hit !== -1) {
+      res.textContent = '✓ Spans'; res.classList.add('status-yes');
+      note.textContent = S.path ? `shortest path: ${S.path.length} cells` : `bottom reached at layer ${S.depth[S.hit]}`;
+    } else if (S.done) {
+      res.textContent = '✕ Blocked'; res.classList.add('status-no');
+      note.textContent = 'no open route to the bottom';
+    } else if (S.started) {
+      res.textContent = 'Flowing…'; note.textContent = `${S.frontier.length} cells on the front`;
+    } else {
+      res.textContent = '—'; note.textContent = 'Press Flood to pour';
+    }
+  }
+
+  // ---------- board interaction ----------
+  cv.addEventListener('click', e => {
+    const rect = cv.getBoundingClientRect();
+    const k = Math.floor((e.clientX - rect.left) / rect.width * S.N);
+    const r = Math.floor((e.clientY - rect.top) / rect.height * S.N);
+    if (k < 0 || r < 0 || k >= S.N || r >= S.N) return;
+    const i = r * S.N + k;
+    S.override[i] = S.open[i] ? 0 : 1;
+    S.open[i] = S.override[i];
+    drain();
+  });
+
+  // ---------- controls ----------
+  const nIn = $('n'), pIn = $('p');
+  function syncLabels() { $('nOut').textContent = `${S.N} × ${S.N}`; $('pOut').textContent = S.p.toFixed(2); }
+  nIn.addEventListener('input', () => { S.N = +nIn.value; syncLabels(); newGrid(S.seed); scheduleMC(); });
+  pIn.addEventListener('input', () => { S.p = +pIn.value; syncLabels(); applyP(); drawChart(); });
+  $('flood').addEventListener('click', () => { if (S.timer) stop(); else flood(); });
+  $('step').addEventListener('click', () => { stop(); if (S.done) drain(); stepLayer(); render(); stop(); });
+  $('drain').addEventListener('click', drain);
+  $('newGrid').addEventListener('click', () => newGrid((Math.random() * 2 ** 32) >>> 0));
+  $('seed').addEventListener('change', () => newGrid(parseInt($('seed').value, 10) || 0));
+  document.querySelectorAll('[data-speed]').forEach(b => b.addEventListener('click', () => {
+    S.speed = b.dataset.speed;
+    document.querySelectorAll('[data-speed]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    if (S.timer) { stop(); flood(); }
+  }));
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.metaKey || e.ctrlKey || e.altKey) return;
+    const k = e.key.toLowerCase();
+    if (k === ' ' && e.target.tagName === 'BUTTON') return;   // let the focused button take its own click
+    if (k === ' ') { e.preventDefault(); $('flood').click(); }
+    else if (k === 's') $('step').click();
+    else if (k === 'd') drain();
+    else if (k === 'g') $('newGrid').click();
+  });
+
+  // ---------- Monte Carlo ----------
+  const PS = Array.from({ length: 51 }, (_, i) => i / 50);
+  let MC = { N: 0, trials: 50, hits: new Array(PS.length).fill(0), done: 0, job: 0 };
+  let buf = null;
+  function percolates(N, p, rnd) {
+    const n = N * N;
+    if (!buf || buf.n !== n) buf = { n, open: new Uint8Array(n), seen: new Uint8Array(n), q: new Int32Array(n) };
+    const { open, seen, q } = buf;
+    for (let i = 0; i < n; i++) open[i] = rnd() < p ? 1 : 0;
+    seen.fill(0);
+    let h = 0, t = 0;
+    for (let k = 0; k < N; k++) if (open[k]) { seen[k] = 1; q[t++] = k; }
+    const last = n - N;
+    while (h < t) {
+      const c = q[h++];
+      if (c >= last) return true;
+      const r = (c / N) | 0, k = c - r * N;
+      if (r > 0 && open[c - N] && !seen[c - N]) { seen[c - N] = 1; q[t++] = c - N; }
+      if (r < N - 1 && open[c + N] && !seen[c + N]) { seen[c + N] = 1; q[t++] = c + N; }
+      if (k > 0 && open[c - 1] && !seen[c - 1]) { seen[c - 1] = 1; q[t++] = c - 1; }
+      if (k < N - 1 && open[c + 1] && !seen[c + 1]) { seen[c + 1] = 1; q[t++] = c + 1; }
+    }
+    return false;
+  }
+  function runMC() {
+    const job = ++MC.job;
+    MC = { N: S.N, trials: MC.trials, hits: new Array(PS.length).fill(0), done: 0, job };
+    const rnd = mulberry32((Math.random() * 2 ** 32) >>> 0);
+    const N = MC.N;
+    function chunk() {
+      if (job !== MC.job) return;
+      const t0 = performance.now();
+      while (MC.done < MC.trials && performance.now() - t0 < 14) {
+        for (let i = 0; i < PS.length; i++) {
+          const p = PS[i];
+          if (p === 0) continue;
+          if (p === 1) { MC.hits[i]++; continue; }
+          if (percolates(N, p, rnd)) MC.hits[i]++;
+        }
+        MC.done++;
+      }
+      drawChart();
+      if (MC.done < MC.trials) requestAnimationFrame(chunk);
+    }
+    requestAnimationFrame(chunk);
+  }
+  let mcTimer = null;
+  function scheduleMC() { clearTimeout(mcTimer); mcTimer = setTimeout(runMC, 250); }
+  $('rerun').addEventListener('click', runMC);
+  document.querySelectorAll('[data-trials]').forEach(b => b.addEventListener('click', () => {
+    MC.trials = +b.dataset.trials;
+    document.querySelectorAll('[data-trials]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    runMC();
+  }));
+
+  // ---------- chart ----------
+  const svg = $('chart'), tip = $('tip'), box = $('chartBox');
+  const VW = 720, VH = 360, M = { l: 52, r: 18, t: 16, b: 46 };
+  const X = p => M.l + p * (VW - M.l - M.r);
+  const Y = v => M.t + (1 - v) * (VH - M.t - M.b);
+  function est() {
+    if (!MC.done) return null;
+    const y = MC.hits.map(h => h / MC.done);
+    for (let i = 1; i < y.length; i++) if (y[i] >= 0.5 && y[i - 1] < 0.5) {
+      return PS[i - 1] + (0.5 - y[i - 1]) / (y[i] - y[i - 1]) * (PS[i] - PS[i - 1]);
+    }
+    return null;
+  }
+  function drawChart() {
+    const y = MC.done ? MC.hits.map(h => h / MC.done) : null;
+    let s = '';
+    for (let v = 0; v <= 1.0001; v += 0.25) {
+      s += `<line x1="${M.l}" x2="${VW - M.r}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:var(--grid)" stroke-width="1"/>`;
+      s += `<text x="${M.l - 8}" y="${Y(v) + 4}" text-anchor="end" style="fill:var(--muted);font:11px var(--mono)">${Math.round(v * 100)}%</text>`;
+    }
+    for (let p = 0; p <= 1.0001; p += 0.1) {
+      s += `<text x="${X(p)}" y="${VH - M.b + 18}" text-anchor="middle" style="fill:var(--muted);font:11px var(--mono)">${p.toFixed(1)}</text>`;
+    }
+    s += `<line x1="${M.l}" x2="${VW - M.r}" y1="${Y(0)}" y2="${Y(0)}" style="stroke:var(--axis)" stroke-width="1"/>`;
+    s += `<text x="${(M.l + VW - M.r) / 2}" y="${VH - 6}" text-anchor="middle" style="fill:var(--muted);font:12px var(--sans)">Open probability p</text>`;
+    // infinite-lattice threshold
+    s += `<line x1="${X(PC)}" x2="${X(PC)}" y1="${M.t}" y2="${Y(0)}" style="stroke:var(--ink)" stroke-width="1" stroke-dasharray="4 4"/>`;
+    s += `<text x="${X(PC) - 6}" y="${M.t + 12}" text-anchor="end" style="fill:var(--ink);font:600 12px var(--sans)">p<tspan dy="3" font-size="9">c</tspan><tspan dy="-3"> ≈ 0.593</tspan></text>`;
+    s += `<text x="${X(PC) - 6}" y="${M.t + 27}" text-anchor="end" style="fill:var(--muted);font:11.5px var(--sans)">infinite lattice</text>`;
+    if (y) {
+      const pts = PS.map((p, i) => `${X(p).toFixed(1)},${Y(y[i]).toFixed(1)}`).join(' ');
+      s += `<polyline points="${pts}" fill="none" style="stroke:var(--s1)" stroke-width="2" stroke-linejoin="round"/>`;
+      PS.forEach((p, i) => { if (i % 2 === 0) s += `<circle cx="${X(p)}" cy="${Y(y[i])}" r="3.5" style="fill:var(--s1);stroke:var(--surface)" stroke-width="1.5"/>`; });
+      const lab = Math.min(PS.length - 1, 46);
+      s += `<text x="${X(PS[lab])}" y="${Y(y[lab]) + 22}" text-anchor="middle" style="fill:var(--ink);font:600 12px var(--sans)">N = ${MC.N}</text>`;
+    }
+    // current p marker
+    const cy = y ? Y(interp(y, S.p)) : Y(0);
+    s += `<line x1="${X(S.p)}" x2="${X(S.p)}" y1="${cy}" y2="${Y(0)}" style="stroke:var(--s2)" stroke-width="1"/>`;
+    if (y) s += `<circle cx="${X(S.p)}" cy="${cy}" r="6" style="fill:var(--s2);stroke:var(--surface)" stroke-width="2"/>`;
+    s += `<text x="${X(S.p) + (S.p > 0.85 ? -8 : 8)}" y="${Y(0) - 8}" text-anchor="${S.p > 0.85 ? 'end' : 'start'}" style="fill:var(--ink);font:600 12px var(--sans)">your p = ${S.p.toFixed(2)}${y ? ' · ' + Math.round(interp(y, S.p) * 100) + '%' : ''}</text>`;
+    s += `<rect x="${M.l}" y="${M.t}" width="${VW - M.l - M.r}" height="${VH - M.t - M.b}" fill="transparent"/>`;
+    svg.innerHTML = s;
+    const e = est();
+    $('chartSub').textContent = MC.done
+      ? `${MC.N}×${MC.N} grids · ${MC.done}${MC.done < MC.trials ? ' of ' + MC.trials : ''} trials per p` + (e ? ` · 50% crossing at p ≈ ${e.toFixed(3)}` : '')
+      : 'running…';
+  }
+  function interp(y, p) {
+    const f = p * 50, i = Math.min(49, Math.floor(f)), t = f - i;
+    return y[i] * (1 - t) + y[i + 1] * t;
+  }
+  box.addEventListener('mousemove', e => {
+    if (!MC.done) return;
+    const r = svg.getBoundingClientRect();
+    const vx = (e.clientX - r.left) / r.width * VW;
+    if (vx < M.l || vx > VW - M.r) { tip.style.display = 'none'; return; }
+    const i = Math.max(0, Math.min(50, Math.round((vx - M.l) / (VW - M.l - M.r) * 50)));
+    const v = MC.hits[i] / MC.done;
+    tip.innerHTML = `<b>p = ${PS[i].toFixed(2)}</b><br>${(v * 100).toFixed(0)}% percolate<br>${MC.hits[i]} / ${MC.done} grids`;
+    tip.style.display = 'block';
+    const px = X(PS[i]) / VW * r.width, py = Y(v) / VH * r.height;
+    const tw = tip.offsetWidth;
+    tip.style.left = Math.min(r.width - tw, Math.max(0, px + (px > r.width / 2 ? -tw - 12 : 12))) + 'px';
+    tip.style.top = Math.max(0, py - 30) + 'px';
+  });
+  box.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+
+  // ---------- rot mode ----------
+  const RC = 1 - PC;   // rot threshold: 8-connected rot is the matching lattice of 4-connected intact cells
+  const R = {
+    N: 30, mode: 'random', seed: 0,
+    order: null,       // Int32Array of cells in the order they rot
+    k: 0,              // rots done
+    rot: null,         // Uint8Array, 1 rotten
+    seen: null,        // Uint8Array, intact and reached from the top
+    q: null,           // Int32Array, BFS queue
+    broken: false, wall: null, wallSize: 0, last: -1,
+    raf: 0, playing: false, speed: 'normal'
+  };
+  const ROT_T = { slow: 16, normal: 6, fast: 1.5 };   // seconds for a typical run
+
+  function rotOrder(seed) {
+    R.seed = seed >>> 0;
+    $('rotSeed').value = R.seed;
+    const N = R.N, n = N * N, rnd = mulberry32(R.seed);
+    if (R.mode === 'random') {
+      const o = new Int32Array(n);
+      for (let i = 0; i < n; i++) o[i] = i;
+      for (let i = n - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const t = o[i]; o[i] = o[j]; o[j] = t; }
+      R.order = o;
+    } else R.order = cheapestWall(N, rnd);
+    rotReset();
+  }
+  // Cheapest left-to-right wall with one cell per column, each step straight or diagonal. On an intact grid every
+  // such wall costs N; the small jitter (under 1 in total) picks one of them at random.
+  function cheapestWall(N, rnd) {
+    const n = N * N, cost = new Float64Array(n), dp = new Float64Array(n), from = new Int32Array(n);
+    for (let i = 0; i < n; i++) cost[i] = 1 + rnd() * 0.5 / N;
+    for (let r = 0; r < N; r++) dp[r * N] = cost[r * N];
+    for (let k = 1; k < N; k++) for (let r = 0; r < N; r++) {
+      let best = Infinity, arg = -1;
+      for (let rr = Math.max(0, r - 1); rr <= Math.min(N - 1, r + 1); rr++) if (dp[rr * N + k - 1] < best) { best = dp[rr * N + k - 1]; arg = rr; }
+      dp[r * N + k] = cost[r * N + k] + best; from[r * N + k] = arg;
+    }
+    let r = 0;
+    for (let rr = 1; rr < N; rr++) if (dp[rr * N + N - 1] < dp[r * N + N - 1]) r = rr;
+    const wall = new Int32Array(N);
+    for (let k = N - 1; k >= 0; k--) { wall[k] = r * N + k; r = from[r * N + k]; }
+    return wall;
+  }
+  function rotReset() {
+    cancelAnimationFrame(R.raf);
+    const n = R.N * R.N;
+    R.rot = new Uint8Array(n); R.seen = new Uint8Array(n); R.q = new Int32Array(n);
+    R.k = 0; R.broken = false; R.wall = null; R.wallSize = 0; R.last = -1;
+    reachTop();
+    rotStop();
+    rotRender();
+  }
+  // Four-neighbour BFS over intact cells from the top row, the flood's rule; marks every reached cell, returns whether the bottom row is reached.
+  function reachTop() {
+    const N = R.N, last = N * N - N, { rot, seen, q } = R;
+    seen.fill(0);
+    let h = 0, t = 0, hit = false;
+    for (let k = 0; k < N; k++) if (!rot[k]) { seen[k] = 1; q[t++] = k; }
+    while (h < t) {
+      const c = q[h++];
+      if (c >= last) hit = true;
+      const r = (c / N) | 0, k = c - r * N;
+      if (r > 0 && !rot[c - N] && !seen[c - N]) { seen[c - N] = 1; q[t++] = c - N; }
+      if (r < N - 1 && !rot[c + N] && !seen[c + N]) { seen[c + N] = 1; q[t++] = c + N; }
+      if (k > 0 && !rot[c - 1] && !seen[c - 1]) { seen[c - 1] = 1; q[t++] = c - 1; }
+      if (k < N - 1 && !rot[c + 1] && !seen[c + 1]) { seen[c + 1] = 1; q[t++] = c + 1; }
+    }
+    return hit;
+  }
+  function rotOne() {
+    if (R.broken || R.k >= R.order.length) return false;
+    const c = R.order[R.k++];
+    R.rot[c] = 1; R.last = c;
+    // a cell the flood never reached lies on no top-to-bottom route, so only a reached cell needs a fresh flood
+    if (R.seen[c] && !reachTop()) { R.broken = true; findWall(); return false; }
+    return R.k < R.order.length;
+  }
+  // Rotten clusters, joined eight ways, that touch the left edge and also reach the right edge.
+  function findWall() {
+    const N = R.N, n = N * N, { rot, q } = R;
+    const comp = new Uint8Array(n);
+    R.wall = new Uint8Array(n); R.wallSize = 0;
+    for (let r0 = 0; r0 < N; r0++) {
+      const s = r0 * N;
+      if (!rot[s] || comp[s]) continue;
+      let h = 0, t = 0, right = false;
+      comp[s] = 1; q[t++] = s;
+      while (h < t) {
+        const c = q[h++], r = (c / N) | 0, k = c - r * N;
+        if (k === N - 1) right = true;
+        for (let rr = Math.max(0, r - 1); rr <= Math.min(N - 1, r + 1); rr++)
+          for (let kk = Math.max(0, k - 1); kk <= Math.min(N - 1, k + 1); kk++) {
+            const m = rr * N + kk;
+            if (rot[m] && !comp[m]) { comp[m] = 1; q[t++] = m; }
+          }
+      }
+      if (right) for (let i = 0; i < t; i++) { R.wall[q[i]] = 1; R.wallSize++; }
+    }
+  }
+  function rotPlay() {
+    if (R.broken) rotOrder((Math.random() * 2 ** 32) >>> 0);
+    rotStop();
+    R.playing = true;
+    const total = R.mode === 'random' ? RC * R.N * R.N : R.N;
+    const rate = Math.max(3, total / (ROT_T[R.speed] || 1));
+    let prev = performance.now(), acc = 1;
+    const tick = now => {
+      if (!R.playing) return;
+      acc = R.speed === 'instant' ? Infinity : Math.min(acc + (now - prev) / 1000 * rate, 1 + rate / 4);
+      prev = now;
+      const t0 = performance.now();
+      let more = true;
+      while (acc >= 1 && more && performance.now() - t0 < 12) { more = rotOne(); acc--; }
+      rotRender();
+      if (more) R.raf = requestAnimationFrame(tick); else rotStop();
+    };
+    $('rotPlay').textContent = 'Pause';
+    R.raf = requestAnimationFrame(tick);
+  }
+  function rotStop() {
+    cancelAnimationFrame(R.raf);
+    R.playing = false;
+    $('rotPlay').textContent = R.broken ? 'Rot again' : (R.k ? 'Resume' : 'Rot');
+  }
+
+  const rcv = $('rotBoard'), rctx = rcv.getContext('2d');
+  function rotRender() {
+    const rect = rcv.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const W = Math.max(1, Math.round(rect.width * dpr));
+    if (rcv.width !== W) { rcv.width = W; rcv.height = W; }
+    const N = R.N, cell = W / N;
+    const gap = cell > 9 * dpr ? Math.max(1, Math.round(dpr)) : 0;
+    rctx.fillStyle = C.line; rctx.fillRect(0, 0, W, W);
+    for (let r = 0; r < N; r++) {
+      const y0 = Math.round(r * cell), y1 = Math.round((r + 1) * cell);
+      for (let k = 0; k < N; k++) {
+        const i = r * N + k;
+        const x0 = Math.round(k * cell), x1 = Math.round((k + 1) * cell);
+        let col;
+        if (!R.rot[i]) col = R.seen[i] ? C.surface : C.code;
+        else if (i === R.last) col = C.front;
+        else if (R.wall && R.wall[i]) col = C.path;
+        else col = C.ink;
+        rctx.fillStyle = col;
+        rctx.fillRect(x0, y0, x1 - x0 - gap, y1 - y0 - gap);
+      }
+    }
+    rotStats();
+  }
+  const pct = (a, b) => (100 * a / b).toFixed(1) + '%';
+  function rotStats() {
+    const N = R.N, n = N * N;
+    let topIntact = 0, botReached = 0;
+    for (let k = 0; k < N; k++) { topIntact += 1 - R.rot[k]; botReached += R.seen[n - N + k]; }
+    $('rEdgeTop').textContent = `${topIntact} intact`;
+    $('rEdgeBottom').textContent = `${botReached} reached`;
+    $('rRot').textContent = pct(R.k, n);
+    $('rRotNote').textContent = `${R.k.toLocaleString()} of ${n.toLocaleString()} cells`;
+    const st = $('rStatus'), note = $('rStatusNote');
+    st.className = 'val word';
+    if (R.broken) {
+      st.textContent = '✕ Broken'; st.classList.add('status-no');
+      note.textContent = `Broke at ${pct(R.k, n)} rotten`;
+    } else {
+      st.textContent = '✓ Holds'; st.classList.add('status-yes');
+      note.textContent = R.k ? 'top still reaches the bottom' : 'every cell intact';
+    }
+    $('rBreak').textContent = R.broken ? pct(R.k, n) : '—';
+    const h = HB.hist.get(N), ref = h ? `random rot: ${pct(h.sum / h.done, n)} on average` : 'random rot: ≈ 40.7% on a large grid';
+    $('rBreakNote').textContent = R.mode === 'targeted'
+      ? (R.broken ? `${R.k} cells, 1/N of the grid · ${ref}` : `needs ${N} cells, 1/N of the grid`)
+      : (R.broken ? `random order · limit 40.7%` : 'large-grid limit 40.7%');
+    $('rWall').textContent = R.broken ? R.wallSize.toLocaleString() : '—';
+  }
+
+  const rotNIn = $('rotN');
+  function syncRotLabels() { $('rotNOut').textContent = `${R.N} × ${R.N}`; }
+  rotNIn.addEventListener('input', () => { R.N = +rotNIn.value; syncRotLabels(); rotOrder(R.seed); scheduleHist(); });
+  document.querySelectorAll('[data-rotmode]').forEach(b => b.addEventListener('click', () => {
+    R.mode = b.dataset.rotmode;
+    document.querySelectorAll('[data-rotmode]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    $('rotModeHint').textContent = R.mode === 'random'
+      ? 'Each cell rots once, in a shuffled order.'
+      : 'Rots a cheapest diagonal-connected wall, one cell per column.';
+    rotOrder(R.seed);
+  }));
+  document.querySelectorAll('[data-rotspeed]').forEach(b => b.addEventListener('click', () => {
+    R.speed = b.dataset.rotspeed;
+    document.querySelectorAll('[data-rotspeed]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    if (R.playing) rotPlay();
+  }));
+  $('rotPlay').addEventListener('click', () => { if (R.playing) rotStop(); else rotPlay(); });
+  $('rotStep').addEventListener('click', () => { rotStop(); if (R.broken) rotReset(); rotOne(); rotRender(); rotStop(); });
+  $('rotReset').addEventListener('click', rotReset);
+  $('rotNew').addEventListener('click', () => rotOrder((Math.random() * 2 ** 32) >>> 0));
+  $('rotSeed').addEventListener('change', () => rotOrder(parseInt($('rotSeed').value, 10) || 0));
+
+  // ---------- break histogram (Newman–Ziff sweep) ----------
+  const HB = { runs: 1000, hist: new Map(), tasks: [], cur: null, shown: null, prev: null, pumping: false };
+  let uf = null;
+  function ufFind(x) { const p = uf.parent; while (p[x] !== x) { p[x] = p[p[x]]; x = p[x]; } return x; }
+  function ufUnion(a, b) {
+    a = ufFind(a); b = ufFind(b);
+    if (a === b) return;
+    if (uf.size[a] < uf.size[b]) { const t = a; a = b; b = t; }
+    uf.parent[b] = a; uf.size[a] += uf.size[b];
+  }
+  // One run: rot cells in a random order, join each to its rotten 8-neighbours and to virtual left/right edge nodes,
+  // and return how many cells had rotted when the edges first joined, i.e. when the top lost the bottom.
+  function breakCount(N, rnd) {
+    const n = N * N;
+    if (!uf || uf.n !== n) uf = { n, parent: new Int32Array(n + 2), size: new Int32Array(n + 2), rot: new Uint8Array(n), perm: new Int32Array(n) };
+    const { parent, size, rot, perm } = uf, L = n, Rt = n + 1;
+    rot.fill(0);
+    for (let i = 0; i < n; i++) perm[i] = i;
+    parent[L] = L; parent[Rt] = Rt; size[L] = size[Rt] = 1;
+    for (let k = 0; k < n; k++) {
+      const j = k + Math.floor(rnd() * (n - k)), c = perm[j];
+      perm[j] = perm[k]; perm[k] = c;
+      rot[c] = 1; parent[c] = c; size[c] = 1;
+      const r = (c / N) | 0, col = c - r * N;
+      if (col === 0) ufUnion(c, L);
+      if (col === N - 1) ufUnion(c, Rt);
+      for (let rr = Math.max(0, r - 1); rr <= Math.min(N - 1, r + 1); rr++)
+        for (let kk = Math.max(0, col - 1); kk <= Math.min(N - 1, col + 1); kk++)
+          if (rot[rr * N + kk]) ufUnion(c, rr * N + kk);
+      if (ufFind(L) === ufFind(Rt)) return k + 1;
+    }
+    return n;
+  }
+  function histTask(N, show) {
+    return { N, runs: HB.runs, show, counts: new Int32Array(N * N + 1), done: 0, sum: 0, sumsq: 0, rnd: mulberry32((Math.random() * 2 ** 32) >>> 0) };
+  }
+  function histShow() {
+    if (HB.shown && HB.shown.N !== R.N && HB.shown.done >= HB.shown.runs) HB.prev = HB.shown;
+    if (HB.prev && HB.prev.N === R.N) HB.prev = null;
+    HB.tasks = HB.tasks.filter(t => !t.show);
+    if (HB.cur && !HB.cur.show) HB.tasks.unshift(HB.cur);   // a comparison size waits, keeping its progress
+    HB.cur = HB.shown = histTask(R.N, true);
+    drawHist(); pump();
+  }
+  let histTimer = null;
+  function scheduleHist() { clearTimeout(histTimer); histTimer = setTimeout(histShow, 250); }
+  function pump() { if (!HB.pumping) { HB.pumping = true; requestAnimationFrame(histChunk); } }
+  function histChunk() {
+    HB.pumping = false;
+    if (!HB.cur) HB.cur = HB.tasks.shift() || null;
+    if (!HB.cur) return;
+    const T = HB.cur, t0 = performance.now();
+    while (T.done < T.runs && performance.now() - t0 < 10) {
+      const k = breakCount(T.N, T.rnd);
+      T.counts[k]++; T.done++; T.sum += k; T.sumsq += k * k;
+    }
+    if (T.done >= T.runs) { HB.hist.set(T.N, T); HB.cur = null; if (T === HB.shown) rotStats(); }
+    if (T === HB.shown || !HB.cur) drawHist(); else drawTable();
+    if (HB.cur || HB.tasks.length) pump();
+  }
+  function stats(T) {
+    const n = T.N * T.N, m = T.sum / T.done;
+    return { mean: m / n, sd: Math.sqrt(Math.max(0, T.sumsq / T.done - m * m)) / n };
+  }
+  // bins hold a whole number of rot counts, about half a percentage point wide, so small grids do not comb
+  function bins(T) {
+    const n = T.N * T.N, m = Math.max(1, Math.ceil(0.005 * n)), w = m / n, out = [];
+    for (let b = 0; b * m <= n; b++) {
+      let c = 0;
+      for (let k = b * m; k < Math.min(n + 1, b * m + m); k++) c += T.counts[k];
+      out.push({ x0: b * w, x1: Math.min(1, (b + 1) * w), c, y: T.done ? c / T.done / w : 0 });   // % of runs per percentage point
+    }
+    return out;
+  }
+  const hsvg = $('hist'), htip = $('histTip'), hbox = $('histBox');
+  const HW = 720, HH = 320, HM = { l: 52, r: 18, t: 26, b: 46 };
+  const HX = f => HM.l + f * (HW - HM.l - HM.r);
+  let HY = v => 0, hBins = [];
+  function drawHist() {
+    const T = HB.shown, P = HB.prev;
+    hBins = T && T.done ? bins(T) : [];
+    const pBins = P ? bins(P) : [];
+    const top = Math.max(0.5, ...hBins.map(b => b.y), ...pBins.map(b => b.y));
+    const raw = top / 4, mag = 10 ** Math.floor(Math.log10(raw));
+    const step = [1, 2, 5, 10].find(s => s * mag >= raw) * mag, ymax = Math.ceil(top * 1.08 / step) * step;
+    HY = v => HM.t + (1 - v / ymax) * (HH - HM.t - HM.b);
+    let s = '';
+    for (let v = 0; v <= ymax + 1e-9; v += step) {
+      s += `<line x1="${HM.l}" x2="${HW - HM.r}" y1="${HY(v)}" y2="${HY(v)}" style="stroke:var(--grid)" stroke-width="1"/>`;
+      s += `<text x="${HM.l - 8}" y="${HY(v) + 4}" text-anchor="end" style="fill:var(--muted);font:11px var(--mono)">${+v.toFixed(2)}%</text>`;
+    }
+    s += `<text x="${HM.l}" y="11" style="fill:var(--muted);font:11.5px var(--sans)">% of runs per percentage point</text>`;
+    for (let f = 0; f <= 1.0001; f += 0.1) s += `<text x="${HX(f)}" y="${HH - HM.b + 18}" text-anchor="middle" style="fill:var(--muted);font:11px var(--mono)">${Math.round(f * 100)}%</text>`;
+    s += `<text x="${(HM.l + HW - HM.r) / 2}" y="${HH - 6}" text-anchor="middle" style="fill:var(--muted);font:12px var(--sans)">Share of cells rotten when the link breaks</text>`;
+    for (const b of hBins) if (b.c) {
+      const x = HX(b.x0), wpx = HX(b.x1) - x;
+      s += `<rect x="${x.toFixed(2)}" y="${HY(b.y).toFixed(2)}" width="${Math.max(0.6, wpx > 3 ? wpx - 1 : wpx).toFixed(2)}" height="${(HY(0) - HY(b.y)).toFixed(2)}" style="fill:var(--s1)"/>`;
+    }
+    if (pBins.length) {
+      let pts = `${HX(0).toFixed(1)},${HY(0).toFixed(1)}`;
+      for (const b of pBins) pts += ` ${HX(b.x0).toFixed(1)},${HY(b.y).toFixed(1)} ${HX(b.x1).toFixed(1)},${HY(b.y).toFixed(1)}`;
+      s += `<polyline points="${pts}" fill="none" style="stroke:var(--s2)" stroke-width="1.5" stroke-linejoin="round"/>`;
+    }
+    s += `<line x1="${HM.l}" x2="${HW - HM.r}" y1="${HY(0)}" y2="${HY(0)}" style="stroke:var(--axis)" stroke-width="1"/>`;
+    s += `<line x1="${HX(RC)}" x2="${HX(RC)}" y1="${HM.t}" y2="${HY(0)}" style="stroke:var(--ink)" stroke-width="1" stroke-dasharray="4 4"/>`;
+    s += `<text x="${HX(RC) - 6}" y="${HM.t + 12}" text-anchor="end" style="fill:var(--ink);font:600 12px var(--sans)">1 − p<tspan dy="3" font-size="9">c</tspan><tspan dy="-3"> ≈ 0.407</tspan></text>`;
+    if (T && T.done) {
+      const { mean, sd } = stats(T), peak = hBins.reduce((a, b) => b.y > a.y ? b : a);
+      const lx = Math.min(HW - HM.r - 40, HX(mean + sd) + 10);
+      s += `<text x="${lx}" y="${Math.max(HM.t + 34, HY(peak.y) + 14)}" style="fill:var(--ink);font:600 12px var(--sans)">N = ${T.N}</text>`;
+    }
+    s += `<rect x="${HM.l}" y="${HM.t}" width="${HW - HM.l - HM.r}" height="${HH - HM.t - HM.b}" fill="transparent"/>`;
+    hsvg.innerHTML = s;
+    if (T && T.done) {
+      const { mean, sd } = stats(T);
+      $('histSub').textContent = `${T.N}×${T.N} grids · ${T.done.toLocaleString()}${T.done < T.runs ? ' of ' + T.runs.toLocaleString() : ''} runs · mean ${(mean * 100).toFixed(2)}% · spread (sd) ${(sd * 100).toFixed(2)} pts`;
+    } else $('histSub').textContent = 'running…';
+    $('histLegCur').textContent = T ? `N = ${T.N}, this size` : 'This grid size';
+    $('histLegPrevWrap').hidden = !P;
+    if (P) $('histLegPrev').textContent = `N = ${P.N}, the size before`;
+    drawTable();
+  }
+  function drawTable() {
+    const rows = [...HB.hist.values()].sort((a, b) => a.N - b.N);
+    const busy = [HB.cur, ...HB.tasks].filter(Boolean);
+    let s = rows.map(T => {
+      const { mean, sd } = stats(T), d = Math.round((mean - RC) * 10000) / 100;
+      return `<tr${HB.shown && T.N === HB.shown.N ? ' class="current"' : ''}><td class="num">${T.N}</td><td class="num">${T.done.toLocaleString()}</td><td class="num">${(mean * 100).toFixed(2)}%</td><td class="num">${(sd * 100).toFixed(2)}</td><td class="num">${d > 0 ? '+' : d < 0 ? '−' : ''}${Math.abs(d).toFixed(2)}</td></tr>`;
+    }).join('');
+    if (busy.length) s += `<tr><td colspan="5" class="busy">running N = ${busy.map(t => t.N).join(', ')}…</td></tr>`;
+    $('histRows').innerHTML = s || '<tr><td colspan="5">running…</td></tr>';
+  }
+  document.querySelectorAll('[data-runs]').forEach(b => b.addEventListener('click', () => {
+    HB.runs = +b.dataset.runs;
+    document.querySelectorAll('[data-runs]').forEach(x => x.setAttribute('aria-pressed', x === b));
+    histShow();
+  }));
+  $('histRerun').addEventListener('click', histShow);
+  $('histCompare').addEventListener('click', () => {
+    for (const N of [8, 16, 32, 64, 120]) if (!HB.tasks.some(t => t.N === N) && !(HB.cur && HB.cur.N === N)) HB.tasks.push(histTask(N, false));
+    drawTable(); pump();
+  });
+  hbox.addEventListener('mousemove', e => {
+    const T = HB.shown;
+    if (!T || !T.done || !hBins.length) return;
+    const r = hsvg.getBoundingClientRect();
+    const f = ((e.clientX - r.left) / r.width * HW - HM.l) / (HW - HM.l - HM.r);
+    const b = hBins.find(b => f >= b.x0 && f < b.x1);
+    if (!b) { htip.style.display = 'none'; return; }
+    htip.innerHTML = `<b>${(b.x0 * 100).toFixed(1)}–${(b.x1 * 100).toFixed(1)}% rotten</b><br>${(b.c / T.done * 100).toFixed(1)}% of runs<br>${b.c.toLocaleString()} / ${T.done.toLocaleString()}`;
+    htip.style.display = 'block';
+    const px = HX((b.x0 + b.x1) / 2) / HW * r.width, py = HY(b.y) / HH * r.height, tw = htip.offsetWidth;
+    htip.style.left = Math.min(r.width - tw, Math.max(0, px + (px > r.width / 2 ? -tw - 12 : 12))) + 'px';
+    htip.style.top = Math.max(0, py - 30) + 'px';
+  });
+  hbox.addEventListener('mouseleave', () => { htip.style.display = 'none'; });
+
+  // ---------- boot ----------
+  readColors();
+  syncLabels();
+  syncRotLabels();
+  newGrid((Math.random() * 2 ** 32) >>> 0);
+  rotOrder((Math.random() * 2 ** 32) >>> 0);
+  runMC();
+  histShow();
+  const renderAll = () => { render(); rotRender(); };
+  window.addEventListener('resize', renderAll);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readColors(); renderAll(); });
+  new MutationObserver(() => { readColors(); renderAll(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (document.fonts) document.fonts.ready.then(renderAll);
+})();
+</script>
+</body>
+</html>

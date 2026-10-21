@@ -9,6 +9,7 @@ Small, self-contained projects. Each top-level folder stands alone: no folder im
 | [poker/](poker/) | Texas hold'em: hand evaluator, Monte Carlo strategy, odds advisor, terminal game | none |
 | [sudoku/](sudoku/) | Sudoku solver and generator, with tkinter, Flask and Streamlit front-ends | numpy (+ flask / streamlit, see [requirements](sudoku/requirements.txt)) |
 | [finding_fox/](finding_fox/) | Word-search game, a single HTML page | none (open in a browser) |
+| [the_threshold/](the_threshold/) | Percolation game: breadth-first flood through an N×N grid, a Monte Carlo threshold curve, and a rot mode (random rot vs targeted attack, with a break-fraction histogram around 1 − p_c), a single HTML page | none (open in a browser) |
 | [quant_questions/](quant_questions/) | Quant brain teasers, each with a write-up, solver, tests and visual page | none |
 
 ## Running
@@ -21,6 +22,7 @@ python -m sudoku.gui_app                  # tkinter sudoku
 python -m sudoku.webapp.app               # Flask sudoku on http://localhost:5050
 streamlit run sudoku/streamlit_app.py     # Streamlit sudoku
 open finding_fox/index.html
+open the_threshold/index.html
 ```
 
 ## Tests
