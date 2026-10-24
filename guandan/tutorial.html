@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GuanDan Primer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  /* Layout: one reading column of numbered lessons; every rule gets a boxed exhibit drawn with real cards. */
+  /* paper-theme (theme.css from the skill, unchanged) */
+/* paper-theme: salmon-paper financial-newspaper house style.
+   Tokens first (light, then dark twice: OS preference unless the host forces light, and host-forced dark),
+   then base elements. Page-specific CSS goes after this block and uses only these tokens. */
+:root {
+  /* surfaces and ink */
+  --bg: #fff1e5;        /* paper */
+  --surface: #fff7f0;   /* boxed exhibits, inputs, tiles */
+  --ink: #33302e;
+  --muted: #66605c;
+  --line: #ccc1b7;      /* hairline rules and borders */
+  --grid: #ecdccd;      /* chart gridlines */
+  --axis: #a39a92;      /* chart axis lines */
+  --code: #f2dfce;      /* wheat: code, table stripes, empty cells */
+  /* named accents (UI, not chart series) */
+  --claret: #990f3d; --claret-soft: #f4d6db;
+  --oxford: #0f5499; --oxford-soft: #d6e2ef;
+  --teal: #0d7680;   --teal-soft: #d4e7e3;
+  --mandarin: #cc5a0a; --mandarin-soft: #ffe2c8;
+  /* roles */
+  --label: var(--claret);      /* eyebrows, kicker labels */
+  --link: var(--oxford);
+  --accent: var(--oxford);     /* highlight in diagrams, selected state */
+  --accent-soft: var(--oxford-soft);
+  --tail: var(--claret);       /* losses, breaches, the bad outcome */
+  --tail-soft: var(--claret-soft);
+  --hedge: var(--teal);        /* gains, offsets, the good outcome */
+  --hedge-soft: var(--teal-soft);
+  /* categorical chart slots, in this order; validated on --bg and --surface (CVD, contrast, lightness) */
+  --s1: #0f5499; --s2: #990f3d; --s3: #0a8f9c; --s4: #cc5a0a; --s5: #6f45ad; --s6: #008a4c;
+  /* status: reserved, always with an icon or a word */
+  --good: #0b7a3e; --warning: #b36b00; --critical: #c00000;
+  --good-ink: #0b6b36; --warning-ink: #8a5300; --critical-ink: #a30000;
+  /* type */
+  --display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --body: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --sans: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1f1b19; --surface: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c; --grid: #352f2b;
+    --axis: #6b625b; --code: #352f2b;
+    --claret: #ef7a9c; --claret-soft: #4a2130; --oxford: #7fb2e8; --oxford-soft: #1c2b3d;
+    --teal: #5fc3c9; --teal-soft: #1d3a3c; --mandarin: #ffa25c; --mandarin-soft: #4a3020;
+    --s1: #4f95e3; --s2: #c4456d; --s3: #22a3b2; --s4: #d9762a; --s5: #9b73d6; --s6: #3aad5c;
+    --good: #4cc27a; --warning: #e6a23c; --critical: #f0605a;
+    --good-ink: #4cc27a; --warning-ink: #e6a23c; --critical-ink: #f0605a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1f1b19; --surface: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c; --grid: #352f2b;
+  --axis: #6b625b; --code: #352f2b;
+  --claret: #ef7a9c; --claret-soft: #4a2130; --oxford: #7fb2e8; --oxford-soft: #1c2b3d;
+  --teal: #5fc3c9; --teal-soft: #1d3a3c; --mandarin: #ffa25c; --mandarin-soft: #4a3020;
+  --s1: #4f95e3; --s2: #c4456d; --s3: #22a3b2; --s4: #d9762a; --s5: #9b73d6; --s6: #3aad5c;
+  --good: #4cc27a; --warning: #e6a23c; --critical: #f0605a;
+  --good-ink: #4cc27a; --warning-ink: #e6a23c; --critical-ink: #f0605a;
+  color-scheme: dark;
+}
+
+/* base */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--ink); font: 400 17px/1.6 var(--body); margin: 0; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(32px, 5vw, 48px); line-height: 1.08; letter-spacing: -0.01em; }
+h2 { font-size: 26px; line-height: 1.15; }
+h3 { font-size: 19px; line-height: 1.25; }
+p { margin: 0; }
+a { color: var(--link); }
+.eyebrow, .kicker { font: 600 12px/1.2 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--label); }
+.lede, .standfirst { font-size: 20px; line-height: 1.5; color: var(--muted); max-width: 60ch; }
+.rule-top { border-top: 4px solid var(--ink); padding-top: 10px; }
+code { font-family: var(--mono); font-size: 0.85em; background: var(--code); padding: 1px 5px; border-radius: 0; }
+pre { font-family: var(--mono); font-size: 13px; line-height: 1.55; background: var(--code); padding: 14px 16px; margin: 0; overflow-x: auto; }
+figure { margin: 0; }
+figcaption { font: 400 13.5px/1.5 var(--sans); color: var(--muted); }
+table { border-collapse: collapse; width: 100%; font: 400 14px/1.4 var(--sans); font-variant-numeric: tabular-nums; }
+th { font: 600 11.5px/1.2 var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+     text-align: left; padding: 7px 10px; border-bottom: 2px solid var(--ink); vertical-align: bottom; }
+td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.num, th.num { text-align: right; font-family: var(--mono); }
+button { font: 600 14px/1 var(--sans); padding: 10px 14px; border: 1px solid var(--line); border-radius: 0;
+         background: var(--surface); color: var(--ink); cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--ink); }
+button.primary, button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+button:disabled { opacity: 0.4; cursor: default; }
+:focus-visible { outline: 2px solid var(--oxford); outline-offset: 2px; }
+input, select { font: 400 15px/1.2 var(--mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+                border-radius: 0; padding: 7px 8px; }
+footer { font: 400 13px/1.5 var(--sans); color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+/* charts and diagrams stretch to their figure; never style bare `svg`, or MathJax formulas blow up in Safari */
+figure > svg, .fig-scroll > svg { display: block; width: 100%; height: auto; }
+mjx-container svg { display: inline; max-width: none; }
+mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+  /* page */
+  .wrap { max-width: 1040px; margin: 0 auto; padding-block: 40px 56px;
+          padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+          display: grid; gap: 52px; }
+  header { display: grid; gap: 14px; }
+  .han { font-family: var(--display); font-weight: 400; color: var(--muted); font-size: 0.6em; margin-left: 10px; }
+  .strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 4px solid var(--ink); border-bottom: 1px solid var(--line); margin-top: 8px; }
+  .strip > div { padding: 12px 14px 14px; display: grid; gap: 4px; border-left: 1px solid var(--line); min-width: 0; }
+  .strip > div:first-child { border-left: 0; padding-left: 0; }
+  .strip .v { font: 600 26px/1.1 var(--mono); }
+  .strip .n { font: 400 13px/1.4 var(--sans); color: var(--muted); }
+  section { display: grid; gap: 16px; }
+  section > h2 { border-top: 4px solid var(--ink); padding-top: 10px; }
+  section > h2 .no { font: 600 13px/1 var(--mono); color: var(--label); margin-right: 10px; vertical-align: 4px; }
+  .prose { max-width: 66ch; display: grid; gap: 12px; }
+  .prose ul, .prose ol { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+  .box { background: var(--surface); border: 1px solid var(--line); padding: 18px 20px; display: grid; gap: 14px; min-width: 0; }
+  .box > .kicker { margin-bottom: -4px; }
+  .scroll { overflow-x: auto; }
+  .cta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  a.btn { font: 600 14px/1 var(--sans); padding: 11px 16px; background: var(--ink); color: var(--surface); text-decoration: none; border: 1px solid var(--ink); }
+  a.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+  .note { font: 400 13.5px/1.5 var(--sans); color: var(--muted); }
+  .tip { border-left: 3px solid var(--mandarin); padding: 2px 0 2px 12px; font: 400 15px/1.55 var(--body); max-width: 66ch; }
+
+  /* playing cards */
+  .cards { display: flex; flex-wrap: wrap; gap: 4px; align-items: flex-end; }
+  .cards.tight .c + .c { margin-left: -14px; }
+  .c { position: relative; width: 38px; height: 54px; flex: none; background: var(--bg); border: 1px solid var(--axis);
+       display: inline-grid; grid-template-rows: auto 1fr; padding: 3px 4px; box-sizing: border-box;
+       font: 600 15px/1 var(--mono); color: var(--ink); }
+  .c .s { font-size: 15px; justify-self: end; align-self: end; }
+  .c.red { color: var(--claret); }
+  .c.lvl { box-shadow: inset 0 -4px 0 var(--oxford); }
+  .c.wild { background: var(--mandarin-soft); border-color: var(--mandarin); }
+  .c.wild::after { content: "WILD"; position: absolute; top: -9px; left: 2px; font: 600 8.5px/1 var(--sans); letter-spacing: .06em;
+                   background: var(--mandarin); color: var(--surface); padding: 2px 3px; }
+  .c.joker { font: 600 9px/1.05 var(--sans); letter-spacing: .04em; writing-mode: vertical-lr; text-orientation: upright;
+             display: grid; place-items: start; padding: 4px 3px; }
+  .c.joker.big { color: var(--claret); background: var(--claret-soft); }
+  .c.joker.small { color: var(--ink); background: var(--code); }
+  .gt { font: 600 18px/54px var(--mono); color: var(--muted); padding: 0 2px; }
+
+  /* rank ladder */
+  .lvlpick { display: flex; flex-wrap: wrap; gap: 0; }
+  .lvlpick button { padding: 8px 0; width: 38px; font-family: var(--mono); margin-left: -1px; }
+  .ladder { display: flex; flex-wrap: wrap; gap: 6px 4px; align-items: flex-end; }
+  .ladder .tag { font: 600 10.5px/1 var(--sans); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); text-align: center; margin-top: 4px; }
+  .ladder figure { display: grid; justify-items: center; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 400 13px/1.4 var(--sans); color: var(--muted); }
+  .legend span { display: inline-flex; gap: 6px; align-items: center; }
+  .sw { width: 14px; height: 14px; border: 1px solid var(--axis); display: inline-block; }
+  .sw.l { box-shadow: inset 0 -4px 0 var(--oxford); background: var(--bg); }
+  .sw.w { background: var(--mandarin-soft); border-color: var(--mandarin); }
+
+  /* combination table */
+  td .cards { flex-wrap: nowrap; }
+  td.k { font: 600 14px/1.3 var(--sans); white-space: nowrap; }
+  td.k .zh { display: block; font: 400 12.5px/1.3 var(--sans); color: var(--muted); }
+
+  /* bomb ladder */
+  .bombs { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; counter-reset: b; }
+  .bombs li { display: grid; grid-template-columns: 34px minmax(0, 190px) minmax(0, 1fr); gap: 14px; align-items: center;
+              padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .bombs li:first-child { border-top: 2px solid var(--ink); }
+  .bombs .rk { font: 600 13px/1 var(--mono); color: var(--label); }
+  .bombs .nm { font: 600 15px/1.3 var(--sans); }
+  .bombs .nm small { display: block; font: 400 12.5px/1.3 var(--sans); color: var(--muted); }
+
+  /* trick walk-through */
+  .steps { display: grid; gap: 0; }
+  .step { display: grid; grid-template-columns: 92px minmax(0, 1fr) minmax(0, 1.2fr); gap: 14px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .step:first-child { border-top: 2px solid var(--ink); }
+  .seat { font: 600 13px/1.25 var(--sans); }
+  .seat small { display: block; font-weight: 400; color: var(--muted); }
+  .seat.us { color: var(--oxford); } .seat.them { color: var(--claret); }
+  .why { font: 400 14px/1.45 var(--sans); color: var(--muted); }
+  .pass { font: 600 12px/1 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border: 1px dashed var(--axis); padding: 8px 10px; justify-self: start; }
+
+  /* tribute flow */
+  .flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 2px solid var(--ink); }
+  .flow > div { padding: 14px 16px 14px 0; display: grid; gap: 8px; align-content: start; }
+  .flow > div + div { border-left: 1px solid var(--line); padding-left: 16px; }
+  .flow h3 { font-size: 17px; }
+
+  /* strategy grid */
+  .rules { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0; border-top: 2px solid var(--ink); }
+  .rules > div { padding: 14px 18px 16px 0; border-bottom: 1px solid var(--line); display: grid; gap: 6px; align-content: start; }
+  .rules > div:nth-child(2n) { padding-left: 18px; border-left: 1px solid var(--line); }
+  .rules h3 { font-size: 17px; }
+  .rules p { font-size: 15.5px; line-height: 1.55; }
+
+  /* quiz */
+  .quiz { display: grid; gap: 0; }
+  .q { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; padding: 14px 0; border-bottom: 1px solid var(--line); align-items: center; }
+  .q:first-child { border-top: 2px solid var(--ink); }
+  .q .pair { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; }
+  .q .lab { font: 600 11px/1 var(--sans); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .q .ans { display: flex; }
+  .q .ans button + button { margin-left: -1px; }
+  .q .out { grid-column: 1 / -1; font: 400 14px/1.5 var(--sans); }
+  .q .out.ok::before { content: "✓ Right. "; color: var(--good-ink); font-weight: 600; }
+  .q .out.no::before { content: "✗ Not quite. "; color: var(--critical-ink); font-weight: 600; }
+  .score { font: 600 14px/1 var(--mono); }
+
+  @media (max-width: 760px) {
+    .strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .strip > div:nth-child(3) { border-left: 0; padding-left: 0; }
+    .strip > div:nth-child(n+3) { border-top: 1px solid var(--line); }
+    .flow, .rules { grid-template-columns: minmax(0, 1fr); }
+    .flow > div + div, .rules > div:nth-child(2n) { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); }
+    .flow > div + div { border-top: 1px solid var(--line); }
+    .step { grid-template-columns: 70px minmax(0, 1fr); }
+    .step .why { grid-column: 1 / -1; }
+    .bombs li { grid-template-columns: 28px minmax(0, 1fr); }
+    .bombs li .cards { grid-column: 2; }
+  }
+  @media (prefers-reduced-motion: no-preference) { .q .out { transition: opacity .2s; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+
+<header>
+  <div class="kicker">Card games · Practice desk</div>
+  <h1>GuanDan <span class="han">掼蛋</span></h1>
+  <p class="lede">A partnership climbing game from Jiangsu that spread through China's banks and brokerages in the mid-2010s and is now played everywhere. Two teams race to get rid of their cards and climb from level 2 to level A.</p>
+  <div class="strip">
+    <div><span class="kicker">Players</span><span class="v">4</span><span class="n">two fixed teams, partners sit opposite</span></div>
+    <div><span class="kicker">Deck</span><span class="v">108</span><span class="n">two packs plus four jokers</span></div>
+    <div><span class="kicker">Hand</span><span class="v">27</span><span class="n">cards each, all dealt out</span></div>
+    <div><span class="kicker">Goal</span><span class="v">2 → A</span><span class="n">first team to win at level A</span></div>
+  </div>
+  <div class="cta"><a class="btn" id="playlink" href="index.html">Practise against the computer</a><a class="btn ghost" href="#quiz">Skip to the quiz</a></div>
+</header>
+
+<section>
+  <h2><span class="no">01</span>The idea in one paragraph</h2>
+  <div class="prose">
+    <p>You and the player opposite are a team. Someone leads a combination (a single, a pair, a straight and so on). Going round counter-clockwise, each player either beats it with a <em>higher combination of the same shape</em>, drops a <em>bomb</em>, or passes. When three players pass in a row, whoever played last wins the trick and leads anything they like. The first player to empty their hand comes first. How your partner finishes decides how many levels your team climbs.</p>
+    <p>It looks like Big Two or Dou Dizhu, with three twists. The level card changes every hand, two of its hearts are wild, and you are playing for a team rather than for yourself.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">02</span>Rank order and the level card</h2>
+  <div class="prose">
+    <p>Both teams start at level 2. Each hand is played at the level of the team that won the last one. The current level's rank is the <strong>level card</strong>. It jumps above the ace, just under the two jokers. The <strong>two hearts of the level rank are wild</strong> and can stand for any card except a joker.</p>
+  </div>
+  <div class="box">
+    <span class="kicker">Exhibit · ranking at level <span id="lvlName">7</span></span>
+    <div class="lvlpick" id="lvlpick" role="group" aria-label="Choose a level"></div>
+    <div class="ladder" id="ladder"></div>
+    <div class="legend"><span><i class="sw l"></i>level card, ranks above A</span><span><i class="sw w"></i>heart level card, wild</span><span>low → high, left to right</span></div>
+    <p class="note">In straights, tubes and plates the level card goes back to its natural place, so at level 7 the run 5-6-7-8-9 still works. An ace can be high (10-J-Q-K-A) or low (A-2-3-4-5), but it can't sit in the middle of a run.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">03</span>The seven ordinary combinations</h2>
+  <div class="prose"><p>An ordinary combination can only be beaten by the <em>same type with the same number of cards</em> and a higher rank. You can never answer a pair with a triple, or a straight with a full house.</p></div>
+  <div class="box scroll">
+    <table>
+      <thead><tr><th>Type</th><th>Example</th><th>How it ranks</th></tr></thead>
+      <tbody>
+        <tr><td class="k">Single<span class="zh">单张</span></td><td><div class="cards" data-cards="KS"></div></td><td>By rank order above: 2 lowest, red joker highest.</td></tr>
+        <tr><td class="k">Pair<span class="zh">对子</span></td><td><div class="cards" data-cards="9H 9C"></div></td><td>Two of a rank. Two black jokers or two red jokers make a pair, but one of each doesn't.</td></tr>
+        <tr><td class="k">Triple<span class="zh">三张</span></td><td><div class="cards" data-cards="4S 4D 4C"></div></td><td>Three of a rank. Jokers can't form a triple.</td></tr>
+        <tr><td class="k">Full house<span class="zh">三带二</span></td><td><div class="cards" data-cards="JS JH JD 3C 3S"></div></td><td>A triple plus a pair, ranked by the triple only.</td></tr>
+        <tr><td class="k">Straight<span class="zh">顺子</span></td><td><div class="cards" data-cards="6D 7S 8C 9H TS"></div></td><td>Exactly five in a row, mixed suits, ranked by the top card. Lowest A-2-3-4-5, highest 10-J-Q-K-A.</td></tr>
+        <tr><td class="k">Tube<span class="zh">三连对 · 木板</span></td><td><div class="cards tight" data-cards="5S 5H 6D 6C 7S 7D"></div></td><td>Exactly three consecutive pairs. Top is Q-Q-K-K-A-A.</td></tr>
+        <tr><td class="k">Plate<span class="zh">钢板 · 二连三</span></td><td><div class="cards tight" data-cards="8S 8H 8D 9C 9S 9D"></div></td><td>Exactly two consecutive triples. Top is K-K-K-A-A-A.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">04</span>Bombs beat everything ordinary</h2>
+  <div class="prose"><p>A bomb can be played on any trick at any time, even when it isn't your turn to lead. Only a bigger bomb beats it. Bombs are ranked first by type, from the bottom of this list to the top, then by rank within a type. A bomb of the level rank is the best of its size.</p></div>
+  <div class="box">
+    <span class="kicker">Exhibit · the bomb ladder, strongest first</span>
+    <ol class="bombs">
+      <li><span class="rk">#1</span><span class="nm">Four jokers<small>天王炸 · unbeatable</small></span><div class="cards tight" data-cards="RJ RJ BJ BJ"></div></li>
+      <li><span class="rk">#2</span><span class="nm">7 to 10 of a kind<small>more cards always wins; needs wilds past 8</small></span><div class="cards tight" data-cards="QS QS QH QD QC QC QD"></div></li>
+      <li><span class="rk">#3</span><span class="nm">Six of a kind<small>六张炸</small></span><div class="cards tight" data-cards="3S 3S 3H 3D 3C 3C"></div></li>
+      <li><span class="rk">#4</span><span class="nm">Straight flush<small>同花顺 · five in a row, one suit</small></span><div class="cards tight" data-cards="9S TS JS QS KS"></div></li>
+      <li><span class="rk">#5</span><span class="nm">Five of a kind<small>五张炸</small></span><div class="cards tight" data-cards="6S 6H 6D 6C 6C"></div></li>
+      <li><span class="rk">#6</span><span class="nm">Four of a kind<small>四张炸 · the everyday bomb</small></span><div class="cards tight" data-cards="TS TH TD TC"></div></li>
+    </ol>
+    <p class="note">The odd one out is the straight flush. It sits between five and six of a kind, and it is ranked by its top card whatever the level.</p>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">05</span>One trick, step by step</h2>
+  <div class="prose"><p>Level 2. You are South and partner North. East and West are the opponents. Play runs counter-clockwise: South, East, North, West.</p></div>
+  <div class="box">
+    <span class="kicker">Exhibit · a pair trick</span>
+    <div class="steps">
+      <div class="step"><span class="seat us">South<small>you</small></span><div class="cards" data-cards="5S 5D"></div><span class="why">You lead a low pair. Leads should shed cards that would be hard to get rid of later.</span></div>
+      <div class="step"><span class="seat them">East<small>opponent</small></span><div class="cards" data-cards="9C 9H"></div><span class="why">Same shape, higher rank, so it's legal.</span></div>
+      <div class="step"><span class="seat us">North<small>partner</small></span><div class="cards" data-cards="KD KS"></div><span class="why">Partner takes it back for the team.</span></div>
+      <div class="step"><span class="seat them">West<small>opponent</small></span><span class="pass">Pass</span><span class="why">No pair above kings that West wants to spend.</span></div>
+      <div class="step"><span class="seat us">South<small>you</small></span><span class="pass">Pass</span><span class="why">Never overtake your partner without a reason. North is winning for the team.</span></div>
+      <div class="step"><span class="seat them">East<small>opponent</small></span><div class="cards" data-cards="7S 7H 7D 7C"></div><span class="why">A bomb beats the kings even though East passed nothing in between. Passing earlier doesn't stop you playing later.</span></div>
+      <div class="step"><span class="seat us">North, West, South</span><span class="pass">Pass ×3</span><span class="why">Three passes in a row, so East wins the trick and leads next.</span></div>
+    </div>
+  </div>
+  <p class="tip">If the player who won a trick has already gone out, their <strong>partner</strong> leads next. This is called <em>jiē fēng</em> (接风, catching the wind). It is a strong reason to help a partner who is down to a few cards.</p>
+</section>
+
+<section>
+  <h2><span class="no">06</span>Finishing, climbing, and winning at A</h2>
+  <div class="prose"><p>The hand goes on until both players of one team are out. The team of the first player out wins the hand. Where the partner finishes sets the climb:</p></div>
+  <div class="box scroll">
+    <table>
+      <thead><tr><th>Finish of the winning team</th><th>Chinese</th><th class="num">Levels up</th><th>Tribute next hand</th></tr></thead>
+      <tbody>
+        <tr><td>1st and 2nd</td><td>双上 · double win</td><td class="num">+3</td><td>Both losers pay</td></tr>
+        <tr><td>1st and 3rd</td><td>单上 · single win</td><td class="num">+2</td><td>Last-out player pays</td></tr>
+        <tr><td>1st and 4th</td><td>平局 · narrow win</td><td class="num">+1</td><td>Last-out player pays</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Most Chinese club and tournament rules use +3/+2/+1, and this practice table does too. Some English write-ups give +4 for a double win.</p>
+  </div>
+  <div class="prose">
+    <ul>
+      <li>The winning team's new level becomes the level for the next hand.</li>
+      <li>You can't skip past A. A team that reaches A must <strong>win a hand at level A</strong>, finishing 1st and 2nd or 1st and 3rd, to win the match. A 1st-and-4th finish leaves them on A.</li>
+      <li>Under many rules, a team that fails at A three times drops back to level 2.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">07</span>Tribute and return</h2>
+  <div class="prose"><p>From the second hand on, the losers pay before play starts. This is the part of the game that rewards a big win.</p></div>
+  <div class="flow">
+    <div><span class="kicker">Step 1</span><h3>Tribute · 进贡</h3><p>The paying player hands over their single highest card, which can't be a wild heart. After a double win both losers pay, and the bigger tribute card goes to the first-out winner.</p></div>
+    <div><span class="kicker">Step 2</span><h3>Return · 还贡</h3><p>Each receiver gives one card back to the player who paid. Common club rules say the returned card must be a 10 or lower.</p></div>
+    <div><span class="kicker">Step 3</span><h3>Resist · 抗贡</h3><p>If the paying side holds both red jokers between them, tribute is cancelled. The previous first-out player then leads. Otherwise whoever paid the bigger tribute leads.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">08</span>How good players think</h2>
+  <div class="rules">
+    <div><h3>Plan the whole hand</h3><p>Before the first lead, split your 27 cards into the fewest combinations. Every combination is one turn you need to win. Long shapes (straights, tubes, plates, full houses) clear five or six cards in one go.</p></div>
+    <div><h3>Count the big cards</h3><p>Track the four jokers, the eight level cards and the aces. When the red jokers are gone, your black joker controls every single. The practice table keeps this count for you.</p></div>
+    <div><h3>Bombs are for control</h3><p>Don't break a bomb to make a pair. Spend bombs to stop an opponent who is about to go out, or to take the lead when your remaining hand finishes in one or two turns.</p></div>
+    <div><h3>Don't beat your partner</h3><p>If partner is winning the trick, pass. Overtake only to go out yourself or to stop partner leading into a weak spot.</p></div>
+    <div><h3>Lead what you want back</h3><p>Lead your weakest shape. Watch what the opponents pass on: a pass over a pair of 8s suggests they have few spare pairs above 8.</p></div>
+    <div><h3>Feed a short partner</h3><p>When partner is down to a few cards, lead the shape they can beat, usually a low single or pair. Their finishing first turns your hand into a likely +2 or +3.</p></div>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="no">09</span>Check yourself</h2>
+  <div class="prose"><p>Every question is at level 7, so sevens rank above aces and the 7♥ is wild. Does the second play legally beat the first?</p></div>
+  <div class="box">
+    <div class="quiz" id="quizList"></div>
+    <div class="cta"><span class="score" id="quizScore">0 / 6 answered</span><button id="quizReset">Reset</button></div>
+  </div>
+</section>
+
+<footer>
+  Rules follow the partnership version described by <a href="https://www.pagat.com/climbing/guan_dan.html">pagat.com</a>, checked against <a href="https://en.wikipedia.org/wiki/Guandan">Wikipedia</a> and Chinese club rules (e.g. a <a href="https://www.cup.edu.cn/jiguan/docs/2024-03/a37a68b7f82c405f94a214c2becf7cc3.pdf">China University of Petroleum tournament sheet</a>). Tribute details and the double-win climb vary by region. Agree them before you play. The explanations, exhibits and quiz are original.
+</footer>
+</main>
+
+<script>
+(function () {
+  // Card codes: rank (2-9, T, J, Q, K, A) + suit (S H D C); RJ / BJ are the red and black jokers.
+  const SUIT = { S: '♠', H: '♥', D: '♦', C: '♣' };
+  const RANKS = ['2','3','4','5','6','7','8','9','T','J','Q','K','A'];
+  const show = r => r === 'T' ? '10' : r;
+  function cardEl(code, level) {
+    const el = document.createElement('span');
+    el.className = 'c';
+    if (code === 'RJ' || code === 'BJ') {
+      el.classList.add('joker', code === 'RJ' ? 'big' : 'small');
+      el.textContent = code === 'RJ' ? 'JOKER' : 'joker';
+      el.setAttribute('aria-label', code === 'RJ' ? 'red joker' : 'black joker');
+      return el;
+    }
+    const r = code[0], s = code[1];
+    if (s === 'H' || s === 'D') el.classList.add('red');
+    if (level && r === level) el.classList.add(s === 'H' ? 'wild' : 'lvl');
+    el.innerHTML = '<span>' + show(r) + '</span><span class="s">' + SUIT[s] + '</span>';
+    el.setAttribute('aria-label', show(r) + ' of ' + { S: 'spades', H: 'hearts', D: 'diamonds', C: 'clubs' }[s]);
+    return el;
+  }
+  function fill(host, codes, level) {
+    host.textContent = '';
+    codes.split(/\s+/).filter(Boolean).forEach(c => {
+      if (c === '>') { const g = document.createElement('span'); g.className = 'gt'; g.textContent = '›'; host.appendChild(g); }
+      else host.appendChild(cardEl(c, level));
+    });
+  }
+  document.querySelectorAll('[data-cards]').forEach(h => fill(h, h.dataset.cards, h.dataset.level));
+  // opened from the repo, link the local page; published, link the published table
+  if (location.protocol !== 'file:') document.getElementById('playlink').href = 'https://claude.ai/artifact/6fS6w32jRdXMQfux5tsmny';
+
+  // level ladder
+  const pick = document.getElementById('lvlpick'), ladder = document.getElementById('ladder');
+  function drawLadder(L) {
+    document.getElementById('lvlName').textContent = show(L) === 'A' ? 'A' : show(L);
+    pick.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.r === L ? 'true' : 'false'));
+    ladder.textContent = '';
+    const add = (code, tag) => {
+      const f = document.createElement('figure');
+      f.appendChild(cardEl(code, L));
+      if (tag) { const t = document.createElement('figcaption'); t.className = 'tag'; t.textContent = tag; f.appendChild(t); }
+      ladder.appendChild(f);
+    };
+    const suits = ['S', 'C', 'D', 'S'];
+    RANKS.filter(r => r !== L).forEach((r, i) => add(r + suits[i % 4], ''));
+    add(L + 'S', 'level'); add(L + 'H', 'wild'); add('BJ', 'black'); add('RJ', 'red');
+  }
+  RANKS.forEach(r => {
+    const b = document.createElement('button');
+    b.textContent = show(r); b.dataset.r = r; b.setAttribute('aria-label', 'Level ' + show(r));
+    b.addEventListener('click', () => drawLadder(r));
+    pick.appendChild(b);
+  });
+  drawLadder('7');
+
+  // quiz, all at level 7
+  const QUIZ = [
+    { a: '9S 9D', b: '7C 7D', yes: true, why: 'Sevens are the level card, so a pair of 7s outranks a pair of 9s and even a pair of aces.' },
+    { a: '4S 4C 4D JS JD', b: '5H 5C 5S 3D 3C', yes: true, why: 'A full house is ranked by its triple only: 5-5-5 beats 4-4-4. The pairs don\'t matter.' },
+    { a: 'AS AD', b: 'KS KH KD', yes: false, why: 'A triple can\'t answer a pair. Ordinary combinations must match in type and size.' },
+    { a: '9C TD JS QH KC', b: '7H 8D 9S TC JS', yes: false, why: 'The 7♥ is wild, but even played as a queen the best run is 8-9-10-J-Q. That tops out at Q, below the K on the table.' },
+    { a: '8S 8H 8D 8C 8C', b: '4S 5S 6S 7S 8S', yes: true, why: 'A straight flush beats any five-of-a-kind bomb, whatever its rank.' },
+    { a: 'RJ', b: 'QS QH QD QC', yes: true, why: 'Any bomb beats any ordinary combination, even the red joker played as a single.' }
+  ];
+  const list = document.getElementById('quizList'), score = document.getElementById('quizScore');
+  let answered = 0, right = 0;
+  function buildQuiz() {
+    list.textContent = ''; answered = 0; right = 0; score.textContent = '0 / ' + QUIZ.length + ' answered';
+    QUIZ.forEach((q, i) => {
+      const row = document.createElement('div'); row.className = 'q';
+      const pair = document.createElement('div'); pair.className = 'pair';
+      const l1 = document.createElement('span'); l1.className = 'lab'; l1.textContent = 'On the table';
+      const c1 = document.createElement('div'); c1.className = 'cards tight'; fill(c1, q.a, '7');
+      const l2 = document.createElement('span'); l2.className = 'lab'; l2.textContent = 'Played on top';
+      const c2 = document.createElement('div'); c2.className = 'cards tight'; fill(c2, q.b, '7');
+      pair.append(l1, c1, l2, c2);
+      const ans = document.createElement('div'); ans.className = 'ans';
+      const out = document.createElement('p'); out.className = 'out'; out.hidden = true;
+      ['Beats', 'Doesn\'t'].forEach((lab, k) => {
+        const b = document.createElement('button'); b.textContent = lab; b.id = 'q' + i + '-' + k;
+        b.addEventListener('click', () => {
+          if (!out.hidden) return;
+          const ok = (k === 0) === q.yes;
+          answered++; if (ok) right++;
+          b.setAttribute('aria-pressed', 'true');
+          ans.querySelectorAll('button').forEach(x => x.disabled = x !== b);
+          out.hidden = false; out.className = 'out ' + (ok ? 'ok' : 'no'); out.textContent = q.why;
+          score.textContent = right + ' right of ' + answered + ' answered' + (answered === QUIZ.length ? ' · done' : '');
+        });
+        ans.appendChild(b);
+      });
+      row.append(pair, ans, out);
+      list.appendChild(row);
+    });
+  }
+  document.getElementById('quizReset').addEventListener('click', buildQuiz);
+  buildQuiz();
+})();
+</script>
+</body>
+</html>
