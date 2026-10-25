@@ -1,0 +1,1169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GuanDan Table</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  /* Layout: the table (three computer seats around a trick area, your hand underneath) on the left; a rail of coach, card counter, reads and log on the right, stacking under 980px. */
+  /* paper-theme (theme.css from the skill, unchanged) */
+/* paper-theme: salmon-paper financial-newspaper house style.
+   Tokens first (light, then dark twice: OS preference unless the host forces light, and host-forced dark),
+   then base elements. Page-specific CSS goes after this block and uses only these tokens. */
+:root {
+  /* surfaces and ink */
+  --bg: #fff1e5;        /* paper */
+  --surface: #fff7f0;   /* boxed exhibits, inputs, tiles */
+  --ink: #33302e;
+  --muted: #66605c;
+  --line: #ccc1b7;      /* hairline rules and borders */
+  --grid: #ecdccd;      /* chart gridlines */
+  --axis: #a39a92;      /* chart axis lines */
+  --code: #f2dfce;      /* wheat: code, table stripes, empty cells */
+  /* named accents (UI, not chart series) */
+  --claret: #990f3d; --claret-soft: #f4d6db;
+  --oxford: #0f5499; --oxford-soft: #d6e2ef;
+  --teal: #0d7680;   --teal-soft: #d4e7e3;
+  --mandarin: #cc5a0a; --mandarin-soft: #ffe2c8;
+  /* roles */
+  --label: var(--claret);      /* eyebrows, kicker labels */
+  --link: var(--oxford);
+  --accent: var(--oxford);     /* highlight in diagrams, selected state */
+  --accent-soft: var(--oxford-soft);
+  --tail: var(--claret);       /* losses, breaches, the bad outcome */
+  --tail-soft: var(--claret-soft);
+  --hedge: var(--teal);        /* gains, offsets, the good outcome */
+  --hedge-soft: var(--teal-soft);
+  /* categorical chart slots, in this order; validated on --bg and --surface (CVD, contrast, lightness) */
+  --s1: #0f5499; --s2: #990f3d; --s3: #0a8f9c; --s4: #cc5a0a; --s5: #6f45ad; --s6: #008a4c;
+  /* status: reserved, always with an icon or a word */
+  --good: #0b7a3e; --warning: #b36b00; --critical: #c00000;
+  --good-ink: #0b6b36; --warning-ink: #8a5300; --critical-ink: #a30000;
+  /* type */
+  --display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --body: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --sans: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  --mono: 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1f1b19; --surface: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c; --grid: #352f2b;
+    --axis: #6b625b; --code: #352f2b;
+    --claret: #ef7a9c; --claret-soft: #4a2130; --oxford: #7fb2e8; --oxford-soft: #1c2b3d;
+    --teal: #5fc3c9; --teal-soft: #1d3a3c; --mandarin: #ffa25c; --mandarin-soft: #4a3020;
+    --s1: #4f95e3; --s2: #c4456d; --s3: #22a3b2; --s4: #d9762a; --s5: #9b73d6; --s6: #3aad5c;
+    --good: #4cc27a; --warning: #e6a23c; --critical: #f0605a;
+    --good-ink: #4cc27a; --warning-ink: #e6a23c; --critical-ink: #f0605a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1f1b19; --surface: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c; --grid: #352f2b;
+  --axis: #6b625b; --code: #352f2b;
+  --claret: #ef7a9c; --claret-soft: #4a2130; --oxford: #7fb2e8; --oxford-soft: #1c2b3d;
+  --teal: #5fc3c9; --teal-soft: #1d3a3c; --mandarin: #ffa25c; --mandarin-soft: #4a3020;
+  --s1: #4f95e3; --s2: #c4456d; --s3: #22a3b2; --s4: #d9762a; --s5: #9b73d6; --s6: #3aad5c;
+  --good: #4cc27a; --warning: #e6a23c; --critical: #f0605a;
+  --good-ink: #4cc27a; --warning-ink: #e6a23c; --critical-ink: #f0605a;
+  color-scheme: dark;
+}
+
+/* base */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--ink); font: 400 17px/1.6 var(--body); margin: 0; }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(32px, 5vw, 48px); line-height: 1.08; letter-spacing: -0.01em; }
+h2 { font-size: 26px; line-height: 1.15; }
+h3 { font-size: 19px; line-height: 1.25; }
+p { margin: 0; }
+a { color: var(--link); }
+.eyebrow, .kicker { font: 600 12px/1.2 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--label); }
+.lede, .standfirst { font-size: 20px; line-height: 1.5; color: var(--muted); max-width: 60ch; }
+.rule-top { border-top: 4px solid var(--ink); padding-top: 10px; }
+code { font-family: var(--mono); font-size: 0.85em; background: var(--code); padding: 1px 5px; border-radius: 0; }
+pre { font-family: var(--mono); font-size: 13px; line-height: 1.55; background: var(--code); padding: 14px 16px; margin: 0; overflow-x: auto; }
+figure { margin: 0; }
+figcaption { font: 400 13.5px/1.5 var(--sans); color: var(--muted); }
+table { border-collapse: collapse; width: 100%; font: 400 14px/1.4 var(--sans); font-variant-numeric: tabular-nums; }
+th { font: 600 11.5px/1.2 var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+     text-align: left; padding: 7px 10px; border-bottom: 2px solid var(--ink); vertical-align: bottom; }
+td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.num, th.num { text-align: right; font-family: var(--mono); }
+button { font: 600 14px/1 var(--sans); padding: 10px 14px; border: 1px solid var(--line); border-radius: 0;
+         background: var(--surface); color: var(--ink); cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--ink); }
+button.primary, button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+button:disabled { opacity: 0.4; cursor: default; }
+:focus-visible { outline: 2px solid var(--oxford); outline-offset: 2px; }
+input, select { font: 400 15px/1.2 var(--mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+                border-radius: 0; padding: 7px 8px; }
+footer { font: 400 13px/1.5 var(--sans); color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+/* charts and diagrams stretch to their figure; never style bare `svg`, or MathJax formulas blow up in Safari */
+figure > svg, .fig-scroll > svg { display: block; width: 100%; height: auto; }
+mjx-container svg { display: inline; max-width: none; }
+mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+  /* page */
+  .wrap { max-width: 1240px; margin: 0 auto; padding-block: 24px 40px;
+          padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+          display: grid; gap: 20px; }
+  .top { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: end; justify-content: space-between; }
+  .top h1 { font-size: clamp(28px, 4vw, 38px); }
+  .top .han { font-weight: 400; color: var(--muted); font-size: .62em; margin-left: 8px; }
+  .strip { display: flex; flex-wrap: wrap; border-top: 4px solid var(--ink); border-bottom: 1px solid var(--line); }
+  .strip > div { padding: 8px 16px 9px; border-left: 1px solid var(--line); display: grid; gap: 3px; min-width: 0; }
+  .strip > div:first-child { border-left: 0; padding-left: 0; }
+  .strip .v { font: 600 20px/1.1 var(--mono); }
+  .strip .v.lv { color: var(--oxford); }
+  .strip .n { font: 400 12px/1.3 var(--sans); color: var(--muted); }
+  .layout { display: grid; grid-template-columns: 300px minmax(0, 1fr) 260px; grid-template-areas: "l c r"; gap: 16px; align-items: start; }
+  .colL { grid-area: l; } .colC { grid-area: c; } .colR { grid-area: r; }
+  .box { background: var(--surface); border: 1px solid var(--line); padding: 14px 16px; display: grid; gap: 10px; min-width: 0; }
+  .rail { display: grid; gap: 14px; min-width: 0; }
+  .muted { color: var(--muted); }
+  .small { font: 400 13px/1.45 var(--sans); }
+
+  /* table */
+  .board { background: var(--surface); border: 1px solid var(--line); padding: 14px; display: grid; gap: 12px;
+           grid-template-columns: minmax(0, 150px) minmax(0, 1fr) minmax(0, 150px);
+           grid-template-areas: "n n n" "w c e" "s s s"; min-width: 0; }
+  .seat { display: grid; gap: 6px; align-content: start; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); background: var(--bg); }
+  .seat.turn { border-color: var(--ink); box-shadow: inset 0 3px 0 var(--ink); }
+  #seat2 { grid-area: n; justify-self: center; width: min(100%, 420px); }
+  #seat3 { grid-area: w; } #seat1 { grid-area: e; }
+  .seat .who { display: flex; gap: 8px; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
+  .seat .nm { font: 600 15px/1.2 var(--sans); }
+  .role { font: 600 10.5px/1 var(--sans); letter-spacing: .07em; text-transform: uppercase; padding: 3px 5px; border: 1px solid var(--line); }
+  .role.opp { color: var(--claret); border-color: var(--claret); }
+  .role.pt { color: var(--oxford); border-color: var(--oxford); }
+  .cnt { font: 600 26px/1 var(--mono); font-variant-numeric: tabular-nums; }
+  .cnt small { font: 400 12px/1 var(--sans); color: var(--muted); margin-left: 4px; }
+  .cnt.short { color: var(--claret); }
+  .status { font: 400 12.5px/1.35 var(--sans); color: var(--muted); }
+  .backs { display: flex; flex-wrap: wrap; }
+  .back { width: 9px; height: 18px; border: 1px solid var(--axis); background: var(--code); margin-right: -3px;
+          background-image: repeating-linear-gradient(45deg, var(--line) 0 2px, transparent 2px 5px); }
+  .peek { display: flex; flex-wrap: wrap; gap: 2px; }
+
+  .center { grid-area: c; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto auto auto;
+            grid-template-areas: ". tn ." "tw msg te" ". ts ."; gap: 8px; align-items: center; justify-items: center;
+            min-height: 170px; border: 1px dashed var(--line); padding: 10px; min-width: 0; }
+  .slot { display: grid; gap: 4px; justify-items: center; min-width: 0; max-width: 100%; }
+  .slot .cards { flex-wrap: nowrap; }
+  .slot .who { font: 600 10.5px/1 var(--sans); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+  .slot.win .who { color: var(--oxford); }
+  .slot.win .cards { outline: 2px solid var(--oxford); outline-offset: 3px; }
+  .slot.stale { opacity: .45; }
+  .slot .pass { font: 600 11px/1 var(--sans); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); border: 1px dashed var(--axis); padding: 6px 8px; }
+  #t0 { grid-area: ts; } #t1 { grid-area: te; } #t2 { grid-area: tn; } #t3 { grid-area: tw; }
+  .msg { grid-area: msg; text-align: center; font: 400 14px/1.4 var(--sans); color: var(--muted); max-width: 26ch; display: grid; gap: 8px; justify-items: center; }
+  .msg strong { color: var(--ink); font-weight: 600; }
+
+  .me { grid-area: s; display: grid; gap: 10px; min-width: 0; padding: 10px 12px 12px; border: 1px solid var(--line); background: var(--bg); }
+  .me.turn { border-color: var(--ink); box-shadow: inset 0 3px 0 var(--ink); }
+  .mebar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; }
+  .hand { display: flex; flex-wrap: wrap; row-gap: 10px; padding-top: 14px; padding-left: 23px; min-height: 80px; }
+  .hand .c { margin-left: -23px; padding-left: 3px; cursor: pointer; transition: transform .12s; }
+  .hand .c.sel { transform: translateY(-12px); outline: 2px solid var(--oxford); outline-offset: 0; }
+  .hand .c.hint { box-shadow: 0 0 0 2px var(--mandarin); }
+  .hand .c:focus-visible { outline: 2px solid var(--oxford); }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .controls .sp { flex: 1 1 auto; }
+  .chips { display: flex; flex-wrap: wrap; gap: 0; }
+  .chips button { padding: 6px 9px; font-size: 12.5px; margin-left: -1px; }
+  .say { font: 400 13.5px/1.4 var(--sans); color: var(--muted); min-height: 1.4em; }
+  .say.err { color: var(--critical-ink); }
+
+  /* cards */
+  .cards { display: flex; flex-wrap: wrap; align-items: flex-end; }
+  .cards .c + .c { margin-left: -16px; }
+  .c { position: relative; width: 44px; height: 64px; flex: none; background: var(--surface); border: 1px solid var(--axis);
+       display: inline-grid; grid-template-rows: auto auto 1fr; align-content: start; justify-items: start; gap: 1px; padding: 4px 5px; box-sizing: border-box;
+       font: 600 16px/1 var(--mono); color: var(--ink); user-select: none; }
+  .c .s { font-size: 15px; line-height: 1; }
+  .c.red { color: var(--claret); }
+  .c.lvl { box-shadow: inset 0 -4px 0 var(--oxford); }
+  .c.wild { background: var(--mandarin-soft); border-color: var(--mandarin); }
+  .c.wild::after { content: "WILD"; position: absolute; bottom: 3px; left: 4px; font: 600 8px/1 var(--sans); letter-spacing: .05em; color: var(--mandarin); }
+  .c.joker { font: 600 10px/1.02 var(--sans); writing-mode: vertical-lr; text-orientation: upright; display: grid; place-items: start; padding: 4px 3px; }
+  .c.joker.big { color: var(--claret); background: var(--claret-soft); }
+  .c.joker.small { color: var(--ink); background: var(--code); }
+  .c.mini { width: 30px; height: 42px; font-size: 12.5px; padding: 2px 3px; }
+  .c.mini .s { font-size: 11px; }
+  .c.mini.joker { font-size: 7.5px; }
+  .c.mini.wild::after { display: none; }
+  .cards .c.mini + .c.mini { margin-left: -11px; }
+  .peek .c.mini + .c.mini { margin-left: -14px; }
+
+  /* coach */
+  .coach h3 { font-size: 18px; }
+  .rec { display: grid; gap: 8px; padding: 10px 0; border-top: 2px solid var(--ink); }
+  .why { font: 400 14px/1.5 var(--body); }
+  .alts { display: grid; gap: 0; }
+  .alt { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 8px; align-items: center; padding: 6px 0; border-top: 1px solid var(--line); font: 400 13px/1.35 var(--sans); }
+  .alt .k { font: 600 12px/1 var(--mono); color: var(--muted); }
+  .alt .t { font: 500 12px/1 var(--mono); color: var(--muted); white-space: nowrap; }
+  .reads { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; font: 400 13px/1.45 var(--sans); }
+  .reads li::before { content: "› "; color: var(--label); font-weight: 600; }
+
+  /* counter */
+  .counter { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); border-top: 2px solid var(--ink); }
+  .counter .cc { display: grid; justify-items: center; gap: 2px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+  .counter .r { font: 600 11px/1 var(--sans); color: var(--muted); }
+  .counter .n { font: 500 14px/1 var(--mono); font-variant-numeric: tabular-nums; }
+  .counter .cc.lv .r, .counter .cc.lv .n { color: var(--oxford); font-weight: 600; }
+  .counter .cc.zero .n { color: var(--axis); }
+
+  /* log */
+  .log { max-height: 220px; overflow-y: auto; display: grid; gap: 0; align-content: start; font: 400 13px/1.45 var(--sans); }
+  .log > div { padding: 5px 0; border-top: 1px solid var(--line); }
+  .log .sys { color: var(--muted); }
+  .log .who { font-weight: 600; }
+  .log .who.t0 { color: var(--oxford); } .log .who.t1 { color: var(--claret); }
+  .log details summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+  .log details ol { margin: 4px 0 0; padding-left: 18px; color: var(--muted); }
+
+  .settings { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font: 400 13px/1.3 var(--sans); }
+  .settings label { display: inline-flex; gap: 6px; align-items: center; }
+  .seg { display: inline-flex; } .seg button { padding: 6px 9px; font-size: 12.5px; margin-left: -1px; }
+  footer a { color: var(--link); }
+
+  /* three columns: the right column takes the table's height and the log fills what the coach leaves */
+  @media (min-width: 1181px) {
+    .layout { align-items: stretch; }
+    .colL, .colC { align-self: start; }
+    .colR { height: 0; min-height: 100%; display: flex; flex-direction: column; overflow-y: auto; }
+    .colR > .box:last-child { flex: 1 1 0; min-height: 140px; grid-template-rows: auto minmax(0, 1fr); }
+    .colR .log { max-height: none; min-height: 0; }
+  }
+  @media (max-width: 1180px) { .layout { grid-template-columns: minmax(0, 1fr) 300px; grid-template-areas: "c l" "r l"; } }
+  @media (max-width: 980px) { .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "c" "l" "r"; } }
+  @media (max-width: 640px) {
+    .board { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "n n" "w e" "c c" "s s"; padding: 10px; }
+    .center { min-height: 0; }
+    .c { width: 38px; height: 56px; font-size: 14px; }
+    .hand .c { margin-left: -18px; }
+    .strip > div { padding: 6px 10px; }
+    .counter { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  }
+  @media (prefers-reduced-motion: reduce) { .hand .c { transition: none; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top">
+    <div>
+      <div class="kicker">Card games · Practice desk</div>
+      <h1>GuanDan Table <span class="han">掼蛋</span></h1>
+    </div>
+    <div class="strip" id="strip"></div>
+  </div>
+
+  <div class="layout">
+    <aside class="rail colL">
+      <div class="box">
+        <span class="kicker">Reads · what the passes reveal</span>
+        <ul class="reads" id="reads"></ul>
+      </div>
+      <div class="box coach" id="coach"></div>
+    </aside>
+
+    <div class="rail colC">
+      <section class="board" id="board" aria-label="Card table">
+        <div class="seat" id="seat2"></div>
+        <div class="seat" id="seat3"></div>
+        <div class="center" id="center">
+          <div class="slot" id="t2"></div><div class="slot" id="t3"></div><div class="msg" id="msg"></div><div class="slot" id="t1"></div><div class="slot" id="t0"></div>
+        </div>
+        <div class="seat" id="seat1"></div>
+        <div class="me" id="me">
+          <div class="mebar" id="mebar"></div>
+          <div class="hand" id="hand" role="group" aria-label="Your hand"></div>
+          <div class="controls">
+            <button class="primary" id="btnPlay">Play</button>
+            <button id="btnPass">Pass</button>
+            <button id="btnHint">Hint</button>
+            <button id="btnClear">Clear</button>
+            <div class="chips" id="chips"></div>
+            <span class="sp"></span>
+            <span class="small muted">Keys: Enter play · P pass · H hint</span>
+          </div>
+          <div class="say" id="say" aria-live="polite"></div>
+        </div>
+      </section>
+      <div class="box">
+        <span class="kicker">Card counter · still unseen by you</span>
+        <div class="counter" id="counter"></div>
+        <span class="small muted" id="counterNote"></span>
+      </div>
+    </div>
+
+    <aside class="rail colR">
+      <div class="box settings">
+        <span class="seg" role="group" aria-label="Computer speed"><button id="spd-slow" data-ms="1300">Slow</button><button id="spd-norm" data-ms="750">Normal</button><button id="spd-fast" data-ms="250">Fast</button></span>
+        <label><input type="checkbox" id="peek"> Show computer hands</label>
+        <button id="btnNew">New match</button>
+      </div>
+      <div class="box">
+        <span class="kicker">Table log · why each computer played</span>
+        <div class="log" id="log"></div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    Practice rules: two packs plus four jokers, 27 cards each, level card above A, heart level cards wild. Climb +3 / +2 / +1 for a 1st-and-2nd / 1st-and-3rd / 1st-and-4th finish. Tribute and return (10 or lower), resisted with both red jokers, and 接风 when the trick winner is already out. To win the match, a team on A must win a hand at A with a 1st-and-2nd or 1st-and-3rd finish; three failures at A drop it to 2. The computer players and the coach share one engine. It splits a hand into the fewest plays, values jokers, level cards and bombs as control, and weighs passing against how close each opponent is to going out. New to the game? Read the <a id="tutLink" href="tutorial.html">GuanDan Primer</a>.
+  </footer>
+</main>
+
+<script>
+/* ---------- rules engine: pure functions, no DOM ---------- */
+const GD = (() => {
+  const BJ = 16, RJ = 17, SUITS = ['S', 'H', 'D', 'C'];
+  const SYM = { S: '♠', H: '♥', D: '♦', C: '♣' };
+  const RN = { 11: 'J', 12: 'Q', 13: 'K', 14: 'A', 16: 'black joker', 17: 'red joker' };
+  const rname = r => RN[r] || String(r);
+  const plural = r => rname(r) + 's';
+  const cardName = c => c.r >= BJ ? rname(c.r) : rname(c.r) + SYM[c.s];
+
+  function newDeck() {
+    const d = []; let id = 0;
+    for (let k = 0; k < 2; k++) {
+      for (const s of SUITS) for (let r = 2; r <= 14; r++) d.push({ id: id++, r, s });
+      d.push({ id: id++, r: BJ, s: 'J' }); d.push({ id: id++, r: RJ, s: 'J' });
+    }
+    return d;
+  }
+  function shuffle(a, rnd = Math.random) {
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+  const isWild = (c, L) => c.s === 'H' && c.r === L;
+  // level order for singles, pairs, triples, full houses and same-rank bombs
+  const val = (r, L) => r >= BJ ? r : (r === L ? 15 : r);
+  const sortHand = (h, L) => h.slice().sort((a, b) =>
+    (isWild(a, L) - isWild(b, L)) || (val(a.r, L) - val(b.r, L)) || SUITS.indexOf(a.s) - SUITS.indexOf(b.s));
+
+  const mk = (type, cards, v, r) => ({ type, n: cards.length, v, r, cards });
+  const isBomb = c => c.type === 'bomb' || c.type === 'sf' || c.type === 'jokers';
+  // 4 < 5 < straight flush < 6 < 7 < ... < 10 < four jokers
+  function power(c) {
+    if (c.type === 'jokers') return 10000;
+    if (c.type === 'sf') return 600 + c.v;
+    return (c.n <= 5 ? c.n * 100 : (c.n + 1) * 100) + c.v;
+  }
+  function beats(a, b) {
+    if (!b) return true;
+    const ab = isBomb(a), bb = isBomb(b);
+    if (ab !== bb) return ab;
+    if (ab) return power(a) > power(b);
+    return a.type === b.type && a.n === b.n && a.v > b.v;
+  }
+  const TYPE = { single: 'single', pair: 'pair', triple: 'triple', full: 'full house', straight: 'straight', tube: 'tube', plate: 'plate', bomb: 'bomb', sf: 'straight flush', jokers: 'four jokers' };
+  function desc(c) {
+    const r = c.r;
+    switch (c.type) {
+      case 'single': return r >= BJ ? rname(r) : 'single ' + rname(r);
+      case 'pair': return 'pair of ' + plural(r);
+      case 'triple': return 'three ' + plural(r);
+      case 'full': return 'full house of ' + plural(r) + (c.p ? ' with ' + plural(c.p) : '');
+      case 'straight': return 'straight to ' + rname(r);
+      case 'tube': return 'tube up to ' + plural(r);
+      case 'plate': return 'plate up to ' + plural(r);
+      case 'bomb': return c.n + '-card bomb of ' + plural(r);
+      case 'sf': return 'straight flush to ' + rname(r);
+      default: return 'four jokers';
+    }
+  }
+
+  // which windows of `len` consecutive ranks (ace low or high) these naturals plus w wilds fill exactly
+  function seqTops(nat, w, len, per) {
+    if (nat.some(c => c.r >= BJ)) return [];
+    const cnt = {}; nat.forEach(c => cnt[c.r] = (cnt[c.r] || 0) + 1);
+    const tops = [];
+    for (let s = 1; s + len - 1 <= 14; s++) {
+      let need = 0, used = 0, ok = true;
+      for (let q = s; q < s + len; q++) {
+        const c = cnt[q === 1 ? 14 : q] || 0;
+        if (c > per) { ok = false; break; }
+        need += per - c; used += c;
+      }
+      if (ok && used === nat.length && need === w) tops.push(s + len - 1);
+    }
+    return tops;
+  }
+
+  // every legal reading of a set of cards, strongest first
+  function interpret(cards, L) {
+    const n = cards.length, out = [];
+    if (!n) return out;
+    const nat = cards.filter(c => !isWild(c, L)), w = n - nat.length;
+    const cnt = {}; nat.forEach(c => cnt[c.r] = (cnt[c.r] || 0) + 1);
+    const rs = Object.keys(cnt).map(Number);
+    if (n === 4 && cnt[RJ] === 2 && cnt[BJ] === 2) out.push(mk('jokers', cards, 100, RJ));
+    if (rs.length <= 1) {
+      const r = rs.length ? rs[0] : L, jk = r >= BJ, v = val(r, L);
+      if (n === 1) out.push(mk('single', cards, v, r));
+      else if (n === 2 && (!jk || w === 0)) out.push(mk('pair', cards, v, r));
+      else if (n === 3 && !jk) out.push(mk('triple', cards, v, r));
+      else if (n >= 4 && n <= 10 && !jk) out.push(mk('bomb', cards, v, r));
+    }
+    if (n === 5) {
+      let best = null, bestP = null;
+      for (let t = 2; t <= 14; t++) {
+        const ct = cnt[t] || 0; if (ct > 3) continue;
+        for (const p of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, BJ, RJ]) {
+          if (p === t) continue;
+          const cp = cnt[p] || 0;
+          if (cp > 2 || ct + cp !== nat.length || (p >= BJ && cp !== 2)) continue;
+          if (best === null || val(t, L) > val(best, L)) { best = t; bestP = cp ? p : L; }
+        }
+      }
+      if (best !== null) out.push(Object.assign(mk('full', cards, val(best, L), best), { p: bestP }));
+      const tops = seqTops(nat, w, 5, 1);
+      if (tops.length) {
+        const top = Math.max(...tops);
+        if (nat.every(c => c.s === nat[0].s)) out.push(mk('sf', cards, top, top));
+        out.push(mk('straight', cards, top, top));
+      }
+    }
+    if (n === 6) {
+      const tt = seqTops(nat, w, 3, 2); if (tt.length) { const t = Math.max(...tt); out.push(mk('tube', cards, t, t)); }
+      const pt = seqTops(nat, w, 2, 3); if (pt.length) { const t = Math.max(...pt); out.push(mk('plate', cards, t, t)); }
+    }
+    return out.sort((a, b) => (isBomb(b) - isBomb(a)) || (isBomb(a) ? power(b) - power(a) : 0));
+  }
+
+  // all combinations a hand can play (wilds used only where they are needed)
+  function genMoves(hand, L) {
+    const wild = hand.filter(c => isWild(c, L)), W = wild.length;
+    const by = {};
+    hand.forEach(c => { if (!isWild(c, L)) (by[c.r] = by[c.r] || []).push(c); });
+    const moves = [], seen = new Set();
+    const add = (type, cards, v, r) => {
+      const key = type + '|' + cards.map(c => c.id).sort((a, b) => a - b).join(',');
+      if (seen.has(key)) return null;
+      seen.add(key); const m = mk(type, cards, v, r); moves.push(m); return m;
+    };
+    const trips = [], pairs = [];
+    for (const r of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, BJ, RJ]) {
+      const cs = by[r]; if (!cs) continue;
+      const c = cs.length, jk = r >= BJ, v = val(r, L);
+      add('single', [cs[0]], v, r);
+      for (let uw = 0; uw <= Math.min(W, 1); uw++) {
+        if (jk && uw) continue;
+        if (c + uw >= 2 && c >= 2 - uw) { const p = cs.slice(0, 2 - uw).concat(wild.slice(0, uw)); add('pair', p, v, r); pairs.push({ r, cards: p, w: uw }); }
+      }
+      if (!jk) for (let uw = 0; uw <= Math.min(W, 2); uw++) {
+        if (c >= 3 - uw && 3 - uw >= 1) { const t = cs.slice(0, 3 - uw).concat(wild.slice(0, uw)); add('triple', t, v, r); trips.push({ r, cards: t, w: uw }); }
+      }
+      if (!jk) for (let k = 4; k <= Math.min(10, c + W); k++) {
+        const uw = Math.max(0, k - c);
+        add('bomb', cs.slice(0, k - uw).concat(wild.slice(0, uw)), v, r);
+      }
+    }
+    if (W) add('single', [wild[0]], 15, L);
+    if (W === 2) add('pair', wild.slice(), 15, L);
+    if ((by[BJ] || []).length === 2 && (by[RJ] || []).length === 2) add('jokers', by[BJ].concat(by[RJ]), 100, RJ);
+    for (const t of trips) for (const p of pairs) {
+      if (t.r === p.r || t.w + p.w > W || p.w > 0 && t.w > 0) continue;
+      const pc = p.w ? p.cards.slice(0, 1).concat(wild.slice(t.w, t.w + 1)) : p.cards;
+      const f = add('full', t.cards.concat(pc), val(t.r, L), t.r);
+      if (f) f.p = p.r;
+    }
+    const seq = (type, len, per, pick) => {
+      for (let s = 1; s + len - 1 <= 14; s++) {
+        let need = 0; const cards = [];
+        for (let q = s; q < s + len; q++) {
+          const cs = pick(q === 1 ? 14 : q), take = Math.min(per, cs.length);
+          cards.push(...cs.slice(0, take)); need += per - take;
+        }
+        if (need <= W) add(type, cards.concat(wild.slice(0, need)), s + len - 1, s + len - 1);
+      }
+    };
+    // a straight prefers cards that are not part of a pair, so it breaks as little as possible
+    seq('straight', 5, 1, r => (by[r] || []).slice().sort((a, b) => (by[a.r].length) - (by[b.r].length)));
+    for (const su of SUITS) seq('sf', 5, 1, r => (by[r] || []).filter(c => c.s === su));
+    seq('tube', 3, 2, r => by[r] || []);
+    seq('plate', 2, 3, r => by[r] || []);
+    return moves;
+  }
+
+  // Plan a hand: how many plays it needs (turns) and a cost where lower is a stronger hand.
+  const groupCost = v => 10 - Math.max(0, v - 10) * 1.3;
+  function leaf(cnt, bj, rj, W, L) {
+    const singles = [], pairs = [], trips = [], bombs = [];
+    for (let r = 2; r <= 14; r++) {
+      const c = cnt[r], v = val(r, L);
+      if (c === 1) singles.push(v); else if (c === 2) pairs.push(v); else if (c === 3) trips.push(v); else if (c >= 4) bombs.push({ n: c, v });
+    }
+    let jokerBomb = false;
+    if (bj === 2 && rj === 2) jokerBomb = true;
+    else {
+      if (bj === 2) pairs.push(16); else if (bj === 1) singles.push(16);
+      if (rj === 2) pairs.push(17); else if (rj === 1) singles.push(17);
+    }
+    singles.sort((a, b) => a - b); pairs.sort((a, b) => a - b); trips.sort((a, b) => a - b);
+    let loose = 0;
+    for (let i = 0; i < W; i++) {
+      if (trips.length) bombs.push({ n: 4, v: trips.pop() });
+      else if (singles.length && singles[0] < 14) pairs.push(singles.shift());
+      else loose++;
+    }
+    pairs.sort((a, b) => a - b);
+    const fulls = Math.min(trips.length, pairs.length);
+    const usedPairs = pairs.splice(0, fulls);
+    let cost = 0;
+    singles.forEach(v => cost += groupCost(v) + 1);
+    pairs.forEach(v => cost += groupCost(v));
+    trips.forEach((v, i) => cost += groupCost(v) - (i < fulls ? 2 : 1));
+    bombs.forEach(b => cost -= 6 + (b.n - 4) * 1.5 + b.v / 15);
+    if (jokerBomb) cost -= 12;
+    cost -= loose * 7;
+    return { cost, turns: singles.length + pairs.length + trips.length + loose, bombs: bombs.length + (jokerBomb ? 1 : 0),
+             singles: singles.length, pairs: pairs.length, trips: trips.length, fulls, usedPairs: usedPairs.length };
+  }
+  function evalHand(hand, L) {
+    const cnt = new Array(15).fill(0); let bj = 0, rj = 0, W = 0;
+    for (const c of hand) { if (isWild(c, L)) W++; else if (c.r === BJ) bj++; else if (c.r === RJ) rj++; else cnt[c.r]++; }
+    // greedily pull out the sequences that lower the cost most, up to four of them
+    let seqCost = 0; const seqs = [];
+    let best = leaf(cnt, bj, rj, W, L), total = best.cost;
+    for (let depth = 0; depth < 4; depth++) {
+      let pick = null;
+      for (const [type, len, per, sc] of [['straight', 5, 1, 9], ['tube', 3, 2, 8], ['plate', 2, 3, 8]]) {
+        for (let s = 1; s + len - 1 <= 14; s++) {
+          let ok = true;
+          for (let q = s; q < s + len; q++) { const c = cnt[q === 1 ? 14 : q]; if (c < per || c >= 4) { ok = false; break; } }
+          if (!ok) continue;
+          for (let q = s; q < s + len; q++) cnt[q === 1 ? 14 : q] -= per;
+          const lf = leaf(cnt, bj, rj, W, L);
+          for (let q = s; q < s + len; q++) cnt[q === 1 ? 14 : q] += per;
+          const t = seqCost + sc + lf.cost;
+          if (t < total - 0.01 && (!pick || t < pick.total)) pick = { type, len, per, s, sc, lf, total: t };
+        }
+      }
+      if (!pick) break;
+      for (let q = pick.s; q < pick.s + pick.len; q++) cnt[q === 1 ? 14 : q] -= pick.per;
+      seqCost += pick.sc; seqs.push(pick.type + ' to ' + rname(pick.s + pick.len - 1));
+      best = pick.lf; total = pick.total;
+    }
+    return { cost: total, turns: best.turns + seqs.length, bombs: best.bombs, seqs };
+  }
+
+  // The decision maker used by the computer seats and by the coach.
+  // ctx: { hand, L, seat, target, targetSeat, counts[4], unseenMax }
+  function decide(ctx) {
+    const { hand, L, seat, target, targetSeat, counts } = ctx;
+    const partner = (seat + 2) % 4, opps = [(seat + 1) % 4, (seat + 3) % 4].filter(s => counts[s] > 0);
+    const lead = !target;
+    const partnerWinning = !lead && targetSeat === partner;
+    const threat = !lead && !partnerWinning ? counts[targetSeat] : 99;
+    const oppMin = opps.length ? Math.min(...opps.map(s => counts[s])) : 99;
+    const nextOpp = counts[(seat + 1) % 4] > 0 ? (seat + 1) % 4 : (seat + 3) % 4;
+    const base = evalHand(hand, L);
+    const legal = genMoves(hand, L).filter(m => beats(m, target));
+    const cands = [];
+
+    if (!lead) {
+      let cost = base.cost, why;
+      if (partnerWinning) { why = 'Partner is winning this trick, so there is no need to spend cards.'; }
+      else if (!legal.length) { why = 'Nothing in hand beats the ' + desc(target) + '.'; }
+      else {
+        cost += 3;
+        if (threat <= 8) cost += (9 - threat) * 3;
+        why = threat <= 8
+          ? 'Passing lets ' + who(targetSeat) + ' (only ' + threat + ' cards) keep control. Risky.'
+          : 'Beating the ' + desc(target) + ' would cost more than it gains' + (base.bombs ? '; bombs stay hidden for later.' : '.');
+      }
+      cands.push({ move: null, cost, after: base, why });
+    }
+    for (const m of legal) {
+      const ids = new Set(m.cards.map(c => c.id));
+      const rest = hand.filter(c => !ids.has(c.id));
+      const after = evalHand(rest, L);
+      let cost = after.cost; const why = [];
+      const bomb = isBomb(m);
+      const wilds = m.cards.filter(c => isWild(c, L)).length;
+      // a wild is worth more than any one shape it completes, so spend it only to finish or to make a bomb
+      const spendsWild = wilds && rest.length && !bomb;
+      if (spendsWild) cost += 6 * wilds;
+      if (!rest.length) { cost -= 1000; why.push('Plays out the last cards.'); }
+      else if (lead) {
+        cost += (m.n >= 5 ? 0.12 : 0.25) * m.v - m.n * 0.6;
+        if (bomb) { cost += 14 + power(m) / 200; why.push('Leads a bomb to keep control.'); }
+        if (counts[nextOpp] === 1 && m.type === 'single' && m.v < ctx.unseenMax) { cost += 12; }
+        else if (oppMin === 1 && m.type === 'single' && m.v < ctx.unseenMax) cost += 8;
+        if (oppMin === 2 && m.type === 'pair') cost += 6;
+        if (counts[partner] > 0 && counts[partner] <= 3 && oppMin > 3) {
+          if (m.type === 'single' && counts[partner] === 1 && m.v <= 9) { cost -= 6; why.push('Partner has 1 card left, so a low single invites them out.'); }
+          if (m.type === 'pair' && counts[partner] === 2 && m.v <= 9) { cost -= 6; why.push('Partner has 2 cards, so a low pair may let them finish.'); }
+        }
+        if (!why.length) why.push(after.turns < base.turns ? 'Leads the weakest shape in the plan.' : 'Leads, though it splits a bigger group.');
+      } else if (partnerWinning) {
+        cost += 14 + (bomb ? 20 : 0);
+        why.push('Overtakes partner.');
+      } else {
+        cost += m.v * 0.1;
+        if (m.v >= 14 && !bomb && threat > 10) cost += 4;
+        if (bomb) {
+          if (threat <= 6) { cost += 3; why.push(who(targetSeat, true) + (targetSeat === 0 ? ' have' : ' has') + ' only ' + threat + ' cards, so a bomb is worth spending.'); }
+          else if (after.turns <= 1) { cost += 2; why.push('A bomb takes the lead and the rest of the hand can follow.'); }
+          else { cost += 16 + power(m) / 200; why.push('Spends a bomb early.'); }
+        } else why.push(after.turns < base.turns ? 'Beats it with a group the plan wanted to play anyway.' : 'Beats it, but splits a bigger group.');
+      }
+      if (spendsWild) why.push('It spends ' + (wilds > 1 ? 'both wild cards' : 'a wild card') + ', which is costly.');
+      cands.push({ move: m, cost, after, why: why.join(' ') });
+    }
+    cands.sort((a, b) => a.cost - b.cost);
+    return { best: cands[0], ranked: cands, base };
+  }
+
+  const NAMES = ['You', 'East', 'North', 'West'];
+  const who = (s, cap) => s === 0 ? (cap ? 'You' : 'you') : NAMES[s];
+  return { BJ, RJ, SUITS, SYM, NAMES, rname, cardName, newDeck, shuffle, isWild, val, sortHand, interpret, genMoves,
+           beats, isBomb, power, desc, TYPE, evalHand, decide };
+})();
+</script>
+
+<script>
+/* ---------- game and table ---------- */
+(() => {
+  const { BJ, RJ, SYM, NAMES, rname, cardName, newDeck, shuffle, isWild, val, sortHand, interpret, genMoves, beats, isBomb, desc, TYPE, evalHand, decide } = GD;
+  const team = s => s % 2, partnerOf = s => (s + 2) % 4;
+  const $ = id => document.getElementById(id);
+  const verb = (s, base, third) => s === 0 ? base : (third || base + 's');
+  let G = null, delay = 750, timer = null, advice = null;
+  try { const d = +localStorage.getItem('gd-speed'); if (d) delay = d; } catch (e) {}
+
+  /* ---- cards ---- */
+  function cardEl(c, L, mini) {
+    const el = document.createElement('span');
+    el.className = 'c' + (mini ? ' mini' : '');
+    if (c.r >= BJ) {
+      el.classList.add('joker', c.r === RJ ? 'big' : 'small');
+      el.textContent = c.r === RJ ? 'JOKER' : 'joker';
+      el.setAttribute('aria-label', rname(c.r));
+      return el;
+    }
+    if (c.s === 'H' || c.s === 'D') el.classList.add('red');
+    if (c.r === L) el.classList.add(c.s === 'H' ? 'wild' : 'lvl');
+    el.innerHTML = '<span>' + rname(c.r) + '</span><span class="s">' + SYM[c.s] + '</span>';
+    el.setAttribute('aria-label', cardName(c) + (isWild(c, L) ? ' (wild)' : ''));
+    return el;
+  }
+  const SEQ = new Set(['straight', 'tube', 'plate', 'sf']);
+  // runs read in natural order (ace low in A-2-3-4-5), everything else in level order
+  function cardsEl(cards, L, mini, combo) {
+    const d = document.createElement('div'); d.className = 'cards';
+    const list = combo && SEQ.has(combo.type)
+      ? cards.slice().sort((a, b) => (isWild(a, L) - isWild(b, L)) || ((a.r === 14 && combo.v <= 6 ? 1 : a.r) - (b.r === 14 && combo.v <= 6 ? 1 : b.r)))
+      : sortHand(cards, L);
+    list.forEach(c => d.appendChild(cardEl(c, L, mini)));
+    return d;
+  }
+
+  /* ---- log ---- */
+  function log(text, cls, seat, extra) {
+    G.log.push({ text, cls, seat, extra });
+  }
+
+  /* ---- match flow ---- */
+  function newMatch() {
+    clearTimeout(timer);
+    G = { levels: [2, 2], decl: null, aFails: [0, 0], handNo: 0, prevOut: null, log: [], over: false };
+    startHand();
+  }
+  function startHand() {
+    G.handNo++;
+    G.L = G.decl === null ? 2 : G.levels[G.decl];
+    const deck = shuffle(newDeck());
+    G.hands = [0, 1, 2, 3].map(i => deck.slice(i * 27, (i + 1) * 27));
+    G.out = []; G.played = []; G.trick = { combo: null, seat: -1, passes: 0 };
+    G.table = [null, null, null, null]; G.stale = false; G.reads = [{}, {}, {}, {}];
+    G.phase = 'play'; G.sel = new Set(); G.pending = null; G.result = null; G.choice = 0;
+    log('Hand ' + G.handNo + ' at level ' + rname(G.L) + '. The ' + rname(G.L) + '♥ cards are wild.', 'sys');
+    let leader;
+    if (!G.prevOut) { leader = Math.floor(Math.random() * 4); log(NAMES[leader] + ' ' + verb(leader, 'draw') + ' the first lead.', 'sys'); }
+    else leader = tribute();
+    G.turn = leader;
+    if (G.pending) G.phase = 'return';
+    advice = null; render(); schedule();
+  }
+  function give(from, to, card) {
+    G.hands[from] = G.hands[from].filter(c => c.id !== card.id);
+    G.hands[to].push(card);
+  }
+  function tribute() {
+    const o = G.prevOut, a = o[0], dbl = team(o[1]) === team(a);
+    const payers = dbl ? [o[2], o[3]] : [o[3]], receivers = dbl ? [a, o[1]] : [a];
+    const red = payers.reduce((n, p) => n + G.hands[p].filter(c => c.r === RJ).length, 0);
+    if (red >= 2) {
+      log(payers.map(p => NAMES[p]).join(' and ') + ' ' + (payers.length > 1 || payers[0] === 0 ? 'hold' : 'holds') + ' both red jokers, so tribute is resisted (抗贡). ' + NAMES[a] + ' ' + verb(a, 'lead') + '.', 'sys');
+      return a;
+    }
+    const tribs = payers.map(p => ({ p, card: G.hands[p].filter(c => !isWild(c, G.L)).sort((x, y) => val(y.r, G.L) - val(x.r, G.L))[0] }));
+    tribs.sort((x, y) => val(y.card.r, G.L) - val(x.card.r, G.L));
+    tribs.forEach((t, i) => {
+      t.to = receivers[i]; give(t.p, t.to, t.card);
+      log(NAMES[t.p] + ' ' + verb(t.p, 'pay') + ' tribute: ' + cardName(t.card) + ' to ' + NAMES[t.to] + '.', 'sys');
+    });
+    for (const t of tribs) {
+      if (t.to === 0) { G.pending = { to: t.p, tribute: t.card }; continue; }
+      const c = chooseReturn(t.to);
+      give(t.to, t.p, c);
+      log(NAMES[t.to] + ' returns ' + cardName(c) + ' to ' + NAMES[t.p] + '.', 'sys');
+    }
+    return tribs[0].p;
+  }
+  const returnable = (hand, L) => {
+    const ok = hand.filter(c => c.r <= 10 && !isWild(c, L));
+    return ok.length ? ok : hand.filter(c => c.r < BJ && !isWild(c, L));
+  };
+  function chooseReturn(seat) {
+    const h = G.hands[seat];
+    let best = null;
+    for (const c of returnable(h, G.L)) {
+      const e = evalHand(h.filter(x => x.id !== c.id), G.L).cost + val(c.r, G.L) * 0.05;
+      if (!best || e < best.e) best = { c, e };
+    }
+    return best.c;
+  }
+
+  const active = () => [0, 1, 2, 3].filter(s => G.hands[s].length);
+  function nextActive(s) { for (let k = 1; k <= 4; k++) { const t = (s + k) % 4; if (G.hands[t].length) return t; } return s; }
+  const handOver = () => [0, 1].some(t => G.out.filter(s => team(s) === t).length === 2);
+
+  function act(seat, combo) {
+    if (combo) {
+      if (G.stale) { G.table = [null, null, null, null]; G.stale = false; }
+      const ids = new Set(combo.cards.map(c => c.id));
+      G.hands[seat] = G.hands[seat].filter(c => !ids.has(c.id));
+      G.played.push(...combo.cards);
+      const rd = G.reads[seat][combo.type];
+      if (rd && combo.v > rd.v) delete G.reads[seat][combo.type];
+      G.trick = { combo, seat, passes: 0 };
+      G.table[seat] = { combo };
+      if (!G.hands[seat].length) {
+        G.out.push(seat);
+        log(NAMES[seat] + ' ' + verb(seat, 'go', 'goes') + ' out ' + ['first', 'second', 'third'][G.out.length - 1] + '.', 'sys');
+      }
+      if (handOver()) return endHand();
+    } else {
+      if (G.stale) { G.table = [null, null, null, null]; G.stale = false; }
+      G.trick.passes++;
+      G.table[seat] = { pass: true };
+      const c = G.trick.combo;
+      if (c && !isBomb(c) && team(G.trick.seat) !== team(seat)) {
+        const cur = G.reads[seat][c.type];
+        if (!cur || c.v < cur.v) G.reads[seat][c.type] = { v: c.v, r: c.r, combo: c };
+      }
+    }
+    const others = active().filter(s => s !== G.trick.seat).length;
+    if (G.trick.combo && G.trick.passes >= others) {
+      const w = G.trick.seat;
+      let lead = w;
+      if (!G.hands[w].length) {
+        const p = partnerOf(w);
+        lead = G.hands[p].length ? p : nextActive(w);
+        log(NAMES[lead] + ' ' + verb(lead, 'catch', 'catches') + ' the wind (接风) and ' + verb(lead, 'lead') + '.', 'sys');
+      } else log(NAMES[w] + ' ' + verb(w, 'win') + ' the trick.', 'sys');
+      G.trick = { combo: null, seat: -1, passes: 0, wonBy: w };
+      G.stale = true;
+      G.turn = lead;
+    } else G.turn = nextActive(seat);
+    advice = null; G.sel.clear(); G.choice = 0;
+    render(); schedule();
+  }
+
+  function endHand() {
+    clearTimeout(timer);
+    const order = G.out.concat([0, 1, 2, 3].filter(s => !G.out.includes(s)));
+    const first = order[0], wt = team(first), pos = order.indexOf(partnerOf(first));
+    const up = { 1: 3, 2: 2, 3: 1 }[pos];
+    const finish = ['', '1st and 2nd', '1st and 3rd', '1st and 4th'][pos];
+    const before = G.levels.slice();
+    let note = '';
+    if (G.decl !== null && G.levels[G.decl] === 14) {
+      if (wt === G.decl && pos <= 2) { G.over = true; G.winner = wt; }
+      else {
+        G.aFails[G.decl]++;
+        note = (G.decl === 0 ? 'Your team' : 'The opponents') + ' failed at A (' + G.aFails[G.decl] + ' of 3).';
+        if (G.aFails[G.decl] >= 3) { G.levels[G.decl] = 2; G.aFails[G.decl] = 0; note += ' Back to level 2.'; }
+      }
+    }
+    if (!G.over) G.levels[wt] = Math.min(14, G.levels[wt] + up);
+    G.decl = wt; G.prevOut = order; G.phase = 'end';
+    G.result = { order, wt, up, finish, before, note };
+    const tn = wt === 0 ? 'Your team' : 'The opponents';
+    log(tn + ' finished ' + finish + (G.over ? ' at level A and won the match.' : ', up ' + up + ' to level ' + rname(G.levels[wt]) + '.') + (note ? ' ' + note : ''), 'sys');
+    advice = null; render();
+  }
+
+  /* ---- computer seats ---- */
+  function unseenFor(seat) {
+    const known = new Set(G.hands[seat].map(c => c.id).concat(G.played.map(c => c.id)));
+    return newDeckCache.filter(c => !known.has(c.id));
+  }
+  const newDeckCache = newDeck();
+  function ctxFor(seat) {
+    const unseen = unseenFor(seat);
+    return { hand: G.hands[seat], L: G.L, seat, target: G.trick.combo, targetSeat: G.trick.seat,
+             counts: G.hands.map(h => h.length), unseenMax: Math.max(0, ...unseen.map(c => val(c.r, G.L))) };
+  }
+  function schedule() {
+    clearTimeout(timer);
+    if (!G || G.phase !== 'play' || G.over || G.turn === 0) return;
+    timer = setTimeout(() => {
+      const seat = G.turn;
+      const d = decide(ctxFor(seat));
+      const m = d.best.move;
+      const alts = d.ranked.slice(0, 4).map(c => (c.move ? desc(c.move) : 'pass') + ' · ' + c.after.turns + ' plays left');
+      log(m ? desc(m) + '. ' + d.best.why : 'Pass. ' + d.best.why, 'ai', seat, alts);
+      act(seat, m);
+    }, delay);
+  }
+
+  /* ---- your actions ---- */
+  function selectedCards() { return G.hands[0].filter(c => G.sel.has(c.id)); }
+  function readings() {
+    const sel = selectedCards();
+    if (G.phase !== 'play' || G.turn !== 0 || !sel.length) return { sel, all: [], legal: [] };
+    const all = interpret(sel, G.L);
+    const t = G.trick.combo;
+    let legal = all.filter(c => beats(c, t));
+    if (t && !isBomb(t)) legal.sort((a, b) => (isBomb(a) - isBomb(b)));
+    return { sel, all, legal };
+  }
+  function play() {
+    if (G.phase === 'return') return doReturn();
+    const { legal } = readings();
+    const c = legal[Math.min(G.choice, legal.length - 1)];
+    if (!c) return;
+    log(desc(c) + '.', 'me', 0);
+    act(0, c);
+  }
+  function pass() {
+    if (G.phase !== 'play' || G.turn !== 0 || !G.trick.combo) return;
+    log('Pass.', 'me', 0);
+    act(0, null);
+  }
+  function doReturn() {
+    const sel = selectedCards();
+    const ok = returnable(G.hands[0], G.L);
+    if (sel.length !== 1 || !ok.some(c => c.id === sel[0].id)) return;
+    give(0, G.pending.to, sel[0]);
+    log('You return ' + cardName(sel[0]) + ' to ' + NAMES[G.pending.to] + '.', 'sys');
+    G.pending = null; G.phase = 'play'; G.sel.clear(); advice = null;
+    render(); schedule();
+  }
+  function hint() {
+    const a = getAdvice();
+    if (!a) return;
+    G.sel = new Set(a.cards.map(c => c.id)); G.choice = 0;
+    render();
+  }
+
+  /* ---- coach ---- */
+  function getAdvice() {
+    if (advice) return advice;
+    if (G.phase === 'return') {
+      const c = chooseReturn(0);
+      advice = { kind: 'return', cards: [c] };
+    } else if (G.phase === 'play' && G.turn === 0 && G.hands[0].length) {
+      const d = decide(ctxFor(0));
+      advice = { kind: 'play', d, cards: d.best.move ? d.best.move.cards : [] };
+    } else advice = null;
+    return advice;
+  }
+  function situation() {
+    const lines = [];
+    const counts = G.hands.map(h => h.length);
+    [1, 3].forEach(s => { if (counts[s] && counts[s] <= 10) lines.push(NAMES[s] + ' has ' + counts[s] + ' card' + (counts[s] > 1 ? 's' : '') + (counts[s] <= 5 ? ', close to going out.' : '.')); });
+    if (counts[2] && counts[2] <= 6) lines.push('North (partner) has ' + counts[2] + ' cards. Lead shapes they can follow.');
+    if (G.trick.combo) lines.push((G.trick.seat === 2 ? 'Partner' : NAMES[G.trick.seat]) + ' ' + (G.trick.seat === 0 ? 'are' : 'is') + ' winning with the ' + desc(G.trick.combo) + '.');
+    return lines;
+  }
+  function renderCoach() {
+    const box = $('coach'); box.textContent = '';
+    const k = document.createElement('span'); k.className = 'kicker'; k.textContent = 'Coach · your best play';
+    box.appendChild(k);
+    const a = getAdvice();
+    const h = document.createElement('h3');
+    if (G.phase === 'end' || G.over) {
+      h.textContent = G.over ? 'Match over.' : 'Hand over.';
+      box.appendChild(h);
+      const p = document.createElement('p'); p.className = 'small muted';
+      p.textContent = 'Each finish is listed in the log. Start the next hand from the table.';
+      box.appendChild(p); return;
+    }
+    if (!a) {
+      h.textContent = G.hands[0].length ? 'Waiting for ' + NAMES[G.turn] + '.' : 'You are out. Your partner plays on.';
+      box.appendChild(h);
+      const base = evalHand(G.hands[0], G.L);
+      const p = document.createElement('p'); p.className = 'small muted';
+      p.textContent = G.hands[0].length ? 'Your hand plan: about ' + base.turns + ' plays' + (base.bombs ? ' plus ' + base.bombs + ' bomb' + (base.bombs > 1 ? 's' : '') : '') + (base.seqs.length ? ', using ' + base.seqs.join(', ') : '') + '.' : 'Watch how North finishes. It sets your climb.';
+      box.appendChild(p);
+      return;
+    }
+    if (a.kind === 'return') {
+      h.textContent = 'Return ' + cardName(a.cards[0]) + ' to ' + NAMES[G.pending.to];
+      box.appendChild(h);
+      const p = document.createElement('p'); p.className = 'why';
+      p.textContent = 'You received ' + cardName(G.pending.tribute) + ' as tribute and must give back a card of 10 or lower. This one hurts your plan least. Select it, or any 10-or-lower card, then press Return.';
+      box.appendChild(p); return;
+    }
+    const d = a.d, b = d.best;
+    h.textContent = b.move ? 'Play the ' + desc(b.move) : 'Pass';
+    box.appendChild(h);
+    const rec = document.createElement('div'); rec.className = 'rec';
+    if (b.move) rec.appendChild(cardsEl(b.move.cards, G.L, true, b.move));
+    const why = document.createElement('p'); why.className = 'why';
+    why.textContent = b.why + ' Plan after this: about ' + b.after.turns + ' plays' + (b.after.bombs ? ' and ' + b.after.bombs + ' bomb' + (b.after.bombs > 1 ? 's' : '') : '') + '.';
+    rec.appendChild(why);
+    // what the counter says about the recommendation
+    if (b.move && !isBomb(b.move)) {
+      const unseen = unseenFor(0);
+      if (b.move.type === 'single') {
+        const n = unseen.filter(c => val(c.r, G.L) > b.move.v).length;
+        const p = document.createElement('p'); p.className = 'small muted';
+        p.textContent = n ? n + ' unseen cards rank above it, not counting bombs.' : 'No unseen single beats it. Only a bomb can.';
+        rec.appendChild(p);
+      }
+      const t = b.move.type;
+      const r = [1, 3].map(s => G.reads[s][t] && G.reads[s][t].v <= b.move.v ? NAMES[s] : null).filter(Boolean);
+      if (r.length) {
+        const p = document.createElement('p'); p.className = 'small muted';
+        p.textContent = r.join(' and ') + ' already passed on a ' + TYPE[t] + ' this low, so it has a good chance of holding.';
+        rec.appendChild(p);
+      }
+    }
+    box.appendChild(rec);
+    const alts = document.createElement('div'); alts.className = 'alts';
+    d.ranked.slice(0, 3).forEach((c, i) => {
+      const row = document.createElement('div'); row.className = 'alt';
+      row.innerHTML = '<span class="k">' + (i + 1) + '</span><span></span><span class="t"></span>';
+      row.children[1].textContent = c.move ? desc(c.move) : 'Pass';
+      row.children[2].textContent = c.after.turns + ' plays left';
+      alts.appendChild(row);
+    });
+    const ak = document.createElement('span'); ak.className = 'kicker'; ak.textContent = 'Options the engine weighed';
+    box.appendChild(ak); box.appendChild(alts);
+    const sit = situation();
+    if (sit.length) {
+      const sk = document.createElement('span'); sk.className = 'kicker'; sk.textContent = 'Situation';
+      const ul = document.createElement('ul'); ul.className = 'reads';
+      sit.forEach(s => { const li = document.createElement('li'); li.textContent = s; ul.appendChild(li); });
+      box.appendChild(sk); box.appendChild(ul);
+    }
+  }
+
+  /* ---- render ---- */
+  function renderStrip() {
+    const s = $('strip'); s.textContent = '';
+    const cell = (k, v, n, lv) => {
+      const d = document.createElement('div');
+      d.innerHTML = '<span class="kicker"></span><span class="v"></span><span class="n"></span>';
+      d.children[0].textContent = k; d.children[1].textContent = v; d.children[2].textContent = n;
+      if (lv) d.children[1].classList.add('lv');
+      s.appendChild(d);
+    };
+    cell('Playing', rname(G.L), G.decl === null ? 'first hand' : (G.decl === 0 ? 'your team declares' : 'opponents declare'), true);
+    cell('Wild', rname(G.L) + '♥', 'two in the deck');
+    cell('Your team', rname(G.levels[0]), G.aFails[0] ? G.aFails[0] + ' fail at A' : 'You + North');
+    cell('Opponents', rname(G.levels[1]), G.aFails[1] ? G.aFails[1] + ' fail at A' : 'East + West');
+    cell('Hand', String(G.handNo), 'this match');
+  }
+  function renderSeat(s) {
+    const el = $('seat' + s); el.textContent = '';
+    el.classList.toggle('turn', G.phase === 'play' && G.turn === s && !G.over);
+    const n = G.hands[s].length;
+    const who = document.createElement('div'); who.className = 'who';
+    who.innerHTML = '<span class="nm"></span><span class="role"></span>';
+    who.children[0].textContent = NAMES[s];
+    who.children[1].textContent = s === 2 ? 'Partner' : 'Opponent';
+    who.children[1].classList.add(s === 2 ? 'pt' : 'opp');
+    const cnt = document.createElement('div'); cnt.className = 'cnt' + (n && n <= 5 ? ' short' : '');
+    cnt.innerHTML = n + '<small>' + (n === 1 ? 'card' : 'cards') + (n && n <= 5 ? ' · short' : '') + '</small>';
+    const st = document.createElement('div'); st.className = 'status';
+    const pos = G.out.indexOf(s);
+    st.textContent = pos >= 0 ? 'Out ' + ['first', 'second', 'third', 'fourth'][pos] : (G.phase === 'play' && G.turn === s ? 'Thinking…' : '');
+    el.append(who, cnt, st);
+    if ($('peek').checked && n) {
+      const p = document.createElement('div'); p.className = 'peek';
+      sortHand(G.hands[s], G.L).forEach(c => p.appendChild(cardEl(c, G.L, true)));
+      el.appendChild(p);
+    } else if (n) {
+      const b = document.createElement('div'); b.className = 'backs';
+      for (let i = 0; i < n; i++) { const x = document.createElement('span'); x.className = 'back'; b.appendChild(x); }
+      el.appendChild(b);
+    }
+  }
+  function renderCenter() {
+    for (let s = 0; s < 4; s++) {
+      const el = $('t' + s); el.textContent = '';
+      el.className = 'slot';
+      const t = G.table[s];
+      if (!t) continue;
+      const w = document.createElement('span'); w.className = 'who'; w.textContent = NAMES[s];
+      el.appendChild(w);
+      if (t.pass) { const p = document.createElement('span'); p.className = 'pass'; p.textContent = 'Pass'; el.appendChild(p); }
+      else el.appendChild(cardsEl(t.combo.cards, G.L, true, t.combo));
+      if (G.stale) el.classList.add('stale');
+      else if (G.trick.seat === s && t.combo) el.classList.add('win');
+    }
+    const m = $('msg'); m.textContent = '';
+    const line = html => { const p = document.createElement('div'); p.innerHTML = html; m.appendChild(p); return p; };
+    if (G.over) {
+      line('<strong>' + (G.winner === 0 ? 'You and North win the match.' : 'East and West win the match.') + '</strong>');
+      const b = document.createElement('button'); b.className = 'primary'; b.textContent = 'New match'; b.onclick = newMatch; m.appendChild(b);
+    } else if (G.phase === 'end') {
+      const r = G.result;
+      line('<strong>' + (r.wt === 0 ? 'Your team' : 'Opponents') + ' win the hand</strong>');
+      line('Finish ' + r.order.map(s => NAMES[s]).join(' › ') + '. ' + r.finish + ', +' + r.up + '.' + (r.note ? ' ' + r.note : ''));
+      const b = document.createElement('button'); b.className = 'primary'; b.textContent = 'Next hand'; b.onclick = startHand; m.appendChild(b);
+    } else if (G.phase === 'return') {
+      line('<strong>Return a card</strong>');
+      line('Pick one card of 10 or lower to give back to ' + NAMES[G.pending.to] + '.');
+    } else if (G.trick.combo) {
+      line('To beat: <strong>' + desc(G.trick.combo) + '</strong>');
+      line(G.turn === 0 ? 'Your turn.' : NAMES[G.turn] + ' to play.');
+    } else {
+      line(G.turn === 0 ? '<strong>Your lead.</strong> Play any combination.' : '<strong>' + NAMES[G.turn] + '</strong> to lead.');
+    }
+  }
+  function renderHand() {
+    const me = $('me'); me.classList.toggle('turn', (G.phase === 'play' && G.turn === 0) || G.phase === 'return');
+    const bar = $('mebar'); bar.textContent = '';
+    const nm = document.createElement('span'); nm.className = 'nm'; nm.style.font = '600 15px/1.2 var(--sans)'; nm.textContent = 'You';
+    const n = G.hands[0].length;
+    const cnt = document.createElement('span'); cnt.className = 'cnt'; cnt.innerHTML = n + '<small>cards</small>';
+    const pos = G.out.indexOf(0);
+    const st = document.createElement('span'); st.className = 'status';
+    const base = n ? evalHand(G.hands[0], G.L) : null;
+    st.textContent = pos >= 0 ? 'Out ' + ['first', 'second', 'third'][pos] + '.' : 'Plan: about ' + base.turns + ' plays' + (base.bombs ? ' + ' + base.bombs + ' bomb' + (base.bombs > 1 ? 's' : '') : '') + '.';
+    bar.append(nm, cnt, st);
+
+    const hand = $('hand'); hand.textContent = '';
+    const a = (G.phase === 'play' && G.turn === 0) || G.phase === 'return' ? getAdvice() : null;
+    const hintIds = new Set(a ? a.cards.map(c => c.id) : []);
+    sortHand(G.hands[0], G.L).forEach(c => {
+      const el = cardEl(c, G.L, false);
+      el.tabIndex = 0; el.setAttribute('role', 'button');
+      el.setAttribute('aria-pressed', G.sel.has(c.id) ? 'true' : 'false');
+      if (G.sel.has(c.id)) el.classList.add('sel');
+      if (hintIds.has(c.id) && $('showHint').checked) el.classList.add('hint');
+      const toggle = () => { G.sel.has(c.id) ? G.sel.delete(c.id) : G.sel.add(c.id); G.choice = 0; renderHand(); };
+      el.addEventListener('click', toggle);
+      el.addEventListener('keydown', e => { if (e.key === ' ') { e.preventDefault(); toggle(); } });
+      hand.appendChild(el);
+    });
+
+    // buttons and readings
+    const myTurn = G.phase === 'play' && G.turn === 0 && !G.over;
+    const say = $('say'); say.className = 'say'; say.textContent = '';
+    const chips = $('chips'); chips.textContent = '';
+    const bp = $('btnPlay');
+    if (G.phase === 'return') {
+      const sel = selectedCards(), ok = returnable(G.hands[0], G.L);
+      const valid = sel.length === 1 && ok.some(c => c.id === sel[0].id);
+      bp.disabled = !valid; bp.textContent = valid ? 'Return ' + cardName(sel[0]) : 'Return';
+      if (sel.length && !valid) { say.textContent = 'Choose exactly one card of 10 or lower.'; say.classList.add('err'); }
+    } else {
+      const { sel, all, legal } = readings();
+      bp.disabled = !myTurn || !legal.length;
+      bp.textContent = legal.length ? 'Play ' + desc(legal[Math.min(G.choice, legal.length - 1)]) : 'Play';
+      if (myTurn && sel.length) {
+        if (!all.length) { say.textContent = 'These ' + sel.length + ' cards are not a valid combination.'; say.classList.add('err'); }
+        else if (!legal.length) { say.textContent = 'The ' + desc(all[0]) + ' does not beat the ' + desc(G.trick.combo) + '.'; say.classList.add('err'); }
+        else if (legal.length > 1) {
+          say.textContent = 'These cards can be read more than one way. Choose:';
+          legal.forEach((c, i) => {
+            const b = document.createElement('button'); b.textContent = desc(c);
+            b.setAttribute('aria-pressed', i === G.choice ? 'true' : 'false');
+            b.onclick = () => { G.choice = i; renderHand(); };
+            chips.appendChild(b);
+          });
+        }
+      } else if (myTurn) say.textContent = G.trick.combo ? 'Select cards that beat the ' + desc(G.trick.combo) + ', or pass.' : 'Select cards to lead.';
+    }
+    $('btnPass').disabled = !myTurn || !G.trick.combo;
+    $('btnHint').disabled = !(myTurn || G.phase === 'return');
+  }
+  function renderCounter() {
+    const unseen = unseenFor(0);
+    const keys = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].filter(r => r !== G.L).concat([G.L, BJ, RJ]);
+    const by = {}; unseen.forEach(c => by[c.r] = (by[c.r] || 0) + 1);
+    $('counter').textContent = '';
+    keys.forEach(r => {
+      const cc = document.createElement('div');
+      cc.className = 'cc' + (r === G.L ? ' lv' : '') + (by[r] ? '' : ' zero');
+      cc.innerHTML = '<span class="r"></span><span class="n"></span>';
+      cc.children[0].textContent = r === BJ ? 'BJ' : r === RJ ? 'RJ' : rname(r);
+      cc.children[1].textContent = by[r] || 0;
+      $('counter').appendChild(cc);
+    });
+    const wildLeft = unseen.filter(c => isWild(c, G.L)).length;
+    $('counterNote').textContent = 'Low to high in level order. ' + wildLeft + ' wild ' + rname(G.L) + '♥ unseen; ' + (by[RJ] || 0) + ' red and ' + (by[BJ] || 0) + ' black jokers still out there.';
+  }
+  function renderReads() {
+    const ul = $('reads'); ul.textContent = '';
+    const items = [];
+    [1, 3, 2].forEach(s => {
+      Object.values(G.reads[s]).forEach(rd => items.push(NAMES[s] + (s === 2 ? ' (partner)' : '') + ' passed on the ' + desc(rd.combo) + ', so probably holds no ' + TYPE[rd.combo.type] + ' above it, or is saving it.'));
+    });
+    if (!items.length) items.push('Nothing yet. When a player passes on an opponent\'s play, it shows here as a likely gap in their hand.');
+    items.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+  }
+  function renderLog() {
+    const el = $('log'); el.textContent = '';
+    G.log.slice(-60).reverse().forEach(e => {
+      const d = document.createElement('div');
+      if (e.cls === 'sys') { d.className = 'sys'; d.textContent = e.text; }
+      else {
+        const w = document.createElement('span'); w.className = 'who t' + team(e.seat); w.textContent = NAMES[e.seat] + ': ';
+        d.appendChild(w); d.appendChild(document.createTextNode(e.text));
+        if (e.extra) {
+          const det = document.createElement('details'); const sm = document.createElement('summary'); sm.textContent = 'Options weighed';
+          const ol = document.createElement('ol'); e.extra.forEach(x => { const li = document.createElement('li'); li.textContent = x; ol.appendChild(li); });
+          det.append(sm, ol); d.appendChild(det);
+        }
+      }
+      el.appendChild(d);
+    });
+  }
+  function render() {
+    renderStrip(); [1, 2, 3].forEach(renderSeat); renderCenter(); renderHand(); renderCoach(); renderCounter(); renderReads(); renderLog();
+    document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.ms === delay ? 'true' : 'false'));
+  }
+
+  /* ---- wiring ---- */
+  const hintToggle = document.createElement('label');
+  hintToggle.innerHTML = '<input type="checkbox" id="showHint" checked> Outline the coach\'s cards';
+  document.querySelector('.settings').insertBefore(hintToggle, $('btnNew'));
+  $('btnPlay').onclick = play; $('btnPass').onclick = pass; $('btnHint').onclick = hint;
+  $('btnClear').onclick = () => { G.sel.clear(); G.choice = 0; renderHand(); };
+  $('btnNew').onclick = newMatch;
+  $('peek').onchange = render; $('showHint').onchange = renderHand;
+  document.querySelectorAll('.seg button').forEach(b => b.onclick = () => {
+    delay = +b.dataset.ms; try { localStorage.setItem('gd-speed', String(delay)); } catch (e) {}
+    render(); schedule();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === 'Enter' && !$('btnPlay').disabled && !(e.target.tagName === 'BUTTON')) { e.preventDefault(); play(); }
+    else if ((e.key === 'p' || e.key === 'P') && !$('btnPass').disabled) pass();
+    else if ((e.key === 'h' || e.key === 'H') && !$('btnHint').disabled) hint();
+  });
+  // opened from the repo, link the local primer; published, link the published one
+  if (location.protocol !== 'file:') $('tutLink').href = 'https://claude.ai/artifact/NUXJBF5R5XZCd7x6xqQXfP';
+  window.GDGame = { get state() { return G; }, act, newMatch, startHand, decide: s => decide(ctxFor(s)) };
+  newMatch();
+})();
+</script>
+</body>
+</html>
