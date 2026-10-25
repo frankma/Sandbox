@@ -111,12 +111,13 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .wrap { max-width: 1240px; margin: 0 auto; padding-block: 24px 40px;
           padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
           display: grid; gap: 20px; }
-  .top { display: grid; gap: 12px; }
+  .top { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; }
+  .top > .strip { flex: 1 1 760px; min-width: 0; }
   .top h1 { font-size: clamp(28px, 4vw, 38px); }
   .top .han { font-weight: 400; color: var(--muted); font-size: .62em; margin-left: 8px; }
   .strip { display: flex; flex-wrap: wrap; border-top: 4px solid var(--ink); border-bottom: 1px solid var(--line); }
   #strip { display: contents; }
-  .strip .cell { padding: 8px 16px 9px; border-left: 1px solid var(--line); display: grid; gap: 3px; align-content: start; min-width: 0; }
+  .strip .cell { padding: 8px 12px 9px; border-left: 1px solid var(--line); display: grid; gap: 3px; align-content: start; min-width: 0; }
   .strip .cell:first-child { border-left: 0; padding-left: 0; }
   .strip .ctl { margin-left: auto; padding-right: 0; gap: 6px; }
   .ctl .row { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
