@@ -6,7 +6,7 @@ Small, self-contained projects. Each top-level folder stands alone: no folder im
 |---|---|---|
 | [bet/](bet/) | Binary expression tree: build, print and evaluate arithmetic expressions | none |
 | [maze/](maze/) | Grid maze and a path solver | numpy |
-| [poker/](poker/) | Texas hold'em: hand evaluator, Monte Carlo strategy, odds advisor, terminal game | none |
+| [poker/](poker/) | Texas hold'em: hand evaluator, Monte Carlo strategy, odds advisor and terminal game, plus a practice table page ([index.html](poker/index.html)) where you set the number of players (2–9) and hole cards (2–5) and play computer seats, with a coach, live odds and outs, a card counter and player reads | none (the page opens in a browser) |
 | [sudoku/](sudoku/) | Sudoku solver and generator, with tkinter, Flask and Streamlit front-ends | numpy (+ flask / streamlit, see [requirements](sudoku/requirements.txt)) |
 | [finding_fox/](finding_fox/) | Word-search game, a single HTML page | none (open in a browser) |
 | [the_threshold/](the_threshold/) | Percolation game: breadth-first flood through an N×N grid, a Monte Carlo threshold curve, and a rot mode (random rot vs targeted attack, with a break-fraction histogram around 1 − p_c), a single HTML page | none (open in a browser) |
@@ -19,6 +19,7 @@ Run commands from the repo root.
 
 ```bash
 python -m poker.cli                       # play hold'em in the terminal
+open poker/index.html                     # play hold'em at a table in the browser
 python -m sudoku.gui_app                  # tkinter sudoku
 python -m sudoku.webapp.app               # Flask sudoku on http://localhost:5050
 streamlit run sudoku/streamlit_app.py     # Streamlit sudoku
