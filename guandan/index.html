@@ -111,17 +111,22 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .wrap { max-width: 1240px; margin: 0 auto; padding-block: 24px 40px;
           padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
           display: grid; gap: 20px; }
-  .top { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: end; justify-content: space-between; }
+  .top { display: grid; gap: 12px; }
   .top h1 { font-size: clamp(28px, 4vw, 38px); }
   .top .han { font-weight: 400; color: var(--muted); font-size: .62em; margin-left: 8px; }
   .strip { display: flex; flex-wrap: wrap; border-top: 4px solid var(--ink); border-bottom: 1px solid var(--line); }
-  .strip > div { padding: 8px 16px 9px; border-left: 1px solid var(--line); display: grid; gap: 3px; min-width: 0; }
-  .strip > div:first-child { border-left: 0; padding-left: 0; }
+  #strip { display: contents; }
+  .strip .cell { padding: 8px 16px 9px; border-left: 1px solid var(--line); display: grid; gap: 3px; align-content: start; min-width: 0; }
+  .strip .cell:first-child { border-left: 0; padding-left: 0; }
+  .strip .ctl { margin-left: auto; padding-right: 0; gap: 6px; }
+  .ctl .row { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; }
   .strip .v { font: 600 20px/1.1 var(--mono); }
   .strip .v.lv { color: var(--oxford); }
   .strip .n { font: 400 12px/1.3 var(--sans); color: var(--muted); }
-  .layout { display: grid; grid-template-columns: 300px minmax(0, 1fr) 260px; grid-template-areas: "l c r"; gap: 16px; align-items: start; }
-  .colL { grid-area: l; } .colC { grid-area: c; } .colR { grid-area: r; }
+  /* Layout: counter and coach on the left, the table takes the rest; reads and log sit side by side below the first screen */
+  .layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); grid-template-areas: "l c"; gap: 16px; align-items: start; }
+  .colL { grid-area: l; } .colC { grid-area: c; }
+  .below { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
   .box { background: var(--surface); border: 1px solid var(--line); padding: 14px 16px; display: grid; gap: 10px; min-width: 0; }
   .rail { display: grid; gap: 14px; min-width: 0; }
   .muted { color: var(--muted); }
@@ -129,11 +134,11 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
 
   /* table */
   .board { background: var(--surface); border: 1px solid var(--line); padding: 14px; display: grid; gap: 12px;
-           grid-template-columns: minmax(0, 150px) minmax(0, 1fr) minmax(0, 150px);
+           grid-template-columns: minmax(0, 170px) minmax(0, 1fr) minmax(0, 170px);
            grid-template-areas: "n n n" "w c e" "s s s"; min-width: 0; }
   .seat { display: grid; gap: 6px; align-content: start; min-width: 0; padding: 10px 12px; border: 1px solid var(--line); background: var(--bg); }
   .seat.turn { border-color: var(--ink); box-shadow: inset 0 3px 0 var(--ink); }
-  #seat2 { grid-area: n; justify-self: center; width: min(100%, 420px); }
+  #seat2 { grid-area: n; justify-self: center; width: min(100%, 420px); box-sizing: border-box; }
   #seat3 { grid-area: w; } #seat1 { grid-area: e; }
   .seat .who { display: flex; gap: 8px; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
   .seat .nm { font: 600 15px/1.2 var(--sans); }
@@ -151,7 +156,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
 
   .center { grid-area: c; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto auto auto;
             grid-template-areas: ". tn ." "tw msg te" ". ts ."; gap: 8px; align-items: center; justify-items: center;
-            min-height: 170px; border: 1px dashed var(--line); padding: 10px; min-width: 0; }
+            min-height: 230px; border: 1px dashed var(--line); padding: 10px; min-width: 0; }
   .slot { display: grid; gap: 4px; justify-items: center; min-width: 0; max-width: 100%; }
   .slot .cards { flex-wrap: nowrap; }
   .slot .who { font: 600 10.5px/1 var(--sans); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
@@ -166,8 +171,8 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .me { grid-area: s; display: grid; gap: 10px; min-width: 0; padding: 10px 12px 12px; border: 1px solid var(--line); background: var(--bg); }
   .me.turn { border-color: var(--ink); box-shadow: inset 0 3px 0 var(--ink); }
   .mebar { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; }
-  .hand { display: flex; flex-wrap: wrap; row-gap: 10px; padding-top: 14px; padding-left: 23px; min-height: 80px; }
-  .hand .c { margin-left: -23px; padding-left: 3px; cursor: pointer; transition: transform .12s; }
+  .hand { display: flex; flex-wrap: wrap; row-gap: 10px; padding-top: 14px; padding-left: 24px; min-height: 92px; }
+  .hand .c { margin-left: -24px; padding-left: 4px; cursor: pointer; transition: transform .12s; }
   .hand .c.sel { transform: translateY(-12px); outline: 2px solid var(--oxford); outline-offset: 0; }
   .hand .c.hint { box-shadow: 0 0 0 2px var(--mandarin); }
   .hand .c:focus-visible { outline: 2px solid var(--oxford); }
@@ -181,10 +186,10 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   /* cards */
   .cards { display: flex; flex-wrap: wrap; align-items: flex-end; }
   .cards .c + .c { margin-left: -16px; }
-  .c { position: relative; width: 44px; height: 64px; flex: none; background: var(--surface); border: 1px solid var(--axis);
+  .c { position: relative; width: 52px; height: 76px; flex: none; background: var(--surface); border: 1px solid var(--axis);
        display: inline-grid; grid-template-rows: auto auto 1fr; align-content: start; justify-items: start; gap: 1px; padding: 4px 5px; box-sizing: border-box;
-       font: 600 16px/1 var(--mono); color: var(--ink); user-select: none; }
-  .c .s { font-size: 15px; line-height: 1; }
+       font: 600 18px/1 var(--mono); color: var(--ink); user-select: none; }
+  .c .s { font-size: 17px; line-height: 1; }
   .c.red { color: var(--claret); }
   .c.lvl { box-shadow: inset 0 -4px 0 var(--oxford); }
   .c.wild { background: var(--mandarin-soft); border-color: var(--mandarin); }
@@ -192,11 +197,11 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .c.joker { font: 600 10px/1.02 var(--sans); writing-mode: vertical-lr; text-orientation: upright; display: grid; place-items: start; padding: 4px 3px; }
   .c.joker.big { color: var(--claret); background: var(--claret-soft); }
   .c.joker.small { color: var(--ink); background: var(--code); }
-  .c.mini { width: 30px; height: 42px; font-size: 12.5px; padding: 2px 3px; }
-  .c.mini .s { font-size: 11px; }
+  .c.mini { width: 36px; height: 52px; font-size: 14px; padding: 3px 4px; }
+  .c.mini .s { font-size: 13px; }
   .c.mini.joker { font-size: 7.5px; }
   .c.mini.wild::after { display: none; }
-  .cards .c.mini + .c.mini { margin-left: -11px; }
+  .cards .c.mini + .c.mini { margin-left: -14px; }
   .peek .c.mini + .c.mini { margin-left: -14px; }
 
   /* coach */
@@ -211,7 +216,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .reads li::before { content: "› "; color: var(--label); font-weight: 600; }
 
   /* counter */
-  .counter { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); border-top: 2px solid var(--ink); }
+  .counter { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); border-top: 2px solid var(--ink); }
   .counter .cc { display: grid; justify-items: center; gap: 2px; padding: 5px 0; border-bottom: 1px solid var(--line); }
   .counter .r { font: 600 11px/1 var(--sans); color: var(--muted); }
   .counter .n { font: 500 14px/1 var(--mono); font-variant-numeric: tabular-nums; }
@@ -219,7 +224,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .counter .cc.zero .n { color: var(--axis); }
 
   /* log */
-  .log { max-height: 220px; overflow-y: auto; display: grid; gap: 0; align-content: start; font: 400 13px/1.45 var(--sans); }
+  .log { max-height: 420px; overflow-y: auto; display: grid; gap: 0; align-content: start; font: 400 13px/1.45 var(--sans); }
   .log > div { padding: 5px 0; border-top: 1px solid var(--line); }
   .log .sys { color: var(--muted); }
   .log .who { font-weight: 600; }
@@ -232,22 +237,18 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .seg { display: inline-flex; } .seg button { padding: 6px 9px; font-size: 12.5px; margin-left: -1px; }
   footer a { color: var(--link); }
 
-  /* three columns: the right column takes the table's height and the log fills what the coach leaves */
-  @media (min-width: 1181px) {
-    .layout { align-items: stretch; }
-    .colL, .colC { align-self: start; }
-    .colR { height: 0; min-height: 100%; display: flex; flex-direction: column; overflow-y: auto; }
-    .colR > .box:last-child { flex: 1 1 0; min-height: 140px; grid-template-rows: auto minmax(0, 1fr); }
-    .colR .log { max-height: none; min-height: 0; }
+  @media (max-width: 1100px) {
+    .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "c" "l"; }
+    .colL { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start; }
+    .strip .ctl { margin-left: 0; padding-left: 0; border-left: 0; flex-basis: 100%; border-top: 1px solid var(--line); }
   }
-  @media (max-width: 1180px) { .layout { grid-template-columns: minmax(0, 1fr) 300px; grid-template-areas: "c l" "r l"; } }
-  @media (max-width: 980px) { .layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "c" "l" "r"; } }
+  @media (max-width: 760px) { .below { grid-template-columns: minmax(0, 1fr); } }
   @media (max-width: 640px) {
     .board { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "n n" "w e" "c c" "s s"; padding: 10px; }
     .center { min-height: 0; }
     .c { width: 38px; height: 56px; font-size: 14px; }
     .hand .c { margin-left: -18px; }
-    .strip > div { padding: 6px 10px; }
+    .strip .cell { padding: 6px 10px; }
     .counter { grid-template-columns: repeat(8, minmax(0, 1fr)); }
   }
   @media (prefers-reduced-motion: reduce) { .hand .c { transition: none; } }
@@ -260,14 +261,27 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
       <div class="kicker">Card games · Practice desk</div>
       <h1>GuanDan Table <span class="han">掼蛋</span></h1>
     </div>
-    <div class="strip" id="strip"></div>
+    <div class="strip">
+      <div id="strip"></div>
+      <div class="cell ctl settings">
+        <span class="kicker">Table</span>
+        <div class="row">
+          <button class="primary" id="btnNew">New match</button>
+          <span class="seg" role="group" aria-label="Computer speed"><button id="spd-slow" data-ms="1300">Slow</button><button id="spd-norm" data-ms="750">Normal</button><button id="spd-fast" data-ms="250">Fast</button></span>
+        </div>
+        <div class="row">
+          <label><input type="checkbox" id="peek"> Show computer hands</label>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="layout">
     <aside class="rail colL">
       <div class="box">
-        <span class="kicker">Reads · what the passes reveal</span>
-        <ul class="reads" id="reads"></ul>
+        <span class="kicker">Card counter · still unseen by you</span>
+        <div class="counter" id="counter"></div>
+        <span class="small muted" id="counterNote"></span>
       </div>
       <div class="box coach" id="coach"></div>
     </aside>
@@ -295,24 +309,18 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
           <div class="say" id="say" aria-live="polite"></div>
         </div>
       </section>
-      <div class="box">
-        <span class="kicker">Card counter · still unseen by you</span>
-        <div class="counter" id="counter"></div>
-        <span class="small muted" id="counterNote"></span>
-      </div>
     </div>
+  </div>
 
-    <aside class="rail colR">
-      <div class="box settings">
-        <span class="seg" role="group" aria-label="Computer speed"><button id="spd-slow" data-ms="1300">Slow</button><button id="spd-norm" data-ms="750">Normal</button><button id="spd-fast" data-ms="250">Fast</button></span>
-        <label><input type="checkbox" id="peek"> Show computer hands</label>
-        <button id="btnNew">New match</button>
-      </div>
-      <div class="box">
-        <span class="kicker">Table log · why each computer played</span>
-        <div class="log" id="log"></div>
-      </div>
-    </aside>
+  <div class="below">
+    <div class="box">
+      <span class="kicker">Reads · what the passes reveal</span>
+      <ul class="reads" id="reads"></ul>
+    </div>
+    <div class="box">
+      <span class="kicker">Table log · why each computer played</span>
+      <div class="log" id="log"></div>
+    </div>
   </div>
 
   <footer>
@@ -966,7 +974,7 @@ const GD = (() => {
   function renderStrip() {
     const s = $('strip'); s.textContent = '';
     const cell = (k, v, n, lv) => {
-      const d = document.createElement('div');
+      const d = document.createElement('div'); d.className = 'cell';
       d.innerHTML = '<span class="kicker"></span><span class="v"></span><span class="n"></span>';
       d.children[0].textContent = k; d.children[1].textContent = v; d.children[2].textContent = n;
       if (lv) d.children[1].classList.add('lv');
@@ -1144,7 +1152,7 @@ const GD = (() => {
   /* ---- wiring ---- */
   const hintToggle = document.createElement('label');
   hintToggle.innerHTML = '<input type="checkbox" id="showHint" checked> Outline the coach\'s cards';
-  document.querySelector('.settings').insertBefore(hintToggle, $('btnNew'));
+  $('peek').closest('.row').appendChild(hintToggle);
   $('btnPlay').onclick = play; $('btnPass').onclick = pass; $('btnHint').onclick = hint;
   $('btnClear').onclick = () => { G.sel.clear(); G.choice = 0; renderHand(); };
   $('btnNew').onclick = newMatch;
