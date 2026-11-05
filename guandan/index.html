@@ -422,29 +422,28 @@ const GD = (() => {
       else if (n >= 4 && n <= 10 && !jk) out.push(mk('bomb', cards, v, r));
     }
     if (n === 5) {
-      let best = null, bestP = null;
+      // wilds can make the same cards read as more than one full house or straight; each is a legal reading
       for (let t = 2; t <= 14; t++) {
         const ct = cnt[t] || 0; if (ct > 3) continue;
         for (const p of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, BJ, RJ]) {
           if (p === t) continue;
           const cp = cnt[p] || 0;
           if (cp > 2 || ct + cp !== nat.length || (p >= BJ && cp !== 2)) continue;
-          if (best === null || val(t, L) > val(best, L)) { best = t; bestP = cp ? p : L; }
+          out.push(Object.assign(mk('full', cards, val(t, L), t), { p: cp ? p : L }));
+          break;
         }
       }
-      if (best !== null) out.push(Object.assign(mk('full', cards, val(best, L), best), { p: bestP }));
-      const tops = seqTops(nat, w, 5, 1);
-      if (tops.length) {
-        const top = Math.max(...tops);
-        if (nat.every(c => c.s === nat[0].s)) out.push(mk('sf', cards, top, top));
+      const flush = nat.every(c => c.s === nat[0].s);
+      for (const top of seqTops(nat, w, 5, 1)) {
+        if (flush) out.push(mk('sf', cards, top, top));
         out.push(mk('straight', cards, top, top));
       }
     }
     if (n === 6) {
-      const tt = seqTops(nat, w, 3, 2); if (tt.length) { const t = Math.max(...tt); out.push(mk('tube', cards, t, t)); }
-      const pt = seqTops(nat, w, 2, 3); if (pt.length) { const t = Math.max(...pt); out.push(mk('plate', cards, t, t)); }
+      for (const t of seqTops(nat, w, 3, 2)) out.push(mk('tube', cards, t, t));
+      for (const t of seqTops(nat, w, 2, 3)) out.push(mk('plate', cards, t, t));
     }
-    return out.sort((a, b) => (isBomb(b) - isBomb(a)) || (isBomb(a) ? power(b) - power(a) : 0));
+    return out.sort((a, b) => (isBomb(b) - isBomb(a)) || (isBomb(a) ? power(b) - power(a) : b.v - a.v));
   }
 
   // all combinations a hand can play (wilds used only where they are needed)
@@ -453,36 +452,38 @@ const GD = (() => {
     const by = {};
     hand.forEach(c => { if (!isWild(c, L)) (by[c.r] = by[c.r] || []).push(c); });
     const moves = [], seen = new Set();
-    const add = (type, cards, v, r) => {
+    const add = (type, cards) => {
       const key = type + '|' + cards.map(c => c.id).sort((a, b) => a - b).join(',');
-      if (seen.has(key)) return null;
-      seen.add(key); const m = mk(type, cards, v, r); moves.push(m); return m;
+      if (seen.has(key)) return;
+      seen.add(key);
+      // cards with a wild can read several ways: list them as their strongest reading of this type, which beats
+      // everything a weaker one does; the player can still pick a weaker one from the reading buttons
+      moves.push(interpret(cards, L).find(c => c.type === type));
     };
     const trips = [], pairs = [];
     for (const r of [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, BJ, RJ]) {
       const cs = by[r]; if (!cs) continue;
-      const c = cs.length, jk = r >= BJ, v = val(r, L);
-      add('single', [cs[0]], v, r);
+      const c = cs.length, jk = r >= BJ;
+      add('single', [cs[0]]);
       for (let uw = 0; uw <= Math.min(W, 1); uw++) {
         if (jk && uw) continue;
-        if (c + uw >= 2 && c >= 2 - uw) { const p = cs.slice(0, 2 - uw).concat(wild.slice(0, uw)); add('pair', p, v, r); pairs.push({ r, cards: p, w: uw }); }
+        if (c + uw >= 2 && c >= 2 - uw) { const p = cs.slice(0, 2 - uw).concat(wild.slice(0, uw)); add('pair', p); pairs.push({ r, cards: p, w: uw }); }
       }
       if (!jk) for (let uw = 0; uw <= Math.min(W, 2); uw++) {
-        if (c >= 3 - uw && 3 - uw >= 1) { const t = cs.slice(0, 3 - uw).concat(wild.slice(0, uw)); add('triple', t, v, r); trips.push({ r, cards: t, w: uw }); }
+        if (c >= 3 - uw && 3 - uw >= 1) { const t = cs.slice(0, 3 - uw).concat(wild.slice(0, uw)); add('triple', t); trips.push({ r, cards: t, w: uw }); }
       }
       if (!jk) for (let k = 4; k <= Math.min(10, c + W); k++) {
         const uw = Math.max(0, k - c);
-        add('bomb', cs.slice(0, k - uw).concat(wild.slice(0, uw)), v, r);
+        add('bomb', cs.slice(0, k - uw).concat(wild.slice(0, uw)));
       }
     }
-    if (W) add('single', [wild[0]], 15, L);
-    if (W === 2) add('pair', wild.slice(), 15, L);
-    if ((by[BJ] || []).length === 2 && (by[RJ] || []).length === 2) add('jokers', by[BJ].concat(by[RJ]), 100, RJ);
+    if (W) add('single', [wild[0]]);
+    if (W === 2) add('pair', wild.slice());
+    if ((by[BJ] || []).length === 2 && (by[RJ] || []).length === 2) add('jokers', by[BJ].concat(by[RJ]));
     for (const t of trips) for (const p of pairs) {
       if (t.r === p.r || t.w + p.w > W || p.w > 0 && t.w > 0) continue;
       const pc = p.w ? p.cards.slice(0, 1).concat(wild.slice(t.w, t.w + 1)) : p.cards;
-      const f = add('full', t.cards.concat(pc), val(t.r, L), t.r);
-      if (f) f.p = p.r;
+      add('full', t.cards.concat(pc));
     }
     const seq = (type, len, per, pick) => {
       for (let s = 1; s + len - 1 <= 14; s++) {
@@ -491,7 +492,7 @@ const GD = (() => {
           const cs = pick(q === 1 ? 14 : q), take = Math.min(per, cs.length);
           cards.push(...cs.slice(0, take)); need += per - take;
         }
-        if (need <= W) add(type, cards.concat(wild.slice(0, need)), s + len - 1, s + len - 1);
+        if (need <= W) add(type, cards.concat(wild.slice(0, need)));
       }
     };
     // a straight prefers cards that are not part of a pair, so it breaks as little as possible
@@ -873,7 +874,10 @@ const GD = (() => {
   function hint() {
     const a = getAdvice();
     if (!a) return;
-    G.sel = new Set(a.cards.map(c => c.id)); G.choice = 0;
+    G.sel = new Set(a.cards.map(c => c.id));
+    // the same cards can read several ways, so Hint picks the reading the coach named
+    const m = a.kind === 'play' && a.d.best.move;
+    G.choice = m ? Math.max(0, readings().legal.findIndex(c => c.type === m.type && c.v === m.v)) : 0;
     render();
   }
 
