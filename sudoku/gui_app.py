@@ -46,6 +46,7 @@ COLORS = {
     'hint': _mix(TOKENS['s1'], 0.14),
     'conflict': _mix(TOKENS['beni'], 0.14),
     'conflict_fg': TOKENS['beni'],
+    'beni': TOKENS['beni'],
 }
 
 
@@ -146,7 +147,7 @@ class SudokuGUI:
     def _build_widgets(self):
         # hairline above the headline, as on the Kinari pages
         tk.Frame(self.root, bg=COLORS['line'], height=1).pack(fill='x', padx=14, pady=(14, 0))
-        title = tk.Label(self.root, text='Sudoku', font=self.fonts.title, bg=COLORS['bg'], fg=COLORS['ink'])
+        title = tk.Label(self.root, text='Sudoku', font=self.fonts.title, bg=COLORS['bg'], fg=COLORS['beni'])
         title.pack(anchor='w', padx=14, pady=(6, 6))
 
         # ink rules between 3x3 boxes, hairlines between cells
