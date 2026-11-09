@@ -6,25 +6,26 @@
 /* Kinari theme (kinari.css at the repo root, inlined) */
 /* Kinari: unbleached paper, sumi ink, one beni red. Newspaper structure, MUJI restraint.
    Colour budget: paper ~60, sumi ~30, beni ~10. Page chrome uses only these three families
-   (plus at most one optional fourth); --ai, --koke, --kuri and --nezumi are for chart drawing code only (series 2 is --beni). */
+   (plus at most one optional fourth); --s1..--s5 are for chart drawing code only. */
 :root {
   /* paper family (~60%) */
   --bg: #f4f0e8;        /* unbleached paper */
   --surface: #faf8f3;   /* rare: inputs, a single boxed note */
-  --washi: #d6c9b2;     /* fills only: meters, bars, histogram bodies. Never a line or text */
+  --kraft: #d6c9b2;     /* fills only: meters, bars, histogram bodies. Never a line or text */
   /* sumi family (~30%) */
   --ink: #2e2a26;
   --muted: #6b645b;     /* standfirst, side labels, secondary text */
-  --faint: #716b63;     /* source lines, axis ticks */
+  --faint: #8a8379;     /* source lines, axis ticks */
   --line: #d9d1c3;      /* hairlines */
   --grid: #e6dfd2;      /* chart gridlines */
   /* beni (~10%): the one accent */
   --beni: #8f1f2e;
   /* chart series, drawing code only; all clear 3:1 on --bg */
-  --ai: #2f4a6d;        /* indigo (藍) */
-  --koke: #5d6b3c;      /* moss (苔) */
-  --kuri: #8f6a3e;      /* chestnut brown (栗) */
-  --nezumi: #8a8379;    /* stone grey (鼠): context series */
+  --s1: #2f4a6d;        /* ai indigo */
+  --s2: #8f1f2e;        /* beni, the highlighted series */
+  --s3: #5d6b3c;        /* moss */
+  --s4: #8f6a3e;        /* kraft brown */
+  --s5: #8a8379;        /* stone: context series */
   /* type: Arial 400 and 700, Courier New 400 for code only. No italic. No web fonts to load */
   --sans: Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --mono: 'Courier New', Courier, monospace; /* code only; numbers stay in Arial */
@@ -32,18 +33,18 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #1d1b18; --surface: #252220; --washi: #5a4f40;
+    --bg: #1d1b18; --surface: #252220; --kraft: #5a4f40;
     --ink: #ece6db; --muted: #a8a094; --faint: #8f887e; --line: #3a3530; --grid: #2c2824;
     --beni: #e0707a;
-    --ai: #8fa8c8; --koke: #a9b67e; --kuri: #c9a46e; --nezumi: #9a938a;
+    --s1: #8fa8c8; --s2: #e0707a; --s3: #a9b67e; --s4: #c9a46e; --s5: #9a938a;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #1d1b18; --surface: #252220; --washi: #5a4f40;
+  --bg: #1d1b18; --surface: #252220; --kraft: #5a4f40;
   --ink: #ece6db; --muted: #a8a094; --faint: #8f887e; --line: #3a3530; --grid: #2c2824;
   --beni: #e0707a;
-  --ai: #8fa8c8; --koke: #a9b67e; --kuri: #c9a46e; --nezumi: #9a938a;
+  --s1: #8fa8c8; --s2: #e0707a; --s3: #a9b67e; --s4: #c9a46e; --s5: #9a938a;
   color-scheme: dark;
 }
 
@@ -51,10 +52,10 @@
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 400 17px/1.75 var(--sans); }
 h1, h2, h3 { font-family: var(--sans); font-weight: 400; margin: 0; text-wrap: balance; color: var(--ink); }
+h1, h2 { color: var(--beni); }   /* titles carry the accent; h3 stays ink */
 h1 { font-size: clamp(30px, 4.6vw, 42px); line-height: 1.2; letter-spacing: -0.005em; }
 h2 { font-size: 24px; line-height: 1.3; }
 h3 { font-size: 15px; line-height: 1.4; font-weight: 700; }
-h1, h2 { color: var(--beni); }   /* titles carry the accent; h3 stays ink */
 p { margin: 0; max-width: 64ch; }
 a { color: var(--ink); text-decoration-color: var(--beni); text-underline-offset: 3px; }
 .lede, .standfirst { font-size: 19px; line-height: 1.6; color: var(--muted); }
@@ -93,10 +94,11 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   --accent: var(--ink); --accent-soft: color-mix(in srgb, var(--ink) 9%, var(--bg));
   --claret: var(--beni); --claret-soft: color-mix(in srgb, var(--beni) 14%, var(--bg));
   --tail: var(--beni); --tail-soft: color-mix(in srgb, var(--beni) 14%, var(--bg));
-  --oxford: var(--ai); --oxford-soft: color-mix(in srgb, var(--ai) 14%, var(--bg));
-  --teal: var(--koke); --teal-soft: color-mix(in srgb, var(--koke) 16%, var(--bg));
-  --hedge: var(--koke); --hedge-soft: color-mix(in srgb, var(--koke) 16%, var(--bg));
-  --mandarin: var(--kuri); --mandarin-soft: color-mix(in srgb, var(--kuri) 18%, var(--bg));
+  --oxford: var(--s1); --oxford-soft: color-mix(in srgb, var(--s1) 14%, var(--bg));
+  --teal: var(--s3); --teal-soft: color-mix(in srgb, var(--s3) 16%, var(--bg));
+  --hedge: var(--s3); --hedge-soft: color-mix(in srgb, var(--s3) 16%, var(--bg));
+  --mandarin: var(--s4); --mandarin-soft: color-mix(in srgb, var(--s4) 18%, var(--bg));
+  --s6: var(--s5);
   --good: var(--ink); --good-ink: var(--ink);
   --warning: var(--ink); --warning-ink: var(--ink);
   --critical: var(--beni); --critical-ink: var(--beni);
@@ -110,7 +112,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
     --paper: var(--bg); --box: var(--surface); --rule: var(--line);
     --honor: var(--hedge); --honor-soft: var(--hedge-soft); --grab: var(--tail); --grab-soft: var(--tail-soft);
     --bonus: var(--ink); --bonus-soft: var(--accent-soft);
-    --s6: var(--muted); --s7: var(--ink); --s8: var(--axis);
+    --s7: var(--ink); --s8: var(--axis);
     --font-display: var(--display); --font-body: var(--body); --font-label: var(--sans); --font-data: var(--sans);
   }
 
@@ -126,7 +128,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .label { font: 700 0.74rem/1.2 var(--font-label); color: var(--grab); }
   .sub { font: 400 0.82rem/1.45 var(--font-label); color: var(--muted); }
   .mono, td, .num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
-  a { color: var(--ai); }
+  a { color: var(--s1); }
   mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
 
   .standfirst { font-size: 1.25rem; line-height: 1.5; color: var(--muted); max-width: 60ch; }
@@ -155,7 +157,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   button:disabled { opacity: 0.4; cursor: default; }
   button.primary { background: var(--ink); border-color: var(--ink); color: var(--box); }
   button.small { padding: 7px 10px; font-size: 0.78rem; }
-  button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--ai); outline-offset: 2px; }
+  button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
   .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   .spacer { flex: 1; }
 
@@ -195,7 +197,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   table.matrix td.self { background: transparent; }
   table.matrix td.unknown { background: var(--grid); color: var(--muted); }
   table.matrix td.total { background: transparent; color: var(--ink); font-weight: 700; width: auto; padding-inline: 10px; text-align: right; border-left: 2px solid var(--ink); }
-  table.matrix tr.you th { color: var(--ai); }
+  table.matrix tr.you th { color: var(--s1); }
   .tabs { display: flex; flex-wrap: wrap; gap: 4px; }
   .tabs button { padding: 6px 9px; font: 700 0.75rem/1 var(--font-data); }
   .tabs button[aria-pressed="true"] { background: var(--ink); color: var(--box); border-color: var(--ink); }
@@ -209,7 +211,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   table.board td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
   table.board tr.bonus-row td:first-child { color: var(--bonus); font-weight: 700; }
   table.board tfoot td { font-weight: 700; border-top: 2px solid var(--ink); border-bottom: 0; }
-  table.board .you { background: color-mix(in srgb, var(--ai) 8%, transparent); }
+  table.board .you { background: color-mix(in srgb, var(--s1) 8%, transparent); }
 
   .charts2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
   @media (max-width: 860px) { .charts2 { grid-template-columns: 1fr; } }
@@ -371,7 +373,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
       <div class="box">
         <span class="label">Continuation chance needed to keep everyone honoring</span>
         <svg class="chart" id="shadow" viewBox="0 0 480 280" role="img" aria-label="Required continuation probability as the bonus chance varies"></svg>
-        <div class="legend"><span><i style="background: var(--nezumi)"></i>normal round</span><span><i style="background: var(--bonus)"></i>bonus round</span></div>
+        <div class="legend"><span><i style="background: var(--s5)"></i>normal round</span><span><i style="background: var(--bonus)"></i>bonus round</span></div>
       </div>
     </div>
   </section>
@@ -500,14 +502,14 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   // ---------- Strategies (decision toward one rival) ----------
   const tft = (me, them, hist) => hist.length ? hist[hist.length - 1].m[them][me] : H;
   const STRATS = [
-    { name: "Always honor", color: "var(--koke)", desc: "Honors every rival, every round.", fn: () => H },
-    { name: "Always grab", color: "var(--beni)", desc: "Grabs every rival, every round.", fn: () => G },
-    { name: "Tit-for-tat", color: "var(--ai)", desc: "Honors a rival first, then does to it what it did to you last round.", fn: tft },
-    { name: "Grim trigger", color: "var(--nezumi)", desc: "Honors a rival until it grabs you once, then grabs that rival for good.", fn: (me, them, hist) => hist.some(h => h.m[them][me] === G) ? G : H },
+    { name: "Always honor", color: "var(--s3)", desc: "Honors every rival, every round.", fn: () => H },
+    { name: "Always grab", color: "var(--s2)", desc: "Grabs every rival, every round.", fn: () => G },
+    { name: "Tit-for-tat", color: "var(--s1)", desc: "Honors a rival first, then does to it what it did to you last round.", fn: tft },
+    { name: "Grim trigger", color: "var(--s5)", desc: "Honors a rival until it grabs you once, then grabs that rival for good.", fn: (me, them, hist) => hist.some(h => h.m[them][me] === G) ? G : H },
     { name: "Pavlov", color: "var(--s6)", desc: "Per rival: repeats its last decision if that deal paid off, otherwise switches.", fn: (me, them, hist, bonus, rnd, r) => {
         if (!hist.length) return H; const m = hist[hist.length - 1].m;
         return pair(m[me][them], m[them][me], r) > 0 ? m[me][them] : (m[me][them] === H ? G : H); } },
-    { name: "Bonus grabber", color: "var(--kuri)", desc: "Plays tit-for-tat, but grabs every rival on bonus rounds.", fn: (me, them, hist, bonus) => bonus ? G : tft(me, them, hist) },
+    { name: "Bonus grabber", color: "var(--s4)", desc: "Plays tit-for-tat, but grabs every rival on bonus rounds.", fn: (me, them, hist, bonus) => bonus ? G : tft(me, them, hist) },
     { name: "Endgame defector", color: "var(--s7)", desc: "Plays tit-for-tat, but grabs every rival in the final round.", fn: (me, them, hist, bonus, rnd, r) => rnd === r.rounds - 1 ? G : tft(me, them, hist) },
     { name: "Coin flip", color: "var(--s8)", desc: "Honors or grabs each rival at random, 50/50.", fn: (me, them, hist, bonus, rnd, r, rng) => rng() < 0.5 ? H : G },
   ];
@@ -649,7 +651,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
     [0, 0.25, 0.5, 0.75, 1].forEach(t => { el("line", { x1: L, x2: W - Rr, y1: y(t), y2: y(t), class: "gridline" }, svg); text(svg, L - 6, y(t) + 4, t.toFixed(2), { "text-anchor": "end" }); text(svg, x(t), Hh - B + 18, t.toFixed(2), { "text-anchor": "middle" }); });
     el("line", { x1: L, x2: W - Rr, y1: y(0), y2: y(0), class: "axis" }, svg);
     text(svg, W - Rr, Hh - 4, "bonus chance per round", { "text-anchor": "end" });
-    [[1, "var(--nezumi)"], [r.multiplier, "var(--bonus)"]].forEach(([M, c]) => {
+    [[1, "var(--s5)"], [r.multiplier, "var(--bonus)"]].forEach(([M, c]) => {
       let d = ""; for (let i = 0; i <= 50; i++) { const q = i / 50; d += (i ? "L" : "M") + x(q).toFixed(1) + " " + y(threshold({ ...r, bonusChance: q }, M).need).toFixed(1); }
       el("path", { d, fill: "none", "stroke-width": 2.2, style: `stroke:${c}` }, svg);
       const now = threshold(r, M).need;
@@ -861,7 +863,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
     }
     $("matrix").innerHTML = html;
   }
-  const TEAM_COLORS = ["var(--ai)", "var(--beni)", "var(--koke)", "var(--kuri)", "var(--nezumi)", "var(--s6)", "var(--s7)", "var(--s8)"];
+  const TEAM_COLORS = ["var(--s1)", "var(--s2)", "var(--s3)", "var(--s4)", "var(--s5)", "var(--s6)", "var(--s7)", "var(--s8)"];
   function renderRace() {
     const svg = $("race"); svg.replaceChildren();
     const n = R.teams, m = R.rounds;

@@ -9,25 +9,26 @@
 /* Kinari theme (kinari.css at the repo root, inlined) */
 /* Kinari: unbleached paper, sumi ink, one beni red. Newspaper structure, MUJI restraint.
    Colour budget: paper ~60, sumi ~30, beni ~10. Page chrome uses only these three families
-   (plus at most one optional fourth); --ai, --koke, --kuri and --nezumi are for chart drawing code only (series 2 is --beni). */
+   (plus at most one optional fourth); --s1..--s5 are for chart drawing code only. */
 :root {
   /* paper family (~60%) */
   --bg: #f4f0e8;        /* unbleached paper */
   --surface: #faf8f3;   /* rare: inputs, a single boxed note */
-  --washi: #d6c9b2;     /* fills only: meters, bars, histogram bodies. Never a line or text */
+  --kraft: #d6c9b2;     /* fills only: meters, bars, histogram bodies. Never a line or text */
   /* sumi family (~30%) */
   --ink: #2e2a26;
   --muted: #6b645b;     /* standfirst, side labels, secondary text */
-  --faint: #716b63;     /* source lines, axis ticks */
+  --faint: #8a8379;     /* source lines, axis ticks */
   --line: #d9d1c3;      /* hairlines */
   --grid: #e6dfd2;      /* chart gridlines */
   /* beni (~10%): the one accent */
   --beni: #8f1f2e;
   /* chart series, drawing code only; all clear 3:1 on --bg */
-  --ai: #2f4a6d;        /* indigo (藍) */
-  --koke: #5d6b3c;      /* moss (苔) */
-  --kuri: #8f6a3e;      /* chestnut brown (栗) */
-  --nezumi: #8a8379;    /* stone grey (鼠): context series */
+  --s1: #2f4a6d;        /* ai indigo */
+  --s2: #8f1f2e;        /* beni, the highlighted series */
+  --s3: #5d6b3c;        /* moss */
+  --s4: #8f6a3e;        /* kraft brown */
+  --s5: #8a8379;        /* stone: context series */
   /* type: Arial 400 and 700, Courier New 400 for code only. No italic. No web fonts to load */
   --sans: Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
   --mono: 'Courier New', Courier, monospace; /* code only; numbers stay in Arial */
@@ -35,18 +36,18 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #1d1b18; --surface: #252220; --washi: #5a4f40;
+    --bg: #1d1b18; --surface: #252220; --kraft: #5a4f40;
     --ink: #ece6db; --muted: #a8a094; --faint: #8f887e; --line: #3a3530; --grid: #2c2824;
     --beni: #e0707a;
-    --ai: #8fa8c8; --koke: #a9b67e; --kuri: #c9a46e; --nezumi: #9a938a;
+    --s1: #8fa8c8; --s2: #e0707a; --s3: #a9b67e; --s4: #c9a46e; --s5: #9a938a;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #1d1b18; --surface: #252220; --washi: #5a4f40;
+  --bg: #1d1b18; --surface: #252220; --kraft: #5a4f40;
   --ink: #ece6db; --muted: #a8a094; --faint: #8f887e; --line: #3a3530; --grid: #2c2824;
   --beni: #e0707a;
-  --ai: #8fa8c8; --koke: #a9b67e; --kuri: #c9a46e; --nezumi: #9a938a;
+  --s1: #8fa8c8; --s2: #e0707a; --s3: #a9b67e; --s4: #c9a46e; --s5: #9a938a;
   color-scheme: dark;
 }
 
@@ -54,10 +55,10 @@
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { margin: 0; background: var(--bg); color: var(--ink); font: 400 17px/1.75 var(--sans); }
 h1, h2, h3 { font-family: var(--sans); font-weight: 400; margin: 0; text-wrap: balance; color: var(--ink); }
+h1, h2 { color: var(--beni); }   /* titles carry the accent; h3 stays ink */
 h1 { font-size: clamp(30px, 4.6vw, 42px); line-height: 1.2; letter-spacing: -0.005em; }
 h2 { font-size: 24px; line-height: 1.3; }
 h3 { font-size: 15px; line-height: 1.4; font-weight: 700; }
-h1, h2 { color: var(--beni); }   /* titles carry the accent; h3 stays ink */
 p { margin: 0; max-width: 64ch; }
 a { color: var(--ink); text-decoration-color: var(--beni); text-underline-offset: 3px; }
 .lede, .standfirst { font-size: 19px; line-height: 1.6; color: var(--muted); }
@@ -96,10 +97,11 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   --accent: var(--ink); --accent-soft: color-mix(in srgb, var(--ink) 9%, var(--bg));
   --claret: var(--beni); --claret-soft: color-mix(in srgb, var(--beni) 14%, var(--bg));
   --tail: var(--beni); --tail-soft: color-mix(in srgb, var(--beni) 14%, var(--bg));
-  --oxford: var(--ai); --oxford-soft: color-mix(in srgb, var(--ai) 14%, var(--bg));
-  --teal: var(--koke); --teal-soft: color-mix(in srgb, var(--koke) 16%, var(--bg));
-  --hedge: var(--koke); --hedge-soft: color-mix(in srgb, var(--koke) 16%, var(--bg));
-  --mandarin: var(--kuri); --mandarin-soft: color-mix(in srgb, var(--kuri) 18%, var(--bg));
+  --oxford: var(--s1); --oxford-soft: color-mix(in srgb, var(--s1) 14%, var(--bg));
+  --teal: var(--s3); --teal-soft: color-mix(in srgb, var(--s3) 16%, var(--bg));
+  --hedge: var(--s3); --hedge-soft: color-mix(in srgb, var(--s3) 16%, var(--bg));
+  --mandarin: var(--s4); --mandarin-soft: color-mix(in srgb, var(--s4) 18%, var(--bg));
+  --s6: var(--s5);
   --good: var(--ink); --good-ink: var(--ink);
   --warning: var(--ink); --warning-ink: var(--ink);
   --critical: var(--beni); --critical-ink: var(--beni);
@@ -153,11 +155,11 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .sw { width: 12px; height: 12px; display: inline-block; border: 1px solid var(--line); }
   .sw.blocked { background: var(--ink); border-color: var(--ink); }
   .sw.open { background: var(--surface); }
-  .sw.wet { background: var(--ai); border-color: var(--ai); }
-  .sw.front { background: var(--kuri); border-color: var(--kuri); }
-  .sw.path { background: var(--beni); border-color: var(--beni); }
+  .sw.wet { background: var(--s1); border-color: var(--s1); }
+  .sw.front { background: var(--s4); border-color: var(--s4); }
+  .sw.path { background: var(--s2); border-color: var(--s2); }
   .sw.cut { background: var(--code); }
-  .sw.prev { background: transparent; border: 2px solid var(--beni); }
+  .sw.prev { background: transparent; border: 2px solid var(--s2); }
   figcaption { margin-top: 12px; }
 
   .exhibit .verdict { margin: 0 0 18px; }
@@ -165,7 +167,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .tbl-wrap { margin-top: 18px; }
   .tbl-wrap .chart-title { margin-bottom: 6px; }
   tr.current td { font-weight: 700; color: var(--ink); }
-  tr.current td:first-child { border-left: 3px solid var(--ai); }
+  tr.current td:first-child { border-left: 3px solid var(--s1); }
   td.busy { color: var(--muted); }
 
   .chart-title { font: 700 15px/1.3 var(--sans); color: var(--ink); }
@@ -513,7 +515,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   const cv = $('board'), ctx = cv.getContext('2d');
   let C = {};
   function readColors() {
-    C = { surface: css('--surface'), ink: css('--ink'), wet: css('--ai'), front: css('--kuri'), path: css('--beni'), line: css('--line'), code: css('--code') };
+    C = { surface: css('--surface'), ink: css('--ink'), wet: css('--s1'), front: css('--s4'), path: css('--s2'), line: css('--line'), code: css('--code') };
   }
   function render() {
     const rect = cv.getBoundingClientRect();
@@ -692,15 +694,15 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
     s += `<text x="${X(PC) - 6}" y="${M.t + 27}" text-anchor="end" style="fill:var(--muted);font:11.5px var(--sans)">infinite lattice</text>`;
     if (y) {
       const pts = PS.map((p, i) => `${X(p).toFixed(1)},${Y(y[i]).toFixed(1)}`).join(' ');
-      s += `<polyline points="${pts}" fill="none" style="stroke:var(--ai)" stroke-width="2" stroke-linejoin="round"/>`;
-      PS.forEach((p, i) => { if (i % 2 === 0) s += `<circle cx="${X(p)}" cy="${Y(y[i])}" r="3.5" style="fill:var(--ai);stroke:var(--surface)" stroke-width="1.5"/>`; });
+      s += `<polyline points="${pts}" fill="none" style="stroke:var(--s1)" stroke-width="2" stroke-linejoin="round"/>`;
+      PS.forEach((p, i) => { if (i % 2 === 0) s += `<circle cx="${X(p)}" cy="${Y(y[i])}" r="3.5" style="fill:var(--s1);stroke:var(--surface)" stroke-width="1.5"/>`; });
       const lab = Math.min(PS.length - 1, 46);
       s += `<text x="${X(PS[lab])}" y="${Y(y[lab]) + 22}" text-anchor="middle" style="fill:var(--ink);font: 700 12px var(--sans)">N = ${MC.N}</text>`;
     }
     // current p marker
     const cy = y ? Y(interp(y, S.p)) : Y(0);
-    s += `<line x1="${X(S.p)}" x2="${X(S.p)}" y1="${cy}" y2="${Y(0)}" style="stroke:var(--beni)" stroke-width="1"/>`;
-    if (y) s += `<circle cx="${X(S.p)}" cy="${cy}" r="6" style="fill:var(--beni);stroke:var(--surface)" stroke-width="2"/>`;
+    s += `<line x1="${X(S.p)}" x2="${X(S.p)}" y1="${cy}" y2="${Y(0)}" style="stroke:var(--s2)" stroke-width="1"/>`;
+    if (y) s += `<circle cx="${X(S.p)}" cy="${cy}" r="6" style="fill:var(--s2);stroke:var(--surface)" stroke-width="2"/>`;
     s += `<text x="${X(S.p) + (S.p > 0.85 ? -8 : 8)}" y="${Y(0) - 8}" text-anchor="${S.p > 0.85 ? 'end' : 'start'}" style="fill:var(--ink);font: 700 12px var(--sans)">your p = ${S.p.toFixed(2)}${y ? ' · ' + Math.round(interp(y, S.p) * 100) + '%' : ''}</text>`;
     s += `<rect x="${M.l}" y="${M.t}" width="${VW - M.l - M.r}" height="${VH - M.t - M.b}" fill="transparent"/>`;
     svg.innerHTML = s;
@@ -1023,12 +1025,12 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
     s += `<text x="${(HM.l + HW - HM.r) / 2}" y="${HH - 6}" text-anchor="middle" style="fill:var(--muted);font:12px var(--sans)">Share of cells rotten when the link breaks</text>`;
     for (const b of hBins) if (b.c) {
       const x = HX(b.x0), wpx = HX(b.x1) - x;
-      s += `<rect x="${x.toFixed(2)}" y="${HY(b.y).toFixed(2)}" width="${Math.max(0.6, wpx > 3 ? wpx - 1 : wpx).toFixed(2)}" height="${(HY(0) - HY(b.y)).toFixed(2)}" style="fill:var(--ai)"/>`;
+      s += `<rect x="${x.toFixed(2)}" y="${HY(b.y).toFixed(2)}" width="${Math.max(0.6, wpx > 3 ? wpx - 1 : wpx).toFixed(2)}" height="${(HY(0) - HY(b.y)).toFixed(2)}" style="fill:var(--s1)"/>`;
     }
     if (pBins.length) {
       let pts = `${HX(0).toFixed(1)},${HY(0).toFixed(1)}`;
       for (const b of pBins) pts += ` ${HX(b.x0).toFixed(1)},${HY(b.y).toFixed(1)} ${HX(b.x1).toFixed(1)},${HY(b.y).toFixed(1)}`;
-      s += `<polyline points="${pts}" fill="none" style="stroke:var(--beni)" stroke-width="1.5" stroke-linejoin="round"/>`;
+      s += `<polyline points="${pts}" fill="none" style="stroke:var(--s2)" stroke-width="1.5" stroke-linejoin="round"/>`;
     }
     s += `<line x1="${HM.l}" x2="${HW - HM.r}" y1="${HY(0)}" y2="${HY(0)}" style="stroke:var(--axis)" stroke-width="1"/>`;
     s += `<line x1="${HX(RC)}" x2="${HX(RC)}" y1="${HM.t}" y2="${HY(0)}" style="stroke:var(--ink)" stroke-width="1" stroke-dasharray="4 4"/>`;

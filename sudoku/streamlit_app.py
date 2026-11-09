@@ -27,14 +27,14 @@ st.markdown(
     .sdk-table td {{
         width: 40px; height: 40px; padding: 0; text-align: center; vertical-align: middle;
         font: 400 18px/1 var(--sans); font-variant-numeric: tabular-nums;
-        color: var(--ai); background: var(--surface); border: 1px solid var(--line);
+        color: var(--s1); background: var(--surface); border: 1px solid var(--line);
     }}
     .sdk-table tr:nth-child(3n+1) td {{ border-top: 2px solid var(--ink); }}
     .sdk-table td:nth-child(3n+1) {{ border-left: 2px solid var(--ink); }}
-    .sdk-table td.given {{ background: color-mix(in srgb, var(--washi) 45%, var(--bg)); color: var(--ink); font-weight: 700; }}
-    .sdk-table td.fill-single {{ background: color-mix(in srgb, var(--koke) 16%, var(--bg)); }}
-    .sdk-table td.fill-trial {{ background: color-mix(in srgb, var(--kuri) 18%, var(--bg)); }}
-    .sdk-table td.fill-hint {{ background: color-mix(in srgb, var(--ai) 14%, var(--bg)); }}
+    .sdk-table td.given {{ background: color-mix(in srgb, var(--kraft) 45%, var(--bg)); color: var(--ink); font-weight: 700; }}
+    .sdk-table td.fill-single {{ background: color-mix(in srgb, var(--s3) 16%, var(--bg)); }}
+    .sdk-table td.fill-trial {{ background: color-mix(in srgb, var(--s4) 18%, var(--bg)); }}
+    .sdk-table td.fill-hint {{ background: color-mix(in srgb, var(--s1) 14%, var(--bg)); }}
     .sdk-table td.conflict {{ background: color-mix(in srgb, var(--beni) 14%, var(--bg)); color: var(--beni); }}
     .sdk-table td[title] {{ cursor: help; }}
     .sdk-legend {{ display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px;
@@ -47,11 +47,11 @@ st.markdown(
 )
 
 LEGEND = ('<div class="sdk-legend">'
-          '<span><i style="background:color-mix(in srgb, var(--washi) 45%, var(--bg))"></i>Given</span>'
-          '<span><i style="background:var(--ai);border-color:var(--ai)"></i>Your entry</span>'
-          '<span><i style="background:color-mix(in srgb, var(--koke) 16%, var(--bg))"></i>Logical fill</span>'
-          '<span><i style="background:color-mix(in srgb, var(--kuri) 18%, var(--bg))"></i>Guessed fill</span>'
-          '<span><i style="background:color-mix(in srgb, var(--ai) 14%, var(--bg))"></i>Hint</span>'
+          '<span><i style="background:color-mix(in srgb, var(--kraft) 45%, var(--bg))"></i>Given</span>'
+          '<span><i style="background:var(--s1);border-color:var(--s1)"></i>Your entry</span>'
+          '<span><i style="background:color-mix(in srgb, var(--s3) 16%, var(--bg))"></i>Logical fill</span>'
+          '<span><i style="background:color-mix(in srgb, var(--s4) 18%, var(--bg))"></i>Guessed fill</span>'
+          '<span><i style="background:color-mix(in srgb, var(--s1) 14%, var(--bg))"></i>Hint</span>'
           '<span><i style="background:color-mix(in srgb, var(--beni) 14%, var(--bg))"></i>Conflict</span>'
           '</div>')
 
