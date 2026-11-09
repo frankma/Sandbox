@@ -11,32 +11,41 @@ from sudoku.sudoku import Sudoku
 RANK = 3
 SIZE = RANK * RANK
 
-PAPER_CSS = Path(__file__).with_name('paper.css')
+KINARI_CSS = Path(__file__).resolve().parents[1] / 'kinari.css'
 
 
-def _paper_tokens() -> dict:
-    """The light :root token block of paper.css (tkinter has no dark-mode switch, so light only)."""
-    block = PAPER_CSS.read_text().split('@media')[0]
+def _kinari_tokens() -> dict:
+    """The light :root token block of kinari.css (tkinter has no dark-mode switch, so light only)."""
+    block = KINARI_CSS.read_text().split('@media')[0]
     return dict(re.findall(r'--([\w-]+):\s*([^;]+);', block))
 
 
-TOKENS = _paper_tokens()
+TOKENS = _kinari_tokens()
 
-# paper-theme roles for the grid, matching the web and Streamlit versions
+
+
+def _mix(colour: str, weight: float) -> str:
+    """`colour` laid over the paper at `weight` (tkinter has no color-mix)."""
+    rgb = lambda h: [int(h[i:i + 2], 16) for i in (1, 3, 5)]
+    paper, c = rgb(TOKENS['bg']), rgb(colour)
+    return '#' + ''.join(f'{round(p + weight * (x - p)):02x}' for p, x in zip(paper, c))
+
+
+# Kinari roles for the grid, matching the web and Streamlit versions
 COLORS = {
     'bg': TOKENS['bg'],
     'surface': TOKENS['surface'],
     'ink': TOKENS['ink'],
     'muted': TOKENS['muted'],
     'line': TOKENS['line'],
-    'axis': TOKENS['axis'],
-    'given_bg': TOKENS['code'],
-    'user': TOKENS['oxford'],
-    'single': TOKENS['teal-soft'],
-    'trial': TOKENS['mandarin-soft'],
-    'hint': TOKENS['oxford-soft'],
-    'conflict': TOKENS['claret-soft'],
-    'conflict_fg': TOKENS['claret'],
+    'axis': TOKENS['faint'],
+    'given_bg': _mix(TOKENS['kraft'], 0.45),
+    'user': TOKENS['s1'],
+    'single': _mix(TOKENS['s3'], 0.16),
+    'trial': _mix(TOKENS['s4'], 0.18),
+    'hint': _mix(TOKENS['s1'], 0.14),
+    'conflict': _mix(TOKENS['beni'], 0.14),
+    'conflict_fg': TOKENS['beni'],
 }
 
 
@@ -49,10 +58,10 @@ def _font_family(stack: str) -> str:
 
 class Fonts:
     def __init__(self):
-        display = _font_family(TOKENS['display'])
+        display = _font_family(TOKENS['sans'])
         sans = _font_family(TOKENS['sans'])
-        mono = _font_family(TOKENS['mono'])
-        self.title = (display, 26, 'bold')
+        mono = sans  # numbers stay in Arial; Courier New is for code only
+        self.title = (display, 26)
         self.label = (sans, 12)
         self.button = (sans, 12, 'bold')
         self.cell = (mono, 17)
@@ -135,8 +144,8 @@ class SudokuGUI:
                         bordercolor=COLORS['bg'], lightcolor=COLORS['user'], darkcolor=COLORS['user'])
 
     def _build_widgets(self):
-        # 4px ink rule above the headline, as on the paper-theme pages
-        tk.Frame(self.root, bg=COLORS['ink'], height=4).pack(fill='x', padx=14, pady=(14, 0))
+        # hairline above the headline, as on the Kinari pages
+        tk.Frame(self.root, bg=COLORS['line'], height=1).pack(fill='x', padx=14, pady=(14, 0))
         title = tk.Label(self.root, text='Sudoku', font=self.fonts.title, bg=COLORS['bg'], fg=COLORS['ink'])
         title.pack(anchor='w', padx=14, pady=(6, 6))
 

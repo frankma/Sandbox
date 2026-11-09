@@ -1,120 +1,119 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Heat-Equation Finite Difference</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <script>
   window.MathJax = { tex: { inlineMath: [["\\(", "\\)"]] }, svg: { fontCache: "global" } };
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
 <style>
   /* Layout: financial-newspaper column on salmon paper; figures as boxed exhibits with hairline rules. */
-  /* paper-theme (theme.css from the skill, unchanged) */
-/* paper-theme: salmon-paper financial-newspaper house style.
-   Tokens first (light, then dark twice: OS preference unless the host forces light, and host-forced dark),
-   then base elements. Page-specific CSS goes after this block and uses only these tokens. */
+/* Kinari theme (kinari.css at the repo root, inlined) */
+/* Kinari: unbleached paper, sumi ink, one beni red. Newspaper structure, MUJI restraint.
+   Colour budget: paper ~60, sumi ~30, beni ~10. Page chrome uses only these three families
+   (plus at most one optional fourth); --s1..--s5 are for chart drawing code only. */
 :root {
-  /* surfaces and ink */
-  --bg: #fff1e5;        /* paper */
-  --surface: #fff7f0;   /* boxed exhibits, inputs, tiles */
-  --ink: #33302e;
-  --muted: #66605c;
-  --line: #ccc1b7;      /* hairline rules and borders */
-  --grid: #ecdccd;      /* chart gridlines */
-  --axis: #a39a92;      /* chart axis lines */
-  --code: #f2dfce;      /* wheat: code, table stripes, empty cells */
-  /* named accents (UI, not chart series) */
-  --claret: #990f3d; --claret-soft: #f4d6db;
-  --oxford: #0f5499; --oxford-soft: #d6e2ef;
-  --teal: #0d7680;   --teal-soft: #d4e7e3;
-  --mandarin: #cc5a0a; --mandarin-soft: #ffe2c8;
-  /* roles */
-  --label: var(--claret);      /* eyebrows, kicker labels */
-  --link: var(--oxford);
-  --accent: var(--oxford);     /* highlight in diagrams, selected state */
-  --accent-soft: var(--oxford-soft);
-  --tail: var(--claret);       /* losses, breaches, the bad outcome */
-  --tail-soft: var(--claret-soft);
-  --hedge: var(--teal);        /* gains, offsets, the good outcome */
-  --hedge-soft: var(--teal-soft);
-  /* categorical chart slots, in this order; validated on --bg and --surface (CVD, contrast, lightness) */
-  --s1: #0f5499; --s2: #990f3d; --s3: #0a8f9c; --s4: #cc5a0a; --s5: #6f45ad; --s6: #008a4c;
-  /* status: reserved, always with an icon or a word */
-  --good: #0b7a3e; --warning: #b36b00; --critical: #c00000;
-  --good-ink: #0b6b36; --warning-ink: #8a5300; --critical-ink: #a30000;
-  /* type */
-  --display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-  --body: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-  --sans: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
-  --mono: 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
+  /* paper family (~60%) */
+  --bg: #f4f0e8;        /* unbleached paper */
+  --surface: #faf8f3;   /* rare: inputs, a single boxed note */
+  --kraft: #d6c9b2;     /* fills only: meters, bars, histogram bodies. Never a line or text */
+  /* sumi family (~30%) */
+  --ink: #2e2a26;
+  --muted: #6b645b;     /* standfirst, side labels, secondary text */
+  --faint: #8a8379;     /* source lines, axis ticks */
+  --line: #d9d1c3;      /* hairlines */
+  --grid: #e6dfd2;      /* chart gridlines */
+  /* beni (~10%): the one accent */
+  --beni: #8f1f2e;
+  /* chart series, drawing code only; all clear 3:1 on --bg */
+  --s1: #2f4a6d;        /* ai indigo */
+  --s2: #8f1f2e;        /* beni, the highlighted series */
+  --s3: #5d6b3c;        /* moss */
+  --s4: #8f6a3e;        /* kraft brown */
+  --s5: #8a8379;        /* stone: context series */
+  /* type: Arial 400 and 700, Courier New 400 for code only. No italic. No web fonts to load */
+  --sans: Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --mono: 'Courier New', Courier, monospace; /* code only; numbers stay in Arial */
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #1f1b19; --surface: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c; --grid: #352f2b;
-    --axis: #6b625b; --code: #352f2b;
-    --claret: #ef7a9c; --claret-soft: #4a2130; --oxford: #7fb2e8; --oxford-soft: #1c2b3d;
-    --teal: #5fc3c9; --teal-soft: #1d3a3c; --mandarin: #ffa25c; --mandarin-soft: #4a3020;
-    --s1: #4f95e3; --s2: #c4456d; --s3: #22a3b2; --s4: #d9762a; --s5: #9b73d6; --s6: #3aad5c;
-    --good: #4cc27a; --warning: #e6a23c; --critical: #f0605a;
-    --good-ink: #4cc27a; --warning-ink: #e6a23c; --critical-ink: #f0605a;
+    --bg: #1d1b18; --surface: #252220; --kraft: #5a4f40;
+    --ink: #ece6db; --muted: #a8a094; --faint: #8f887e; --line: #3a3530; --grid: #2c2824;
+    --beni: #e0707a;
+    --s1: #8fa8c8; --s2: #e0707a; --s3: #a9b67e; --s4: #c9a46e; --s5: #9a938a;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #1f1b19; --surface: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c; --grid: #352f2b;
-  --axis: #6b625b; --code: #352f2b;
-  --claret: #ef7a9c; --claret-soft: #4a2130; --oxford: #7fb2e8; --oxford-soft: #1c2b3d;
-  --teal: #5fc3c9; --teal-soft: #1d3a3c; --mandarin: #ffa25c; --mandarin-soft: #4a3020;
-  --s1: #4f95e3; --s2: #c4456d; --s3: #22a3b2; --s4: #d9762a; --s5: #9b73d6; --s6: #3aad5c;
-  --good: #4cc27a; --warning: #e6a23c; --critical: #f0605a;
-  --good-ink: #4cc27a; --warning-ink: #e6a23c; --critical-ink: #f0605a;
+  --bg: #1d1b18; --surface: #252220; --kraft: #5a4f40;
+  --ink: #ece6db; --muted: #a8a094; --faint: #8f887e; --line: #3a3530; --grid: #2c2824;
+  --beni: #e0707a;
+  --s1: #8fa8c8; --s2: #e0707a; --s3: #a9b67e; --s4: #c9a46e; --s5: #9a938a;
   color-scheme: dark;
 }
 
 /* base */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-body { background: var(--bg); color: var(--ink); font: 400 17px/1.6 var(--body); margin: 0; }
-h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; text-wrap: balance; }
-h1 { font-size: clamp(32px, 5vw, 48px); line-height: 1.08; letter-spacing: -0.01em; }
-h2 { font-size: 26px; line-height: 1.15; }
-h3 { font-size: 19px; line-height: 1.25; }
-p { margin: 0; }
-a { color: var(--link); }
-.eyebrow, .kicker { font: 600 12px/1.2 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--label); }
-.lede, .standfirst { font-size: 20px; line-height: 1.5; color: var(--muted); max-width: 60ch; }
-.rule-top { border-top: 4px solid var(--ink); padding-top: 10px; }
-code { font-family: var(--mono); font-size: 0.85em; background: var(--code); padding: 1px 5px; border-radius: 0; }
-pre { font-family: var(--mono); font-size: 13px; line-height: 1.55; background: var(--code); padding: 14px 16px; margin: 0; overflow-x: auto; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 17px/1.75 var(--sans); }
+h1, h2, h3 { font-family: var(--sans); font-weight: 400; margin: 0; text-wrap: balance; color: var(--ink); }
+h1 { font-size: clamp(30px, 4.6vw, 42px); line-height: 1.2; letter-spacing: -0.005em; }
+h2 { font-size: 24px; line-height: 1.3; }
+h3 { font-size: 15px; line-height: 1.4; font-weight: 700; }
+p { margin: 0; max-width: 64ch; }
+a { color: var(--ink); text-decoration-color: var(--beni); text-underline-offset: 3px; }
+.lede, .standfirst { font-size: 19px; line-height: 1.6; color: var(--muted); }
+em, i, cite { font-style: normal; }   /* no italic: emphasis is colour (beni) or Arial 700 */
+b, strong { font-weight: 700; }
+.mark { display: inline-flex; align-items: center; gap: 8px; font: 700 13px/1.5 var(--sans); color: var(--ink); letter-spacing: 0.02em; }
+.mark::before { content: ""; width: 7px; height: 7px; background: var(--beni); }
+.em { color: var(--beni); }
+code { font-family: var(--mono); font-size: 0.85em; color: var(--ink); }
+pre { font-family: var(--mono); font-size: 13px; line-height: 1.55; background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 16px; margin: 0; overflow-x: auto; }
 figure { margin: 0; }
-figcaption { font: 400 13.5px/1.5 var(--sans); color: var(--muted); }
-table { border-collapse: collapse; width: 100%; font: 400 14px/1.4 var(--sans); font-variant-numeric: tabular-nums; }
-th { font: 600 11.5px/1.2 var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
-     text-align: left; padding: 7px 10px; border-bottom: 2px solid var(--ink); vertical-align: bottom; }
-td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-td.num, th.num { text-align: right; font-family: var(--mono); }
-button { font: 600 14px/1 var(--sans); padding: 10px 14px; border: 1px solid var(--line); border-radius: 0;
-         background: var(--surface); color: var(--ink); cursor: pointer; }
+figcaption { font: 400 12.5px/1.5 var(--sans); color: var(--faint); border-top: 1px solid var(--line); padding-top: 8px; }
+table { border-collapse: collapse; width: 100%; font: 400 14px/1.45 var(--sans); font-variant-numeric: tabular-nums; }
+th { font: 400 12.5px/1.3 var(--sans); color: var(--muted); text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--ink); vertical-align: bottom; }
+td { padding: 9px 10px 9px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+th.num { text-align: right; }
+button { font: 700 14px/1 var(--sans); padding: 10px 14px; border: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--ink); cursor: pointer; }
 button:hover:not(:disabled) { border-color: var(--ink); }
-button.primary, button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+button.primary, button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 button:disabled { opacity: 0.4; cursor: default; }
-:focus-visible { outline: 2px solid var(--oxford); outline-offset: 2px; }
-input, select { font: 400 15px/1.2 var(--mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line);
-                border-radius: 0; padding: 7px 8px; }
-footer { font: 400 13px/1.5 var(--sans); color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+input, select { font: 400 15px/1.2 var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 0; padding: 7px 8px; }
+footer { font: 400 12.5px/1.5 var(--sans); color: var(--faint); border-top: 1px solid var(--line); padding-top: 16px; }
 /* charts and diagrams stretch to their figure; never style bare `svg`, or MathJax formulas blow up in Safari */
 figure > svg, .fig-scroll > svg { display: block; width: 100%; height: auto; }
 mjx-container svg { display: inline; max-width: none; }
 mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
 
+/* Legacy aliases: the old paper-theme token names, mapped onto Kinari so existing page CSS keeps working.
+   Every alias resolves to a Kinari token, so dark mode follows automatically. New CSS uses Kinari names. */
+:root {
+  --display: var(--sans); --body: var(--sans);
+  --axis: var(--faint); --code: var(--surface);
+  --label: var(--ink); --link: var(--ink);
+  --accent: var(--ink); --accent-soft: color-mix(in srgb, var(--ink) 9%, var(--bg));
+  --claret: var(--beni); --claret-soft: color-mix(in srgb, var(--beni) 14%, var(--bg));
+  --tail: var(--beni); --tail-soft: color-mix(in srgb, var(--beni) 14%, var(--bg));
+  --oxford: var(--s1); --oxford-soft: color-mix(in srgb, var(--s1) 14%, var(--bg));
+  --teal: var(--s3); --teal-soft: color-mix(in srgb, var(--s3) 16%, var(--bg));
+  --hedge: var(--s3); --hedge-soft: color-mix(in srgb, var(--s3) 16%, var(--bg));
+  --mandarin: var(--s4); --mandarin-soft: color-mix(in srgb, var(--s4) 18%, var(--bg));
+  --s6: var(--s5);
+  --good: var(--ink); --good-ink: var(--ink);
+  --warning: var(--ink); --warning-ink: var(--ink);
+  --critical: var(--beni); --critical-ink: var(--beni);
+}
+.eyebrow, .kicker { font: 400 13px/1.5 var(--sans); color: var(--muted); }   /* sentence case, no beni square: that is .mark */
+.rule-top { border-top: 1px solid var(--line); padding-top: 10px; }
+
   /* the page's own token names, mapped onto the paper theme */
   :root {
     --paper: var(--bg); --plate: var(--surface); --rule: var(--line);
     --ember: var(--claret); --frost: var(--oxford);
-    --font-display: var(--display); --font-body: var(--body); --font-data: var(--mono); --font-label: var(--sans);
-    /* sequential ramp from the theme: one hue, oxford light to dark (heat map and its colour bar) */
-    --seq-1: #d6e2ef; --seq-2: #9ab8d8; --seq-3: #5b8cc0; --seq-4: #2f68a8; --seq-5: #0f5499; --seq-6: #0a3a6b;
+    --font-display: var(--display); --font-body: var(--body); --font-data: var(--sans); --font-label: var(--sans);
   }
 
   body {
@@ -129,14 +128,13 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   section, header { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
   mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
   h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.12; }
-  h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 600; letter-spacing: -0.01em; }
-  h2 { font-size: 1.65rem; font-weight: 600; border-top: 4px solid var(--ink); padding-top: 10px; }
-  h3 { font-size: 1.05rem; font-weight: 500; }
+  h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 1.65rem; font-weight: 700; border-top: 1px solid var(--line); padding-top: 10px; }
+  h3 { font-size: 1.05rem; font-weight: 400; }
   p { margin: 0; }
   .prose > * + * { margin-top: 0.9em; }
   .label {
-    font: 600 0.74rem/1 var(--font-label);
-    text-transform: uppercase; letter-spacing: 0.08em; color: var(--ember);
+    font: 700 0.74rem/1 var(--font-label); color: var(--ember);
   }
   .mono { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
   a { color: var(--frost); }
@@ -144,10 +142,10 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .equation { font-size: 1.15rem; overflow-x: auto; }
   .answer {
     display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px;
-    border-top: 4px solid var(--ink); border-bottom: 1px solid var(--rule);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--rule);
     padding-block: 18px;
   }
-  .answer .value { font: 600 clamp(2rem, 6vw, 2.9rem)/1 var(--font-data); color: var(--ember); font-variant-numeric: tabular-nums; }
+  .answer .value { font: 700 clamp(2rem, 6vw, 2.9rem)/1 var(--font-data); color: var(--ember); font-variant-numeric: tabular-nums; }
   .answer .note { color: var(--muted); font-size: 0.95rem; }
 
   .plate {
@@ -174,7 +172,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .slider { display: flex; align-items: center; gap: 12px; flex: 1 1 260px; }
   .slider input { flex: 1; accent-color: var(--oxford); }
   .readout { display: flex; flex-wrap: wrap; gap: 8px 28px; font: 400 0.85rem/1.4 var(--font-data); font-variant-numeric: tabular-nums; }
-  .readout b { font-weight: 600; }
+  .readout b { font-weight: 700; }
   .key { display: flex; flex-wrap: wrap; gap: 6px 20px; font: 400 0.8rem/1.3 var(--font-data); color: var(--muted); }
   .key span::before { content: ""; display: inline-block; width: 18px; height: 0; vertical-align: middle; margin-right: 6px; border-top: 2px solid currentColor; }
   .key .k-num { color: var(--ember); }
@@ -184,9 +182,9 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
 
   .table-wrap { overflow-x: auto; }
   table { border-collapse: collapse; width: 100%; font: 400 0.9rem/1.4 var(--font-data); font-variant-numeric: tabular-nums; }
-  th { font: 600 0.7rem/1.2 var(--font-data); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); text-align: right; padding: 8px 10px; border-bottom: 2px solid var(--ink); }
+  th { font: 700 0.7rem/1.2 var(--font-data); letter-spacing: 0.1em; color: var(--muted); text-align: right; padding: 8px 10px; border-bottom: 1px solid var(--ink); }
   td { text-align: right; padding: 9px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
-  td.v { color: var(--ember); font-weight: 600; }
+  td.v { color: var(--ember); font-weight: 700; }
   tfoot td { color: var(--muted); border-bottom: 0; }
 
   .checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 0; max-width: 72ch; }
@@ -501,10 +499,12 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   const fx = t => F.l + t * (F.w - F.l - F.r);
   const fy = x => F.h - F.b - x * (F.h - F.t - F.b);
   // sequential ramp read from the theme tokens, so no colours are hard-coded here
-  const SEQ = ["--seq-1", "--seq-2", "--seq-3", "--seq-4", "--seq-5", "--seq-6"]
-    .map(n => getComputedStyle(document.documentElement).getPropertyValue(n).trim());
+  // one-hue ramp: tints of --s1 (ai indigo) over the paper, light to dark
+  const tok = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
   const hexRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
-  const RAMP = SEQ.map((h, i) => [i / (SEQ.length - 1), hexRgb(h)]);
+  const PAPER = hexRgb(tok("--bg")), INDIGO = hexRgb(tok("--s1"));
+  const RAMP = [0.1, 0.28, 0.46, 0.64, 0.82, 1].map((w, i, a) =>
+    [i / (a.length - 1), PAPER.map((p, j) => p + w * (INDIGO[j] - p))]);
   function heat(u) {
     u = Math.max(0, Math.min(1, u));
     for (let k = 1; k < RAMP.length; k++) {

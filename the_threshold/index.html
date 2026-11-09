@@ -4,108 +4,109 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>The Threshold</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
   /* Layout: one reading column; the grid exhibit leads (board left, controls rail right, stacking under 900px), then the threshold curve, then a short method note. */
-  /* paper-theme (theme.css from the skill, unchanged) */
-/* paper-theme: salmon-paper financial-newspaper house style.
-   Tokens first (light, then dark twice: OS preference unless the host forces light, and host-forced dark),
-   then base elements. Page-specific CSS goes after this block and uses only these tokens. */
+/* Kinari theme (kinari.css at the repo root, inlined) */
+/* Kinari: unbleached paper, sumi ink, one beni red. Newspaper structure, MUJI restraint.
+   Colour budget: paper ~60, sumi ~30, beni ~10. Page chrome uses only these three families
+   (plus at most one optional fourth); --s1..--s5 are for chart drawing code only. */
 :root {
-  /* surfaces and ink */
-  --bg: #fff1e5;        /* paper */
-  --surface: #fff7f0;   /* boxed exhibits, inputs, tiles */
-  --ink: #33302e;
-  --muted: #66605c;
-  --line: #ccc1b7;      /* hairline rules and borders */
-  --grid: #ecdccd;      /* chart gridlines */
-  --axis: #a39a92;      /* chart axis lines */
-  --code: #f2dfce;      /* wheat: code, table stripes, empty cells */
-  /* named accents (UI, not chart series) */
-  --claret: #990f3d; --claret-soft: #f4d6db;
-  --oxford: #0f5499; --oxford-soft: #d6e2ef;
-  --teal: #0d7680;   --teal-soft: #d4e7e3;
-  --mandarin: #cc5a0a; --mandarin-soft: #ffe2c8;
-  /* roles */
-  --label: var(--claret);      /* eyebrows, kicker labels */
-  --link: var(--oxford);
-  --accent: var(--oxford);     /* highlight in diagrams, selected state */
-  --accent-soft: var(--oxford-soft);
-  --tail: var(--claret);       /* losses, breaches, the bad outcome */
-  --tail-soft: var(--claret-soft);
-  --hedge: var(--teal);        /* gains, offsets, the good outcome */
-  --hedge-soft: var(--teal-soft);
-  /* categorical chart slots, in this order; validated on --bg and --surface (CVD, contrast, lightness) */
-  --s1: #0f5499; --s2: #990f3d; --s3: #0a8f9c; --s4: #cc5a0a; --s5: #6f45ad; --s6: #008a4c;
-  /* status: reserved, always with an icon or a word */
-  --good: #0b7a3e; --warning: #b36b00; --critical: #c00000;
-  --good-ink: #0b6b36; --warning-ink: #8a5300; --critical-ink: #a30000;
-  /* type */
-  --display: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-  --body: 'Source Serif 4', Georgia, 'Times New Roman', serif;
-  --sans: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
-  --mono: 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
+  /* paper family (~60%) */
+  --bg: #f4f0e8;        /* unbleached paper */
+  --surface: #faf8f3;   /* rare: inputs, a single boxed note */
+  --kraft: #d6c9b2;     /* fills only: meters, bars, histogram bodies. Never a line or text */
+  /* sumi family (~30%) */
+  --ink: #2e2a26;
+  --muted: #6b645b;     /* standfirst, side labels, secondary text */
+  --faint: #8a8379;     /* source lines, axis ticks */
+  --line: #d9d1c3;      /* hairlines */
+  --grid: #e6dfd2;      /* chart gridlines */
+  /* beni (~10%): the one accent */
+  --beni: #8f1f2e;
+  /* chart series, drawing code only; all clear 3:1 on --bg */
+  --s1: #2f4a6d;        /* ai indigo */
+  --s2: #8f1f2e;        /* beni, the highlighted series */
+  --s3: #5d6b3c;        /* moss */
+  --s4: #8f6a3e;        /* kraft brown */
+  --s5: #8a8379;        /* stone: context series */
+  /* type: Arial 400 and 700, Courier New 400 for code only. No italic. No web fonts to load */
+  --sans: Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --mono: 'Courier New', Courier, monospace; /* code only; numbers stay in Arial */
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #1f1b19; --surface: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c; --grid: #352f2b;
-    --axis: #6b625b; --code: #352f2b;
-    --claret: #ef7a9c; --claret-soft: #4a2130; --oxford: #7fb2e8; --oxford-soft: #1c2b3d;
-    --teal: #5fc3c9; --teal-soft: #1d3a3c; --mandarin: #ffa25c; --mandarin-soft: #4a3020;
-    --s1: #4f95e3; --s2: #c4456d; --s3: #22a3b2; --s4: #d9762a; --s5: #9b73d6; --s6: #3aad5c;
-    --good: #4cc27a; --warning: #e6a23c; --critical: #f0605a;
-    --good-ink: #4cc27a; --warning-ink: #e6a23c; --critical-ink: #f0605a;
+    --bg: #1d1b18; --surface: #252220; --kraft: #5a4f40;
+    --ink: #ece6db; --muted: #a8a094; --faint: #8f887e; --line: #3a3530; --grid: #2c2824;
+    --beni: #e0707a;
+    --s1: #8fa8c8; --s2: #e0707a; --s3: #a9b67e; --s4: #c9a46e; --s5: #9a938a;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #1f1b19; --surface: #292421; --ink: #f2e6dc; --muted: #b3a69b; --line: #4a423c; --grid: #352f2b;
-  --axis: #6b625b; --code: #352f2b;
-  --claret: #ef7a9c; --claret-soft: #4a2130; --oxford: #7fb2e8; --oxford-soft: #1c2b3d;
-  --teal: #5fc3c9; --teal-soft: #1d3a3c; --mandarin: #ffa25c; --mandarin-soft: #4a3020;
-  --s1: #4f95e3; --s2: #c4456d; --s3: #22a3b2; --s4: #d9762a; --s5: #9b73d6; --s6: #3aad5c;
-  --good: #4cc27a; --warning: #e6a23c; --critical: #f0605a;
-  --good-ink: #4cc27a; --warning-ink: #e6a23c; --critical-ink: #f0605a;
+  --bg: #1d1b18; --surface: #252220; --kraft: #5a4f40;
+  --ink: #ece6db; --muted: #a8a094; --faint: #8f887e; --line: #3a3530; --grid: #2c2824;
+  --beni: #e0707a;
+  --s1: #8fa8c8; --s2: #e0707a; --s3: #a9b67e; --s4: #c9a46e; --s5: #9a938a;
   color-scheme: dark;
 }
 
 /* base */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-body { background: var(--bg); color: var(--ink); font: 400 17px/1.6 var(--body); margin: 0; }
-h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; text-wrap: balance; }
-h1 { font-size: clamp(32px, 5vw, 48px); line-height: 1.08; letter-spacing: -0.01em; }
-h2 { font-size: 26px; line-height: 1.15; }
-h3 { font-size: 19px; line-height: 1.25; }
-p { margin: 0; }
-a { color: var(--link); }
-.eyebrow, .kicker { font: 600 12px/1.2 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--label); }
-.lede, .standfirst { font-size: 20px; line-height: 1.5; color: var(--muted); max-width: 60ch; }
-.rule-top { border-top: 4px solid var(--ink); padding-top: 10px; }
-code { font-family: var(--mono); font-size: 0.85em; background: var(--code); padding: 1px 5px; border-radius: 0; }
-pre { font-family: var(--mono); font-size: 13px; line-height: 1.55; background: var(--code); padding: 14px 16px; margin: 0; overflow-x: auto; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 17px/1.75 var(--sans); }
+h1, h2, h3 { font-family: var(--sans); font-weight: 400; margin: 0; text-wrap: balance; color: var(--ink); }
+h1 { font-size: clamp(30px, 4.6vw, 42px); line-height: 1.2; letter-spacing: -0.005em; }
+h2 { font-size: 24px; line-height: 1.3; }
+h3 { font-size: 15px; line-height: 1.4; font-weight: 700; }
+p { margin: 0; max-width: 64ch; }
+a { color: var(--ink); text-decoration-color: var(--beni); text-underline-offset: 3px; }
+.lede, .standfirst { font-size: 19px; line-height: 1.6; color: var(--muted); }
+em, i, cite { font-style: normal; }   /* no italic: emphasis is colour (beni) or Arial 700 */
+b, strong { font-weight: 700; }
+.mark { display: inline-flex; align-items: center; gap: 8px; font: 700 13px/1.5 var(--sans); color: var(--ink); letter-spacing: 0.02em; }
+.mark::before { content: ""; width: 7px; height: 7px; background: var(--beni); }
+.em { color: var(--beni); }
+code { font-family: var(--mono); font-size: 0.85em; color: var(--ink); }
+pre { font-family: var(--mono); font-size: 13px; line-height: 1.55; background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 16px; margin: 0; overflow-x: auto; }
 figure { margin: 0; }
-figcaption { font: 400 13.5px/1.5 var(--sans); color: var(--muted); }
-table { border-collapse: collapse; width: 100%; font: 400 14px/1.4 var(--sans); font-variant-numeric: tabular-nums; }
-th { font: 600 11.5px/1.2 var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
-     text-align: left; padding: 7px 10px; border-bottom: 2px solid var(--ink); vertical-align: bottom; }
-td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-td.num, th.num { text-align: right; font-family: var(--mono); }
-button { font: 600 14px/1 var(--sans); padding: 10px 14px; border: 1px solid var(--line); border-radius: 0;
-         background: var(--surface); color: var(--ink); cursor: pointer; }
+figcaption { font: 400 12.5px/1.5 var(--sans); color: var(--faint); border-top: 1px solid var(--line); padding-top: 8px; }
+table { border-collapse: collapse; width: 100%; font: 400 14px/1.45 var(--sans); font-variant-numeric: tabular-nums; }
+th { font: 400 12.5px/1.3 var(--sans); color: var(--muted); text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--ink); vertical-align: bottom; }
+td { padding: 9px 10px 9px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+th.num { text-align: right; }
+button { font: 700 14px/1 var(--sans); padding: 10px 14px; border: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--ink); cursor: pointer; }
 button:hover:not(:disabled) { border-color: var(--ink); }
-button.primary, button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+button.primary, button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
 button:disabled { opacity: 0.4; cursor: default; }
-:focus-visible { outline: 2px solid var(--oxford); outline-offset: 2px; }
-input, select { font: 400 15px/1.2 var(--mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line);
-                border-radius: 0; padding: 7px 8px; }
-footer { font: 400 13px/1.5 var(--sans); color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+input, select { font: 400 15px/1.2 var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 0; padding: 7px 8px; }
+footer { font: 400 12.5px/1.5 var(--sans); color: var(--faint); border-top: 1px solid var(--line); padding-top: 16px; }
 /* charts and diagrams stretch to their figure; never style bare `svg`, or MathJax formulas blow up in Safari */
 figure > svg, .fig-scroll > svg { display: block; width: 100%; height: auto; }
 mjx-container svg { display: inline; max-width: none; }
 mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+
+/* Legacy aliases: the old paper-theme token names, mapped onto Kinari so existing page CSS keeps working.
+   Every alias resolves to a Kinari token, so dark mode follows automatically. New CSS uses Kinari names. */
+:root {
+  --display: var(--sans); --body: var(--sans);
+  --axis: var(--faint); --code: var(--surface);
+  --label: var(--ink); --link: var(--ink);
+  --accent: var(--ink); --accent-soft: color-mix(in srgb, var(--ink) 9%, var(--bg));
+  --claret: var(--beni); --claret-soft: color-mix(in srgb, var(--beni) 14%, var(--bg));
+  --tail: var(--beni); --tail-soft: color-mix(in srgb, var(--beni) 14%, var(--bg));
+  --oxford: var(--s1); --oxford-soft: color-mix(in srgb, var(--s1) 14%, var(--bg));
+  --teal: var(--s3); --teal-soft: color-mix(in srgb, var(--s3) 16%, var(--bg));
+  --hedge: var(--s3); --hedge-soft: color-mix(in srgb, var(--s3) 16%, var(--bg));
+  --mandarin: var(--s4); --mandarin-soft: color-mix(in srgb, var(--s4) 18%, var(--bg));
+  --s6: var(--s5);
+  --good: var(--ink); --good-ink: var(--ink);
+  --warning: var(--ink); --warning-ink: var(--ink);
+  --critical: var(--beni); --critical-ink: var(--beni);
+}
+.eyebrow, .kicker { font: 400 13px/1.5 var(--sans); color: var(--muted); }   /* sentence case, no beni square: that is .mark */
+.rule-top { border-top: 1px solid var(--line); padding-top: 10px; }
 
   /* page */
   main { max-width: 1040px; margin: 0 auto; padding: 40px 20px 56px; }
@@ -116,11 +117,11 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   section > p { max-width: 66ch; }
   section > p + p { margin-top: 12px; }
 
-  .verdict { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 4px solid var(--ink); border-bottom: 1px solid var(--line); margin-top: 28px; }
+  .verdict { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-top: 28px; }
   .verdict > div { padding: 12px 14px 14px; border-left: 1px solid var(--line); min-width: 0; }
   .verdict > div:first-child { border-left: 0; padding-left: 0; }
-  .verdict .val { font: 500 26px/1.15 var(--mono); font-variant-numeric: tabular-nums; margin-top: 6px; }
-  .verdict .val.word { font: 600 26px/1.15 var(--display); }
+  .verdict .val { font: 400 26px/1.15 var(--sans); font-variant-numeric: tabular-nums; margin-top: 6px; }
+  .verdict .val.word { font: 700 26px/1.15 var(--display); }
   .verdict .note { font: 400 12.5px/1.4 var(--sans); color: var(--muted); margin-top: 4px; }
   .status-yes { color: var(--good-ink); }
   .status-no { color: var(--critical-ink); }
@@ -130,12 +131,12 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .board-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 24px; align-items: start; }
   .board { position: relative; width: 100%; aspect-ratio: 1 / 1; }
   .board canvas { display: block; width: 100%; height: 100%; cursor: crosshair; touch-action: manipulation; }
-  .edge { font: 600 11px/1 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; padding: 0 0 6px; }
+  .edge { font: 700 11px/1 var(--sans); color: var(--muted); display: flex; justify-content: space-between; padding: 0 0 6px; }
   .edge.bottom { padding: 6px 0 0; }
 
   .rail { display: flex; flex-direction: column; gap: 18px; }
-  .ctl label { display: flex; justify-content: space-between; align-items: baseline; font: 600 12px/1.2 var(--sans); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-  .ctl label output { font: 500 15px/1 var(--mono); letter-spacing: 0; text-transform: none; color: var(--ink); }
+  .ctl label { display: flex; justify-content: space-between; align-items: baseline; font: 700 12px/1.2 var(--sans); color: var(--muted); margin-bottom: 6px; }
+  .ctl label output { font: 400 15px/1 var(--sans); letter-spacing: 0; text-transform: none; color: var(--ink); }
   .ctl input[type=range] { width: 100%; accent-color: var(--oxford); margin: 0; }
   .ctl .hint { font: 400 12px/1.4 var(--sans); color: var(--muted); margin-top: 4px; }
   .row { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -164,17 +165,17 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .exhibit .verdict .val, .exhibit .verdict .val.word { font-size: 22px; }
   .tbl-wrap { margin-top: 18px; }
   .tbl-wrap .chart-title { margin-bottom: 6px; }
-  tr.current td { font-weight: 600; color: var(--ink); }
+  tr.current td { font-weight: 700; color: var(--ink); }
   tr.current td:first-child { border-left: 3px solid var(--s1); }
   td.busy { color: var(--muted); }
 
-  .chart-title { font: 600 15px/1.3 var(--sans); color: var(--ink); }
+  .chart-title { font: 700 15px/1.3 var(--sans); color: var(--ink); }
   .chart-sub { font: 400 13px/1.4 var(--sans); color: var(--muted); margin-top: 2px; }
   .chart-bar { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
   .chart-box { position: relative; }
   .chart-box svg { display: block; width: 100%; height: auto; }
-  .tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); padding: 6px 8px; font: 500 12px/1.4 var(--mono); color: var(--ink); white-space: nowrap; display: none; }
-  .tip b { font-family: var(--sans); font-weight: 600; }
+  .tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--line); padding: 6px 8px; font: 400 12px/1.4 var(--sans); color: var(--ink); white-space: nowrap; display: none; }
+  .tip b { font-family: var(--sans); font-weight: 700; }
 
   footer { margin-top: 52px; }
 
@@ -679,29 +680,29 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
     let s = '';
     for (let v = 0; v <= 1.0001; v += 0.25) {
       s += `<line x1="${M.l}" x2="${VW - M.r}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:var(--grid)" stroke-width="1"/>`;
-      s += `<text x="${M.l - 8}" y="${Y(v) + 4}" text-anchor="end" style="fill:var(--muted);font:11px var(--mono)">${Math.round(v * 100)}%</text>`;
+      s += `<text x="${M.l - 8}" y="${Y(v) + 4}" text-anchor="end" style="fill:var(--muted);font:11px var(--sans)">${Math.round(v * 100)}%</text>`;
     }
     for (let p = 0; p <= 1.0001; p += 0.1) {
-      s += `<text x="${X(p)}" y="${VH - M.b + 18}" text-anchor="middle" style="fill:var(--muted);font:11px var(--mono)">${p.toFixed(1)}</text>`;
+      s += `<text x="${X(p)}" y="${VH - M.b + 18}" text-anchor="middle" style="fill:var(--muted);font:11px var(--sans)">${p.toFixed(1)}</text>`;
     }
     s += `<line x1="${M.l}" x2="${VW - M.r}" y1="${Y(0)}" y2="${Y(0)}" style="stroke:var(--axis)" stroke-width="1"/>`;
     s += `<text x="${(M.l + VW - M.r) / 2}" y="${VH - 6}" text-anchor="middle" style="fill:var(--muted);font:12px var(--sans)">Open probability p</text>`;
     // infinite-lattice threshold
     s += `<line x1="${X(PC)}" x2="${X(PC)}" y1="${M.t}" y2="${Y(0)}" style="stroke:var(--ink)" stroke-width="1" stroke-dasharray="4 4"/>`;
-    s += `<text x="${X(PC) - 6}" y="${M.t + 12}" text-anchor="end" style="fill:var(--ink);font:600 12px var(--sans)">p<tspan dy="3" font-size="9">c</tspan><tspan dy="-3"> ≈ 0.593</tspan></text>`;
+    s += `<text x="${X(PC) - 6}" y="${M.t + 12}" text-anchor="end" style="fill:var(--ink);font: 700 12px var(--sans)">p<tspan dy="3" font-size="9">c</tspan><tspan dy="-3"> ≈ 0.593</tspan></text>`;
     s += `<text x="${X(PC) - 6}" y="${M.t + 27}" text-anchor="end" style="fill:var(--muted);font:11.5px var(--sans)">infinite lattice</text>`;
     if (y) {
       const pts = PS.map((p, i) => `${X(p).toFixed(1)},${Y(y[i]).toFixed(1)}`).join(' ');
       s += `<polyline points="${pts}" fill="none" style="stroke:var(--s1)" stroke-width="2" stroke-linejoin="round"/>`;
       PS.forEach((p, i) => { if (i % 2 === 0) s += `<circle cx="${X(p)}" cy="${Y(y[i])}" r="3.5" style="fill:var(--s1);stroke:var(--surface)" stroke-width="1.5"/>`; });
       const lab = Math.min(PS.length - 1, 46);
-      s += `<text x="${X(PS[lab])}" y="${Y(y[lab]) + 22}" text-anchor="middle" style="fill:var(--ink);font:600 12px var(--sans)">N = ${MC.N}</text>`;
+      s += `<text x="${X(PS[lab])}" y="${Y(y[lab]) + 22}" text-anchor="middle" style="fill:var(--ink);font: 700 12px var(--sans)">N = ${MC.N}</text>`;
     }
     // current p marker
     const cy = y ? Y(interp(y, S.p)) : Y(0);
     s += `<line x1="${X(S.p)}" x2="${X(S.p)}" y1="${cy}" y2="${Y(0)}" style="stroke:var(--s2)" stroke-width="1"/>`;
     if (y) s += `<circle cx="${X(S.p)}" cy="${cy}" r="6" style="fill:var(--s2);stroke:var(--surface)" stroke-width="2"/>`;
-    s += `<text x="${X(S.p) + (S.p > 0.85 ? -8 : 8)}" y="${Y(0) - 8}" text-anchor="${S.p > 0.85 ? 'end' : 'start'}" style="fill:var(--ink);font:600 12px var(--sans)">your p = ${S.p.toFixed(2)}${y ? ' · ' + Math.round(interp(y, S.p) * 100) + '%' : ''}</text>`;
+    s += `<text x="${X(S.p) + (S.p > 0.85 ? -8 : 8)}" y="${Y(0) - 8}" text-anchor="${S.p > 0.85 ? 'end' : 'start'}" style="fill:var(--ink);font: 700 12px var(--sans)">your p = ${S.p.toFixed(2)}${y ? ' · ' + Math.round(interp(y, S.p) * 100) + '%' : ''}</text>`;
     s += `<rect x="${M.l}" y="${M.t}" width="${VW - M.l - M.r}" height="${VH - M.t - M.b}" fill="transparent"/>`;
     svg.innerHTML = s;
     const e = est();
@@ -1016,10 +1017,10 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
     let s = '';
     for (let v = 0; v <= ymax + 1e-9; v += step) {
       s += `<line x1="${HM.l}" x2="${HW - HM.r}" y1="${HY(v)}" y2="${HY(v)}" style="stroke:var(--grid)" stroke-width="1"/>`;
-      s += `<text x="${HM.l - 8}" y="${HY(v) + 4}" text-anchor="end" style="fill:var(--muted);font:11px var(--mono)">${+v.toFixed(2)}%</text>`;
+      s += `<text x="${HM.l - 8}" y="${HY(v) + 4}" text-anchor="end" style="fill:var(--muted);font:11px var(--sans)">${+v.toFixed(2)}%</text>`;
     }
     s += `<text x="${HM.l}" y="11" style="fill:var(--muted);font:11.5px var(--sans)">% of runs per percentage point</text>`;
-    for (let f = 0; f <= 1.0001; f += 0.1) s += `<text x="${HX(f)}" y="${HH - HM.b + 18}" text-anchor="middle" style="fill:var(--muted);font:11px var(--mono)">${Math.round(f * 100)}%</text>`;
+    for (let f = 0; f <= 1.0001; f += 0.1) s += `<text x="${HX(f)}" y="${HH - HM.b + 18}" text-anchor="middle" style="fill:var(--muted);font:11px var(--sans)">${Math.round(f * 100)}%</text>`;
     s += `<text x="${(HM.l + HW - HM.r) / 2}" y="${HH - 6}" text-anchor="middle" style="fill:var(--muted);font:12px var(--sans)">Share of cells rotten when the link breaks</text>`;
     for (const b of hBins) if (b.c) {
       const x = HX(b.x0), wpx = HX(b.x1) - x;
@@ -1032,11 +1033,11 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
     }
     s += `<line x1="${HM.l}" x2="${HW - HM.r}" y1="${HY(0)}" y2="${HY(0)}" style="stroke:var(--axis)" stroke-width="1"/>`;
     s += `<line x1="${HX(RC)}" x2="${HX(RC)}" y1="${HM.t}" y2="${HY(0)}" style="stroke:var(--ink)" stroke-width="1" stroke-dasharray="4 4"/>`;
-    s += `<text x="${HX(RC) - 6}" y="${HM.t + 12}" text-anchor="end" style="fill:var(--ink);font:600 12px var(--sans)">1 − p<tspan dy="3" font-size="9">c</tspan><tspan dy="-3"> ≈ 0.407</tspan></text>`;
+    s += `<text x="${HX(RC) - 6}" y="${HM.t + 12}" text-anchor="end" style="fill:var(--ink);font: 700 12px var(--sans)">1 − p<tspan dy="3" font-size="9">c</tspan><tspan dy="-3"> ≈ 0.407</tspan></text>`;
     if (T && T.done) {
       const { mean, sd } = stats(T), peak = hBins.reduce((a, b) => b.y > a.y ? b : a);
       const lx = Math.min(HW - HM.r - 40, HX(mean + sd) + 10);
-      s += `<text x="${lx}" y="${Math.max(HM.t + 34, HY(peak.y) + 14)}" style="fill:var(--ink);font:600 12px var(--sans)">N = ${T.N}</text>`;
+      s += `<text x="${lx}" y="${Math.max(HM.t + 34, HY(peak.y) + 14)}" style="fill:var(--ink);font: 700 12px var(--sans)">N = ${T.N}</text>`;
     }
     s += `<rect x="${HM.l}" y="${HM.t}" width="${HW - HM.l - HM.r}" height="${HH - HM.t - HM.b}" fill="transparent"/>`;
     hsvg.innerHTML = s;
