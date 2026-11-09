@@ -40,5 +40,5 @@ Or test one project at a time, e.g. `python -m pytest poker`.
 ## Layout conventions
 
 - One folder per project: code at the top, tests in `test/`, and an `index.html` for any visual page.
-- HTML pages inline their styling (the paper theme), so each page opens on its own as a file.
+- HTML pages inline their styling, so each page opens on its own as a file. The look is Kinari (the `my-theme` skill): [kinari.css](kinari.css) is the one copy in the repo, pasted first into each page's `<style>`, and the Sudoku Tk and Streamlit apps read their colours from it.
 - A project with third-party dependencies lists them in its own `requirements.txt`.

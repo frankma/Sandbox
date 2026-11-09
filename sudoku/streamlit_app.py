@@ -15,30 +15,27 @@ SIZE = RANK * RANK
 
 st.set_page_config(page_title='Sudoku', page_icon='🧩', layout='centered')
 
-# paper-theme tokens only: its base rules (button, input, table, ...) would fight Streamlit's own widget styles
-PAPER_TOKENS = Path(__file__).with_name('paper.css').read_text().split('/* base */')[0]
-PAPER_TOKENS = '\n'.join(line for line in PAPER_TOKENS.splitlines() if line.strip())  # a blank line ends st.markdown's HTML block
-FONTS = ('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600'
-         '&family=IBM+Plex+Sans:wght@400;600&display=swap')
+# Kinari tokens only: its base rules (button, input, table, ...) would fight Streamlit's own widget styles
+KINARI_TOKENS = (Path(__file__).resolve().parents[1] / 'kinari.css').read_text().split('/* base */')[0]
+KINARI_TOKENS = '\n'.join(line for line in KINARI_TOKENS.splitlines() if line.strip())  # a blank line ends st.markdown's HTML block
 
 st.markdown(
     f"""
     <style>
-    @import url('{FONTS}');
-    {PAPER_TOKENS}
+    {KINARI_TOKENS}
     .sdk-table {{ border-collapse: collapse; margin: 0 auto 8px auto; border: 2px solid var(--ink); background: var(--surface); }}
     .sdk-table td {{
         width: 40px; height: 40px; padding: 0; text-align: center; vertical-align: middle;
-        font: 500 18px/1 var(--mono); font-variant-numeric: tabular-nums;
-        color: var(--oxford); background: var(--surface); border: 1px solid var(--line);
+        font: 400 18px/1 var(--sans); font-variant-numeric: tabular-nums;
+        color: var(--s1); background: var(--surface); border: 1px solid var(--line);
     }}
     .sdk-table tr:nth-child(3n+1) td {{ border-top: 2px solid var(--ink); }}
     .sdk-table td:nth-child(3n+1) {{ border-left: 2px solid var(--ink); }}
-    .sdk-table td.given {{ background: var(--code); color: var(--ink); font-weight: 600; }}
-    .sdk-table td.fill-single {{ background: var(--teal-soft); }}
-    .sdk-table td.fill-trial {{ background: var(--mandarin-soft); }}
-    .sdk-table td.fill-hint {{ background: var(--oxford-soft); }}
-    .sdk-table td.conflict {{ background: var(--claret-soft); color: var(--claret); }}
+    .sdk-table td.given {{ background: color-mix(in srgb, var(--kraft) 45%, var(--bg)); color: var(--ink); font-weight: 700; }}
+    .sdk-table td.fill-single {{ background: color-mix(in srgb, var(--s3) 16%, var(--bg)); }}
+    .sdk-table td.fill-trial {{ background: color-mix(in srgb, var(--s4) 18%, var(--bg)); }}
+    .sdk-table td.fill-hint {{ background: color-mix(in srgb, var(--s1) 14%, var(--bg)); }}
+    .sdk-table td.conflict {{ background: color-mix(in srgb, var(--beni) 14%, var(--bg)); color: var(--beni); }}
     .sdk-table td[title] {{ cursor: help; }}
     .sdk-legend {{ display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px;
                    font: 400 12px/1.4 var(--sans); color: var(--muted); margin-bottom: 8px; }}
@@ -50,12 +47,12 @@ st.markdown(
 )
 
 LEGEND = ('<div class="sdk-legend">'
-          '<span><i style="background:var(--code)"></i>Given</span>'
-          '<span><i style="background:var(--oxford);border-color:var(--oxford)"></i>Your entry</span>'
-          '<span><i style="background:var(--teal-soft)"></i>Logical fill</span>'
-          '<span><i style="background:var(--mandarin-soft)"></i>Guessed fill</span>'
-          '<span><i style="background:var(--oxford-soft)"></i>Hint</span>'
-          '<span><i style="background:var(--claret-soft)"></i>Conflict</span>'
+          '<span><i style="background:color-mix(in srgb, var(--kraft) 45%, var(--bg))"></i>Given</span>'
+          '<span><i style="background:var(--s1);border-color:var(--s1)"></i>Your entry</span>'
+          '<span><i style="background:color-mix(in srgb, var(--s3) 16%, var(--bg))"></i>Logical fill</span>'
+          '<span><i style="background:color-mix(in srgb, var(--s4) 18%, var(--bg))"></i>Guessed fill</span>'
+          '<span><i style="background:color-mix(in srgb, var(--s1) 14%, var(--bg))"></i>Hint</span>'
+          '<span><i style="background:color-mix(in srgb, var(--beni) 14%, var(--bg))"></i>Conflict</span>'
           '</div>')
 
 
