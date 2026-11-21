@@ -98,5 +98,5 @@ Per-rival decisions let reciprocal strategies keep cooperating with each other w
 | File | Contents |
 |---|---|
 | [`solver.py`](solver.py) | Rules, decision-matrix scoring, strategies, game engine, cooperation threshold and tournament. `python3 solver.py` prints the analysis. |
-| [`test/test_solver.py`](test/test_solver.py) | Unit tests. From `quant_questions/`, run `python3 -m unittest discover -s honor_or_grab -t .` |
+| [`test/test_solver.py`](test/test_solver.py) | Unit tests. From `game_theory/`, run `python3 -m unittest discover -s honor_or_grab -t .` |
 | [`index.html`](index.html) | Interactive page: play against strategy bots with a live decision matrix, adjustable rules, a tournament and evolution. |
