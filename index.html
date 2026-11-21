@@ -122,8 +122,6 @@ ul.items h3 a { text-decoration: underline; text-decoration-color: var(--beni); 
 ul.items h3 a:hover, ul.items h3 a:focus-visible { color: var(--beni); }
 ul.items h3 a::after { content: " →"; color: var(--beni); }
 ul.items p { font-size: 15.5px; line-height: 1.6; color: var(--ink); margin-top: 4px; }
-ul.items .src { font: 400 12.5px/1.5 var(--sans); color: var(--faint); margin-top: 6px; overflow-wrap: anywhere; }
-ul.items .src a { color: var(--faint); text-decoration-color: var(--line); }
 footer { margin: 56px 0 0 212px; max-width: 700px; }
 @media (max-width: 760px) {
   .page { padding-top: 32px; }
@@ -137,7 +135,7 @@ footer { margin: 56px 0 0 212px; max-width: 700px; }
 <div class="page">
   <header class="top">
     <h1>Sandbox: games and brain teasers that run in the browser</h1>
-    <p class="lede">Small, self-contained projects. Each page below is a single HTML file with nothing to install; the Python code and tests behind it sit in the same folder.</p>
+    <p class="lede">Small, self-contained projects. Each page below is a single HTML file with nothing to install.</p>
   </header>
 
   <section aria-labelledby="games">
@@ -149,17 +147,14 @@ footer { margin: 56px 0 0 212px; max-width: 700px; }
       <li>
         <h3><a href="the_threshold/">The Threshold</a></h3>
         <p>Percolation on an N×N grid: open cells with probability p, flood from the top breadth-first, and watch the chance of reaching the bottom jump at the critical threshold. Includes a Monte Carlo threshold curve and a rot mode.</p>
-        <p class="src"><a href="https://github.com/frankma/Sandbox/tree/main/the_threshold">Source on GitHub</a></p>
       </li>
       <li>
         <h3><a href="sudoku/webapp/">Sudoku</a></h3>
-        <p>Generate a puzzle at your chosen difficulty, ask for a hint, or watch the logical solver fill it step by step.</p>
-        <p class="src"><a href="https://github.com/frankma/Sandbox/tree/main/sudoku">Source on GitHub</a> · also runs as Flask, tkinter and Streamlit apps</p>
+        <p>Generate a puzzle at your chosen difficulty, ask for a hint, or watch the logical solver fill it step by step. Also runs as Flask, tkinter and Streamlit apps.</p>
       </li>
       <li>
         <h3><a href="finding_fox/">Finding FOX</a></h3>
         <p>A word-search game in a single page.</p>
-        <p class="src"><a href="https://github.com/frankma/Sandbox/tree/main/finding_fox">Source on GitHub</a></p>
       </li>
     </ul>
   </section>
@@ -173,23 +168,29 @@ footer { margin: 56px 0 0 212px; max-width: 700px; }
       <li>
         <h3><a href="quant_questions/heat_equation_finite_difference/">Heat-Equation Finite Difference</a></h3>
         <p>Crank–Nicolson for a heat equation with time-varying diffusion. V(0.5, 1) ≈ 0.0370 against an exact 0.0369996.</p>
-        <p class="src"><a href="https://github.com/frankma/Sandbox/tree/main/quant_questions/heat_equation_finite_difference">Source on GitHub</a></p>
       </li>
       <li>
         <h3><a href="quant_questions/binomial_tree_betting_scheme/">Binomial Tree Betting Scheme</a></h3>
         <p>Replicate a ±$100 payoff on a World Series with game-by-game bets. The answer: bet $31.25 on game 1.</p>
-        <p class="src"><a href="https://github.com/frankma/Sandbox/tree/main/quant_questions/binomial_tree_betting_scheme">Source on GitHub</a></p>
       </li>
+    </ul>
+  </section>
+
+  <section aria-labelledby="gametheory">
+    <div class="side">
+      <span class="mark" id="gametheory">Game theory</span>
+      <p>Strategy when every player's payoff depends on the others.</p>
+    </div>
+    <ul class="items">
       <li>
         <h3><a href="quant_questions/honor_or_grab/">Honor or Grab</a></h3>
         <p>A repeated social dilemma among n teams, decided rival by rival, with random ×3 bonus rounds. Reciprocate rival by rival; grab only in the final round.</p>
-        <p class="src"><a href="https://github.com/frankma/Sandbox/tree/main/quant_questions/honor_or_grab">Source on GitHub</a></p>
       </li>
     </ul>
   </section>
 
   <footer>
-    Hosted on GitHub Pages from the <code>main</code> branch of <a href="https://github.com/frankma/Sandbox">frankma/Sandbox</a>. Projects move out of the sandbox once they have a proper home.
+    Projects move out of the sandbox once they have a proper home.
   </footer>
 </div>
 </body>
