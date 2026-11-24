@@ -85,23 +85,55 @@ class SudokuSolver(object):
                         return solution
         pass
 
-    def check_value_possible(self, coord: Tuple[int, int], value: int):
-        for sdk_vec, n in self.problem.coord_dim[coord].items():
-            if value in self.problem.get_vec(n, sdk_vec):
-                return False
-        return True
-
     def backtrack_fill(self):
-        unfilled_coordinates = [coord for coord in self.problem.coord_dim.keys() if self.problem.grid[coord] == 0]
-        for coord in unfilled_coordinates:
-            for value in self.problem.value_set:
-                if self.check_value_possible(coord, value):
-                    self.problem.grid[coord] = value
-                    self.backtrack_fill()
-                    self.problem.grid[coord] = 0  # backtracking
-            return
-        self.solution = self.problem.__copy__()
-        pass
+        """Depth-first search that stops at the first solution. Keeps the values used in each
+        row, column and block as plain sets, and always branches on the empty cell with the
+        fewest candidates left, so dead ends show up early."""
+        grid = self.problem.grid.copy()
+        coord_dim = self.problem.coord_dim
+        used = {}  # (SdkVec, n) -> values already placed in that row, column or block
+        for coord, dims in coord_dim.items():
+            for sdk_vec, n in dims.items():
+                used.setdefault((sdk_vec, n), set())
+                if grid[coord] != 0:
+                    used[(sdk_vec, n)].add(int(grid[coord]))
+        empty = [c for c in coord_dim if grid[c] == 0]
+        value_set = self.problem.value_set
+
+        def candidates(coord):
+            taken = set()
+            for sdk_vec, n in coord_dim[coord].items():
+                taken |= used[(sdk_vec, n)]
+            return value_set - taken
+
+        def search() -> bool:
+            if not empty:
+                return True
+            best, best_cds = None, None
+            for i, c in enumerate(empty):
+                cds = candidates(c)
+                if best_cds is None or len(cds) < len(best_cds):
+                    best, best_cds = i, cds
+                    if len(cds) <= 1:
+                        break
+            if not best_cds:
+                return False  # an empty cell with no legal value: dead end
+            coord = empty.pop(best)
+            units = [(sdk_vec, n) for sdk_vec, n in coord_dim[coord].items()]
+            for value in sorted(best_cds):
+                grid[coord] = value
+                for u in units:
+                    used[u].add(value)
+                if search():
+                    return True
+                for u in units:
+                    used[u].discard(value)
+            grid[coord] = 0  # backtracking
+            empty.insert(best, coord)
+            return False
+
+        if search():
+            self.solution = Sudoku(grid, self.problem.rank, coord_dim, self.problem.dim_coord)
 
     def auto_reduction_steps(self) -> Iterator[Tuple[Tuple[int, int], int, str]]:
         """Generator twin of auto_reduction(); yields (coord, value, 'single') for every forced fill
