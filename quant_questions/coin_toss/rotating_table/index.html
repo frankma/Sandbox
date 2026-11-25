@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Four Coins, Spinning Table</title>
-<meta name="description" content="Coin Toss 1: four hidden coins on a table that turns after every move. Seven blind moves always make them match.">
+<title>Four Coins on a Spinning Table</title>
+<meta name="description" content="Four hidden coins on a table that turns after every move. Seven blind moves always make them match.">
 <style>
 /* Kinari theme (kinari.css at the repo root, inlined) */
 /* Kinari: unbleached paper, sumi ink, one beni red. Newspaper structure, MUJI restraint.
@@ -111,7 +111,11 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
 .page { max-width: 920px; margin: 0 auto; padding: 56px 20px 48px; }
 header.top { margin-left: 212px; max-width: 700px; }
 header.top .lede { margin-top: 14px; }
-header.top .eyebrow a { color: var(--muted); }
+/* title block: same pattern as the other sub-pages (label, puzzle name, standfirst) */
+header.top { margin-left: 0; max-width: 912px; }
+header.top .label { display: block; font: 700 12px/1.2 var(--sans); color: var(--beni); margin-bottom: 14px; }
+header.top h1 { font-weight: 700; font-size: clamp(2.4rem, 6vw, 3.6rem); line-height: 1.1; letter-spacing: -0.01em; }
+header.top .lede { font-size: 1.25rem; line-height: 1.5; max-width: 60ch; margin-top: 18px; }
 section { display: grid; grid-template-columns: 180px minmax(0, 700px); gap: 0 32px; border-top: 1px solid var(--line); margin-top: 40px; padding-top: 16px; }
 .side p { font: 400 13px/1.5 var(--sans); color: var(--muted); margin-top: 6px; }
 .body > * + * { margin-top: 16px; }
@@ -225,8 +229,8 @@ table.tr .won { color: var(--beni); font-weight: 700; }
 <body>
 <div class="page">
   <header class="top">
-    <p class="eyebrow"><a href="../../../">Sandbox</a> · Quant brain teasers · Coin toss series, 1</p>
-    <h1>Four coins on a spinning table: seven blind moves always make them match</h1>
+    <span class="label">Brain teasers</span>
+    <h1>Four Coins on a Spinning Table</h1>
     <p class="lede">Four coins sit at the corners of a square on a round table, each heads or tails at random. You can't see them. Each turn you say which coins to flip, by where they sit in front of you. If all four then match, all heads or all tails, you win. If not, the table turns to an angle you don't know and you go again. What can you say to be sure of winning?</p>
     <div class="plan" aria-label="The plan: opposite, neighbours, opposite, one, opposite, neighbours, opposite">
       <div class="mv"><span class="n">1</span><span class="k">D</span><span class="w">opposite</span></div>
@@ -351,7 +355,7 @@ table.tr .won { color: var(--beni); font-weight: 700; }
   </section>
 
   <footer>
-    Coin toss series, problem 1. A classic blindfold puzzle, restated. Solution, code and page are original.
+    A classic blindfold puzzle, restated. Solution, code and page are original.
   </footer>
 </div>
 

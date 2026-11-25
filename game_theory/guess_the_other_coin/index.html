@@ -111,7 +111,11 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
 .page { max-width: 920px; margin: 0 auto; padding: 56px 20px 48px; }
 header.top { margin-left: 212px; max-width: 700px; }
 header.top .lede { margin-top: 14px; }
-header.top .eyebrow a { color: var(--muted); }
+/* title block: same pattern as the other sub-pages (label, puzzle name, standfirst) */
+header.top { margin-left: 0; max-width: 912px; }
+header.top .label { display: block; font: 700 12px/1.2 var(--sans); color: var(--beni); margin-bottom: 14px; }
+header.top h1 { font-weight: 700; font-size: clamp(2.4rem, 6vw, 3.6rem); line-height: 1.1; letter-spacing: -0.01em; }
+header.top .lede { font-size: 1.25rem; line-height: 1.5; max-width: 60ch; margin-top: 18px; }
 section { display: grid; grid-template-columns: 180px minmax(0, 700px); gap: 0 32px; border-top: 1px solid var(--line); margin-top: 40px; padding-top: 16px; }
 .side p { font: 400 13px/1.5 var(--sans); color: var(--muted); margin-top: 6px; }
 .body > * + * { margin-top: 16px; }
@@ -263,8 +267,8 @@ section.wide > .side p { margin: 0; }
 <body>
 <div class="page">
   <header class="top">
-    <p class="eyebrow"><a href="../../">Sandbox</a> · Game theory</p>
-    <h1>Guess the other coin: see the two coins as one event, and bet on both sides of it</h1>
+    <span class="label">Brain teasers</span>
+    <h1>Guess the Other Coin</h1>
     <p class="lede">Two players each toss a fair coin, separately. Each sees only their own coin, then guesses the other's. They win together if at least one guess is right and lose if both are wrong. They can agree a plan beforehand but cannot talk after the toss. Is there a plan that wins every time?</p>
     <div class="answer" aria-label="The answer">
       <div>
