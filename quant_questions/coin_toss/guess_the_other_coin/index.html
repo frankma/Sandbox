@@ -1,0 +1,473 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Guess the Other Coin</title>
+<meta name="description" content="Coin Toss 1: two players toss coins and guess each other's. One guesses same, the other guesses opposite, and they win every toss.">
+<style>
+/* Kinari theme (kinari.css at the repo root, inlined) */
+/* Kinari: unbleached paper, sumi ink, one beni red. Newspaper structure, MUJI restraint.
+   Colour budget: paper ~60, sumi ~30, beni ~10. Page chrome uses only these three families
+   (plus at most one optional fourth); --ai, --koke, --kuri and --nezumi are for chart drawing code only (series 2 is --beni). */
+:root {
+  /* paper family (~60%) */
+  --bg: #f4f0e8;        /* unbleached paper */
+  --surface: #faf8f3;   /* rare: inputs, a single boxed note */
+  --washi: #d6c9b2;     /* fills only: meters, bars, histogram bodies. Never a line or text */
+  /* sumi family (~30%) */
+  --ink: #2e2a26;
+  --muted: #6b645b;     /* standfirst, side labels, secondary text */
+  --faint: #716b63;     /* source lines, axis ticks */
+  --line: #d9d1c3;      /* hairlines */
+  --grid: #e6dfd2;      /* chart gridlines */
+  /* beni (~10%): the one accent */
+  --beni: #8f1f2e;
+  /* chart series, drawing code only; all clear 3:1 on --bg */
+  --ai: #2f4a6d;        /* indigo (藍) */
+  --koke: #5d6b3c;      /* moss (苔) */
+  --kuri: #8f6a3e;      /* chestnut brown (栗) */
+  --nezumi: #8a8379;    /* stone grey (鼠): context series */
+  /* type: Arial 400 and 700, Courier New 400 for code only. No italic. No web fonts to load */
+  --sans: Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --mono: 'Courier New', Courier, monospace; /* code only; numbers stay in Arial */
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1d1b18; --surface: #252220; --washi: #5a4f40;
+    --ink: #ece6db; --muted: #a8a094; --faint: #8f887e; --line: #3a3530; --grid: #2c2824;
+    --beni: #e0707a;
+    --ai: #8fa8c8; --koke: #a9b67e; --kuri: #c9a46e; --nezumi: #9a938a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1d1b18; --surface: #252220; --washi: #5a4f40;
+  --ink: #ece6db; --muted: #a8a094; --faint: #8f887e; --line: #3a3530; --grid: #2c2824;
+  --beni: #e0707a;
+  --ai: #8fa8c8; --koke: #a9b67e; --kuri: #c9a46e; --nezumi: #9a938a;
+  color-scheme: dark;
+}
+
+/* base */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 17px/1.75 var(--sans); }
+h1, h2, h3 { font-family: var(--sans); font-weight: 400; margin: 0; text-wrap: balance; color: var(--ink); }
+h1 { font-size: clamp(30px, 4.6vw, 42px); line-height: 1.2; letter-spacing: -0.005em; }
+h2 { font-size: 24px; line-height: 1.3; }
+h3 { font-size: 15px; line-height: 1.4; font-weight: 700; }
+h1, h2 { color: var(--beni); }   /* titles carry the accent; h3 stays ink */
+p { margin: 0; max-width: 64ch; }
+a { color: var(--ink); text-decoration-color: var(--beni); text-underline-offset: 3px; }
+.lede, .standfirst { font-size: 19px; line-height: 1.6; color: var(--muted); }
+em, i, cite { font-style: normal; }   /* no italic: emphasis is colour (beni) or Arial 700 */
+b, strong { font-weight: 700; }
+.mark { display: inline-flex; align-items: center; gap: 8px; font: 700 13px/1.5 var(--sans); color: var(--ink); letter-spacing: 0.02em; }
+.mark::before { content: ""; width: 7px; height: 7px; background: var(--beni); }
+.em { color: var(--beni); }
+code { font-family: var(--mono); font-size: 0.85em; color: var(--ink); }
+pre { font-family: var(--mono); font-size: 13px; line-height: 1.55; background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 16px; margin: 0; overflow-x: auto; }
+figure { margin: 0; }
+figcaption { font: 400 12.5px/1.5 var(--sans); color: var(--faint); border-top: 1px solid var(--line); padding-top: 8px; }
+table { border-collapse: collapse; width: 100%; font: 400 14px/1.45 var(--sans); font-variant-numeric: tabular-nums; }
+th { font: 400 12.5px/1.3 var(--sans); color: var(--muted); text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--ink); vertical-align: bottom; }
+td { padding: 9px 10px 9px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+th.num { text-align: right; }
+button { font: 700 14px/1 var(--sans); padding: 10px 14px; border: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--ink); cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--ink); }
+button.primary, button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+button:disabled { opacity: 0.4; cursor: default; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+input, select { font: 400 15px/1.2 var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 0; padding: 7px 8px; }
+footer { font: 400 12.5px/1.5 var(--sans); color: var(--faint); border-top: 1px solid var(--line); padding-top: 16px; }
+/* charts and diagrams stretch to their figure; never style bare `svg`, or MathJax formulas blow up in Safari */
+figure > svg, .fig-scroll > svg { display: block; width: 100%; height: auto; }
+mjx-container svg { display: inline; max-width: none; }
+mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+
+/* Legacy aliases: the old paper-theme token names, mapped onto Kinari so existing page CSS keeps working.
+   Every alias resolves to a Kinari token, so dark mode follows automatically. New CSS uses Kinari names. */
+:root {
+  --display: var(--sans); --body: var(--sans);
+  --axis: var(--faint); --code: var(--surface);
+  --label: var(--ink); --link: var(--ink);
+  --accent: var(--ink); --accent-soft: color-mix(in srgb, var(--ink) 9%, var(--bg));
+  --claret: var(--beni); --claret-soft: color-mix(in srgb, var(--beni) 14%, var(--bg));
+  --tail: var(--beni); --tail-soft: color-mix(in srgb, var(--beni) 14%, var(--bg));
+  --oxford: var(--ai); --oxford-soft: color-mix(in srgb, var(--ai) 14%, var(--bg));
+  --teal: var(--koke); --teal-soft: color-mix(in srgb, var(--koke) 16%, var(--bg));
+  --hedge: var(--koke); --hedge-soft: color-mix(in srgb, var(--koke) 16%, var(--bg));
+  --mandarin: var(--kuri); --mandarin-soft: color-mix(in srgb, var(--kuri) 18%, var(--bg));
+  --good: var(--ink); --good-ink: var(--ink);
+  --warning: var(--ink); --warning-ink: var(--ink);
+  --critical: var(--beni); --critical-ink: var(--beni);
+}
+.eyebrow, .kicker { font: 400 13px/1.5 var(--sans); color: var(--muted); }   /* sentence case, no beni square: that is .mark */
+.rule-top { border-top: 1px solid var(--line); padding-top: 10px; }
+
+/* Layout: one reading column with a 180px margin column for section labels; stacks under 760px. */
+.page { max-width: 920px; margin: 0 auto; padding: 56px 20px 48px; }
+header.top { margin-left: 212px; max-width: 700px; }
+header.top .lede { margin-top: 14px; }
+header.top .eyebrow a { color: var(--muted); }
+section { display: grid; grid-template-columns: 180px minmax(0, 700px); gap: 0 32px; border-top: 1px solid var(--line); margin-top: 40px; padding-top: 16px; }
+.side p { font: 400 13px/1.5 var(--sans); color: var(--muted); margin-top: 6px; }
+.body > * + * { margin-top: 16px; }
+.body p { font-size: 16.5px; }
+footer { margin: 56px 0 0 212px; max-width: 700px; }
+[hidden] { display: none !important; }
+@media (max-width: 760px) {
+  .page { padding: 32px 16px 40px; }
+  header.top, footer { margin-left: 0; }
+  section { grid-template-columns: minmax(0, 1fr); }
+  .side { margin-bottom: 14px; }
+}
+
+/* the answer */
+.answer { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--line); padding: 14px 0 16px; margin-top: 22px; }
+.answer .who { font: 400 13px/1.5 var(--sans); color: var(--muted); }
+.answer .rule { font: 400 26px/1.25 var(--sans); }
+.answer .rule b { color: var(--beni); font-weight: 400; }
+.answer .why { font: 400 14px/1.5 var(--sans); color: var(--muted); margin-top: 4px; }
+
+/* toss stage */
+.stage { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
+.player { border-top: 1px solid var(--ink); padding-top: 12px; display: grid; gap: 12px; justify-items: start; }
+.player h3 { font-size: 15px; }
+.player label { font: 400 13px/1.4 var(--sans); color: var(--muted); display: grid; gap: 4px; }
+.coinrow { display: flex; align-items: center; gap: 16px; }
+.coin { width: 76px; height: 76px; border-radius: 50%; border: 2px solid var(--ink); display: grid; place-items: center; font: 400 34px/1 var(--sans); color: var(--ink); background: var(--surface); flex: none; }
+.coin.blank { border-style: dashed; color: var(--faint); }
+.coin.spin { animation: spin 0.6s ease-in-out; }
+@keyframes spin { 0% { transform: rotateY(0); } 100% { transform: rotateY(1080deg); } }
+.coinnote { font: 400 13px/1.45 var(--sans); color: var(--muted); }
+.guess { font: 400 15px/1.5 var(--sans); min-height: 3em; }
+.guess .verdict { display: block; font-weight: 700; }
+.guess .verdict.wrong { color: var(--muted); font-weight: 400; }
+.result { border-top: 1px solid var(--line); margin-top: 18px; padding-top: 12px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+.result .big { font: 400 34px/1.1 var(--sans); }
+.result .big.lose { color: var(--beni); }
+.result .sub { color: var(--muted); font-size: 15px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.tally { display: flex; flex-wrap: wrap; gap: 4px 24px; font: 400 14px/1.5 var(--sans); font-variant-numeric: tabular-nums; color: var(--muted); margin-top: 14px; }
+.tally b { color: var(--ink); font-weight: 700; }
+.strip { display: grid; grid-template-columns: repeat(50, minmax(0, 1fr)); gap: 2px; margin-top: 8px; }
+.strip i { display: block; height: 12px; background: var(--grid); }
+.strip i.w { background: var(--washi); }
+.strip i.l { background: var(--beni); }
+.legend { font: 400 12.5px/1.5 var(--sans); color: var(--faint); margin-top: 6px; }
+.legend i { display: inline-block; width: 10px; height: 10px; vertical-align: -1px; margin-right: 4px; }
+
+/* four outcomes */
+.grid4 { display: grid; grid-template-columns: 92px repeat(2, minmax(0, 1fr)); font: 400 14px/1.45 var(--sans); }
+.grid4 .h { color: var(--muted); font-size: 12.5px; padding: 6px 8px; border-bottom: 1px solid var(--ink); }
+.grid4 .rh { color: var(--muted); font-size: 12.5px; padding: 12px 8px 12px 0; border-bottom: 1px solid var(--line); }
+.grid4 .cell { padding: 10px 10px 12px; border-bottom: 1px solid var(--line); border-left: 1px solid var(--line); outline-offset: -2px; }
+.grid4 .cell.now { outline: 2px solid var(--ink); }
+.grid4 .cell .line { display: block; }
+.grid4 .cell .ok { font-weight: 700; }
+.grid4 .cell .no { color: var(--muted); }
+.grid4 .cell .out { display: block; margin-top: 4px; }
+.grid4 .cell .out.lose { color: var(--beni); }
+.count { font: 400 14px/1.5 var(--sans); color: var(--muted); }
+.count b { color: var(--ink); }
+
+/* plan matrix */
+.fig-scroll { overflow-x: auto; }
+figure h3 { font-size: 14px; }
+figure .subtitle { font: 400 13px/1.45 var(--sans); color: var(--muted); margin: 2px 0 10px; }
+.matrix { display: grid; grid-template-columns: 112px repeat(4, minmax(64px, 1fr)); gap: 3px; min-width: 400px; font: 400 14px/1.3 var(--sans); font-variant-numeric: tabular-nums; }
+.matrix .h { color: var(--muted); font-size: 12.5px; padding: 4px 2px; display: flex; align-items: flex-end; justify-content: center; text-align: center; }
+.matrix .rh { color: var(--muted); font-size: 12.5px; display: flex; align-items: center; padding-right: 6px; }
+.matrix .corner { color: var(--faint); font-size: 12px; display: flex; align-items: flex-end; }
+.matrix button { all: unset; cursor: pointer; height: 54px; display: grid; place-items: center; font: 400 15px/1 var(--sans); box-sizing: border-box; position: relative; }
+.matrix button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.matrix button.cur::after { content: ""; position: absolute; inset: -3px; border: 2px solid var(--ink); }
+.matrix button.best { box-shadow: inset 0 0 0 2px var(--beni); }
+.tip { position: fixed; pointer-events: none; background: var(--surface); border: 1px solid var(--line); padding: 6px 9px; font: 400 13px/1.4 var(--sans); color: var(--ink); max-width: 240px; z-index: 5; }
+
+/* checks */
+.checks { list-style: none; margin: 0; padding: 0; }
+.checks li { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 15.5px; }
+.checks li:first-child { border-top: 1px solid var(--line); }
+.checks li span:first-child { font-weight: 700; font-size: 14px; }
+@media (max-width: 560px) {
+  .stage, .answer { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .grid4 { grid-template-columns: 64px repeat(2, minmax(0, 1fr)); font-size: 13px; }
+  .checks li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}
+@media (prefers-reduced-motion: reduce) { .coin.spin { animation: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <p class="eyebrow"><a href="../../../">Sandbox</a> · Quant brain teasers · Coin toss series, 1</p>
+    <h1>Guess the other coin: one says “same”, the other says “opposite”, and they never lose</h1>
+    <p class="lede">Two players each toss a fair coin, separately. Each sees only their own coin, then guesses the other's. They win together if at least one guess is right and lose if both are wrong. They can agree a plan beforehand but cannot talk after the toss. Is there a plan that wins every time?</p>
+    <div class="answer" aria-label="The answer">
+      <div>
+        <span class="who">Player A says</span>
+        <p class="rule">“Yours is the <b>same</b> as mine”</p>
+        <p class="why">Right whenever the coins match: HH or TT.</p>
+      </div>
+      <div>
+        <span class="who">Player B says</span>
+        <p class="rule">“Yours is the <b>opposite</b> of mine”</p>
+        <p class="why">Right whenever the coins differ: HT or TH.</p>
+      </div>
+    </div>
+  </header>
+
+  <section aria-labelledby="s-toss">
+    <div class="side">
+      <span class="mark" id="s-toss">Toss</span>
+      <p>Pick each player's plan, then toss. The winning plan is preset.</p>
+    </div>
+    <div class="body">
+      <div class="stage">
+        <div class="player" id="pA">
+          <h3>Player A</h3>
+          <label>A's plan<select id="planA"></select></label>
+          <div class="coinrow"><div class="coin blank" id="coinA" aria-live="polite">?</div><span class="coinnote">A's own coin.<br>Only A sees it.</span></div>
+          <p class="guess" id="guessA">Waiting for the toss.</p>
+        </div>
+        <div class="player" id="pB">
+          <h3>Player B</h3>
+          <label>B's plan<select id="planB"></select></label>
+          <div class="coinrow"><div class="coin blank" id="coinB" aria-live="polite">?</div><span class="coinnote">B's own coin.<br>Only B sees it.</span></div>
+          <p class="guess" id="guessB">Waiting for the toss.</p>
+        </div>
+      </div>
+      <div class="result" aria-live="polite"><span class="big" id="verdict">Ready</span><span class="sub" id="verdictSub">Toss to see both guesses checked.</span></div>
+      <div class="controls">
+        <button type="button" class="primary" id="btnToss">Toss</button>
+        <button type="button" id="btn100">Toss 100 times</button>
+        <button type="button" id="btnReset">Reset</button>
+      </div>
+      <div class="tally" id="tally"></div>
+      <div class="strip" id="strip" aria-hidden="true"></div>
+      <p class="legend"><i style="background: var(--washi)"></i>win <i style="background: var(--beni); margin-left: 10px"></i>loss · last 100 tosses</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-four">
+    <div class="side">
+      <span class="mark" id="s-four">Every toss</span>
+      <p>Only four tosses can happen, each with chance ¼. A plan wins for sure only if it wins all four.</p>
+    </div>
+    <div class="body">
+      <p id="fourIntro"></p>
+      <div class="grid4" id="grid4" role="table" aria-label="The four possible tosses and both guesses"></div>
+      <p class="count" id="count"></p>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-plans">
+    <div class="side">
+      <span class="mark" id="s-plans">Every plan</span>
+      <p>Click a cell to load that pair of plans into the toss above.</p>
+    </div>
+    <div class="body">
+      <p>A player's guess can only depend on their own coin, so each has just four plans: say the same, say the opposite, always say heads or always say tails. A random plan is a mix of these four, so it can't beat the best of them. Of the 16 pairs, two win every toss.</p>
+      <figure>
+        <h3>Chance of winning, by plan</h3>
+        <p class="subtitle">Rows: A's plan. Columns: B's plan. Outlined in red: the pairs that never lose.</p>
+        <div class="fig-scroll"><div class="matrix" id="matrix"></div></div>
+        <figcaption>Exact, from the four equally likely tosses. Guessing at random wins 75% of the time.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-why">
+    <div class="side">
+      <span class="mark" id="s-why">Why it works</span>
+      <p>Count the right guesses.</p>
+    </div>
+    <div class="body">
+      <p><b>Each guess is right exactly half the time, whatever the plan.</b> A is guessing B's coin, which A never sees and which doesn't depend on A's coin. So across the four tosses, any plan of A's is right in exactly two, and the same goes for B. That makes four right guesses in all, whatever the players agree.</p>
+      <p><b>Winning every toss needs exactly one right guess per toss.</b> There are four tosses and only four right guesses to share out. Every toss needs at least one, so no toss can have two: the guesses must never be right at the same time.</p>
+      <p><b>“Same” and “opposite” split the tosses perfectly.</b> “Same” is right on HH and TT; “opposite” is right on HT and TH. Every toss is covered once. When both players say “same”, they are right together on HH and TT and wrong together on HT and TH, which wastes two right guesses and wins only half the time.</p>
+      <p>The quant lesson is that you can't make either bet better than 50%, but you can choose how the two bets are correlated. The winning plan makes A's and B's hits perfectly negatively correlated, the way a hedge pairs a loss on one leg with a gain on the other.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-checks">
+    <div class="side">
+      <span class="mark" id="s-checks">Checks</span>
+      <p><code>solver.py</code> and its tests.</p>
+    </div>
+    <div class="body">
+      <p>The Python solver in <a href="solver.py"><code>solver.py</code></a> and the tests in <a href="test/test_solver.py"><code>test/test_solver.py</code></a> verify:</p>
+      <ul class="checks">
+        <li><span>Answer</span><span>A “same”, B “opposite” wins all four tosses, with exactly one right guess each time.</span></li>
+        <li><span>Uniqueness</span><span>Of the 16 pairs of plans, only same/opposite and opposite/same never lose.</span></li>
+        <li><span>Half right</span><span>For every pair, each player is right in exactly two of the four tosses.</span></li>
+        <li><span>Win rates</span><span>Same/same wins 50%; always heads/always heads wins 75%; no pair wins less than 50%.</span></li>
+        <li><span>Simulation</span><span>1,000 random tosses with same/opposite give 1,000 wins.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    Coin toss series, problem 1. A classic cooperative guessing puzzle, restated. Solution, code and page are original.
+  </footer>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script>
+(() => {
+  const PLANS = {
+    same:     { label: "Same as mine",     short: "same",          f: c => c },
+    opposite: { label: "Opposite of mine", short: "opposite",      f: c => (c === "H" ? "T" : "H") },
+    heads:    { label: "Always heads",     short: "always heads",  f: () => "H" },
+    tails:    { label: "Always tails",     short: "always tails",  f: () => "T" },
+  };
+  const KEYS = Object.keys(PLANS);
+  const WORD = { H: "heads", T: "tails" };
+  const $ = id => document.getElementById(id);
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const state = { a: "same", b: "opposite", last: null, history: [], tosses: 0, wins: 0, busy: false };
+
+  for (const [sel, key] of [[$("planA"), "a"], [$("planB"), "b"]]) {
+    for (const k of KEYS) sel.add(new Option(PLANS[k].label, k));
+    sel.value = state[key];
+    sel.addEventListener("change", () => { state[key] = sel.value; resetTally(); renderAll(); });
+  }
+
+  function play(a, b, ca, cb) {
+    const ga = PLANS[a].f(ca), gb = PLANS[b].f(cb);
+    const ar = ga === cb, br = gb === ca;
+    return { ca, cb, ga, gb, ar, br, win: ar || br };
+  }
+  const rate = (a, b) => ["HH", "HT", "TH", "TT"].filter(s => play(a, b, s[0], s[1]).win).length / 4;
+  const flip = () => (Math.random() < 0.5 ? "H" : "T");
+
+  function showToss(r) {
+    for (const [p, coin, guess, right, other] of [["A", r.ca, r.ga, r.ar, "B"], ["B", r.cb, r.gb, r.br, "A"]]) {
+      const el = $("coin" + p);
+      el.textContent = coin; el.classList.remove("blank");
+      $("guess" + p).innerHTML = `Sees ${WORD[coin]}, guesses ${other}'s coin is <b>${WORD[guess]}</b>.` +
+        `<span class="verdict ${right ? "" : "wrong"}">${right ? "Right" : "Wrong"}: ${other} has ${WORD[p === "A" ? r.cb : r.ca]}.</span>`;
+    }
+    const v = $("verdict");
+    v.textContent = r.win ? "Win" : "Lose";
+    v.className = "big" + (r.win ? "" : " lose");
+    $("verdictSub").textContent = r.ar && r.br ? "Both guesses right." : r.ar ? "A's guess was right." : r.br ? "B's guess was right." : "Both guesses wrong.";
+  }
+
+  function record(r) {
+    state.last = r; state.tosses++; state.wins += r.win;
+    state.history.push(r.win); if (state.history.length > 100) state.history.shift();
+  }
+
+  function toss() {
+    if (state.busy) return;
+    const r = play(state.a, state.b, flip(), flip());
+    if (reduce) { record(r); showToss(r); renderAll(); return; }
+    state.busy = true;
+    for (const p of ["A", "B"]) {
+      const el = $("coin" + p);
+      el.classList.remove("spin"); void el.offsetWidth; el.classList.add("spin");
+      el.textContent = "?"; el.classList.add("blank");
+      $("guess" + p).textContent = "Tossing…";
+    }
+    $("verdict").textContent = "…"; $("verdict").className = "big"; $("verdictSub").textContent = "";
+    setTimeout(() => { record(r); showToss(r); renderAll(); state.busy = false; }, 620);
+  }
+
+  function toss100() {
+    let r;
+    for (let i = 0; i < 100; i++) { r = play(state.a, state.b, flip(), flip()); record(r); }
+    showToss(r); renderAll();
+  }
+
+  function resetTally() {
+    Object.assign(state, { last: null, history: [], tosses: 0, wins: 0 });
+    for (const p of ["A", "B"]) { $("coin" + p).textContent = "?"; $("coin" + p).classList.add("blank"); $("guess" + p).textContent = "Waiting for the toss."; }
+    $("verdict").textContent = "Ready"; $("verdict").className = "big";
+    $("verdictSub").textContent = "Toss to see both guesses checked.";
+  }
+
+  function renderTally() {
+    const pct = state.tosses ? Math.round(100 * state.wins / state.tosses) + "%" : "–";
+    $("tally").innerHTML = `<span>Tosses <b>${state.tosses}</b></span><span>Wins <b>${state.wins}</b></span>` +
+      `<span>Losses <b>${state.tosses - state.wins}</b></span><span>Win rate <b>${pct}</b></span>` +
+      `<span>Exact <b>${Math.round(rate(state.a, state.b) * 100)}%</b></span>`;
+    const h = state.history;
+    $("strip").innerHTML = Array.from({ length: 100 }, (_, i) => {
+      const v = h[i - (100 - h.length)];
+      return `<i class="${v === undefined ? "" : v ? "w" : "l"}"></i>`;
+    }).join("");
+  }
+
+  function renderFour() {
+    const a = PLANS[state.a], b = PLANS[state.b];
+    $("fourIntro").textContent = `With A saying “${a.short}” and B saying “${b.short}”:`;
+    let html = `<div class="h"></div><div class="h">B tosses heads</div><div class="h">B tosses tails</div>`;
+    let aR = 0, bR = 0, wins = 0;
+    for (const ca of ["H", "T"]) {
+      html += `<div class="rh">A tosses ${WORD[ca]}</div>`;
+      for (const cb of ["H", "T"]) {
+        const r = play(state.a, state.b, ca, cb);
+        aR += r.ar; bR += r.br; wins += r.win;
+        const now = state.last && state.last.ca === ca && state.last.cb === cb ? " now" : "";
+        html += `<div class="cell${now}" role="cell">` +
+          `<span class="line ${r.ar ? "ok" : "no"}">A says ${WORD[r.ga]}: ${r.ar ? "right" : "wrong"}</span>` +
+          `<span class="line ${r.br ? "ok" : "no"}">B says ${WORD[r.gb]}: ${r.br ? "right" : "wrong"}</span>` +
+          `<span class="out ${r.win ? "" : "lose"}">${r.win ? "Win" : "Lose"}</span></div>`;
+      }
+    }
+    $("grid4").innerHTML = html;
+    $("count").innerHTML = `Right guesses over the four tosses: A <b>${aR}</b>, B <b>${bR}</b>, total <b>${aR + bR}</b>. ` +
+      `Wins: <b>${wins} of 4</b>.` + (state.last ? " The outlined cell is the last toss." : "");
+  }
+
+  function renderMatrix() {
+    const css = getComputedStyle(document.documentElement);
+    const ai = css.getPropertyValue("--ai").trim(), bg = css.getPropertyValue("--bg").trim();
+    const ink = css.getPropertyValue("--ink").trim();
+    const shade = { 0.5: 18, 0.75: 45, 1: 88 };
+    const m = $("matrix");
+    m.innerHTML = `<div class="corner">A ↓ · B →</div>` + KEYS.map(k => `<div class="h">${PLANS[k].label}</div>`).join("");
+    for (const a of KEYS) {
+      m.insertAdjacentHTML("beforeend", `<div class="rh">${PLANS[a].label}</div>`);
+      for (const b of KEYS) {
+        const r = rate(a, b);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = Math.round(r * 100) + "%";
+        btn.style.background = `color-mix(in srgb, ${ai} ${shade[r]}%, ${bg})`;
+        btn.style.color = r === 1 ? bg : ink;
+        if (r === 1) btn.classList.add("best");
+        if (a === state.a && b === state.b) btn.classList.add("cur");
+        const desc = `A ${PLANS[a].short}, B ${PLANS[b].short}: wins ${Math.round(r * 100)}%`;
+        btn.setAttribute("aria-label", desc + (a === state.a && b === state.b ? " (current)" : ""));
+        btn.addEventListener("click", () => {
+          state.a = a; state.b = b; $("planA").value = a; $("planB").value = b;
+          resetTally(); renderAll(); $("s-toss").scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+        });
+        btn.addEventListener("pointermove", e => {
+          const t = $("tip"); t.hidden = false; t.textContent = desc + (r === 1 ? " — never loses." : ".");
+          t.style.left = Math.min(e.clientX + 14, innerWidth - 250) + "px"; t.style.top = e.clientY + 14 + "px";
+        });
+        btn.addEventListener("pointerleave", () => { $("tip").hidden = true; });
+        m.appendChild(btn);
+      }
+    }
+  }
+
+  function renderAll() { renderTally(); renderFour(); renderMatrix(); }
+
+  $("btnToss").addEventListener("click", toss);
+  $("btn100").addEventListener("click", toss100);
+  $("btnReset").addEventListener("click", () => { resetTally(); renderAll(); });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderMatrix);
+  renderAll();
+})();
+</script>
+</body>
+</html>

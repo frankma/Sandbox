@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Four Coins, Spinning Table</title>
+<meta name="description" content="Coin Toss 2: four hidden coins on a table that turns after every move. Seven blind moves always make them match.">
+<style>
+/* Kinari theme (kinari.css at the repo root, inlined) */
+/* Kinari: unbleached paper, sumi ink, one beni red. Newspaper structure, MUJI restraint.
+   Colour budget: paper ~60, sumi ~30, beni ~10. Page chrome uses only these three families
+   (plus at most one optional fourth); --ai, --koke, --kuri and --nezumi are for chart drawing code only (series 2 is --beni). */
+:root {
+  /* paper family (~60%) */
+  --bg: #f4f0e8;        /* unbleached paper */
+  --surface: #faf8f3;   /* rare: inputs, a single boxed note */
+  --washi: #d6c9b2;     /* fills only: meters, bars, histogram bodies. Never a line or text */
+  /* sumi family (~30%) */
+  --ink: #2e2a26;
+  --muted: #6b645b;     /* standfirst, side labels, secondary text */
+  --faint: #716b63;     /* source lines, axis ticks */
+  --line: #d9d1c3;      /* hairlines */
+  --grid: #e6dfd2;      /* chart gridlines */
+  /* beni (~10%): the one accent */
+  --beni: #8f1f2e;
+  /* chart series, drawing code only; all clear 3:1 on --bg */
+  --ai: #2f4a6d;        /* indigo (藍) */
+  --koke: #5d6b3c;      /* moss (苔) */
+  --kuri: #8f6a3e;      /* chestnut brown (栗) */
+  --nezumi: #8a8379;    /* stone grey (鼠): context series */
+  /* type: Arial 400 and 700, Courier New 400 for code only. No italic. No web fonts to load */
+  --sans: Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --mono: 'Courier New', Courier, monospace; /* code only; numbers stay in Arial */
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1d1b18; --surface: #252220; --washi: #5a4f40;
+    --ink: #ece6db; --muted: #a8a094; --faint: #8f887e; --line: #3a3530; --grid: #2c2824;
+    --beni: #e0707a;
+    --ai: #8fa8c8; --koke: #a9b67e; --kuri: #c9a46e; --nezumi: #9a938a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1d1b18; --surface: #252220; --washi: #5a4f40;
+  --ink: #ece6db; --muted: #a8a094; --faint: #8f887e; --line: #3a3530; --grid: #2c2824;
+  --beni: #e0707a;
+  --ai: #8fa8c8; --koke: #a9b67e; --kuri: #c9a46e; --nezumi: #9a938a;
+  color-scheme: dark;
+}
+
+/* base */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 17px/1.75 var(--sans); }
+h1, h2, h3 { font-family: var(--sans); font-weight: 400; margin: 0; text-wrap: balance; color: var(--ink); }
+h1 { font-size: clamp(30px, 4.6vw, 42px); line-height: 1.2; letter-spacing: -0.005em; }
+h2 { font-size: 24px; line-height: 1.3; }
+h3 { font-size: 15px; line-height: 1.4; font-weight: 700; }
+h1, h2 { color: var(--beni); }   /* titles carry the accent; h3 stays ink */
+p { margin: 0; max-width: 64ch; }
+a { color: var(--ink); text-decoration-color: var(--beni); text-underline-offset: 3px; }
+.lede, .standfirst { font-size: 19px; line-height: 1.6; color: var(--muted); }
+em, i, cite { font-style: normal; }   /* no italic: emphasis is colour (beni) or Arial 700 */
+b, strong { font-weight: 700; }
+.mark { display: inline-flex; align-items: center; gap: 8px; font: 700 13px/1.5 var(--sans); color: var(--ink); letter-spacing: 0.02em; }
+.mark::before { content: ""; width: 7px; height: 7px; background: var(--beni); }
+.em { color: var(--beni); }
+code { font-family: var(--mono); font-size: 0.85em; color: var(--ink); }
+pre { font-family: var(--mono); font-size: 13px; line-height: 1.55; background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 16px; margin: 0; overflow-x: auto; }
+figure { margin: 0; }
+figcaption { font: 400 12.5px/1.5 var(--sans); color: var(--faint); border-top: 1px solid var(--line); padding-top: 8px; }
+table { border-collapse: collapse; width: 100%; font: 400 14px/1.45 var(--sans); font-variant-numeric: tabular-nums; }
+th { font: 400 12.5px/1.3 var(--sans); color: var(--muted); text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--ink); vertical-align: bottom; }
+td { padding: 9px 10px 9px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.num { text-align: right; font-variant-numeric: tabular-nums; }
+th.num { text-align: right; }
+button { font: 700 14px/1 var(--sans); padding: 10px 14px; border: 1px solid var(--line); border-radius: 0; background: transparent; color: var(--ink); cursor: pointer; }
+button:hover:not(:disabled) { border-color: var(--ink); }
+button.primary, button[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+button:disabled { opacity: 0.4; cursor: default; }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+input, select { font: 400 15px/1.2 var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 0; padding: 7px 8px; }
+footer { font: 400 12.5px/1.5 var(--sans); color: var(--faint); border-top: 1px solid var(--line); padding-top: 16px; }
+/* charts and diagrams stretch to their figure; never style bare `svg`, or MathJax formulas blow up in Safari */
+figure > svg, .fig-scroll > svg { display: block; width: 100%; height: auto; }
+mjx-container svg { display: inline; max-width: none; }
+mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
+
+/* Legacy aliases: the old paper-theme token names, mapped onto Kinari so existing page CSS keeps working.
+   Every alias resolves to a Kinari token, so dark mode follows automatically. New CSS uses Kinari names. */
+:root {
+  --display: var(--sans); --body: var(--sans);
+  --axis: var(--faint); --code: var(--surface);
+  --label: var(--ink); --link: var(--ink);
+  --accent: var(--ink); --accent-soft: color-mix(in srgb, var(--ink) 9%, var(--bg));
+  --claret: var(--beni); --claret-soft: color-mix(in srgb, var(--beni) 14%, var(--bg));
+  --tail: var(--beni); --tail-soft: color-mix(in srgb, var(--beni) 14%, var(--bg));
+  --oxford: var(--ai); --oxford-soft: color-mix(in srgb, var(--ai) 14%, var(--bg));
+  --teal: var(--koke); --teal-soft: color-mix(in srgb, var(--koke) 16%, var(--bg));
+  --hedge: var(--koke); --hedge-soft: color-mix(in srgb, var(--koke) 16%, var(--bg));
+  --mandarin: var(--kuri); --mandarin-soft: color-mix(in srgb, var(--kuri) 18%, var(--bg));
+  --good: var(--ink); --good-ink: var(--ink);
+  --warning: var(--ink); --warning-ink: var(--ink);
+  --critical: var(--beni); --critical-ink: var(--beni);
+}
+.eyebrow, .kicker { font: 400 13px/1.5 var(--sans); color: var(--muted); }   /* sentence case, no beni square: that is .mark */
+.rule-top { border-top: 1px solid var(--line); padding-top: 10px; }
+
+/* Layout: one reading column with a 180px margin column for section labels; stacks under 760px. */
+.page { max-width: 920px; margin: 0 auto; padding: 56px 20px 48px; }
+header.top { margin-left: 212px; max-width: 700px; }
+header.top .lede { margin-top: 14px; }
+header.top .eyebrow a { color: var(--muted); }
+section { display: grid; grid-template-columns: 180px minmax(0, 700px); gap: 0 32px; border-top: 1px solid var(--line); margin-top: 40px; padding-top: 16px; }
+.side p { font: 400 13px/1.5 var(--sans); color: var(--muted); margin-top: 6px; }
+.body > * + * { margin-top: 16px; }
+.body p { font-size: 16.5px; }
+footer { margin: 56px 0 0 212px; max-width: 700px; }
+[hidden] { display: none !important; }
+@media (max-width: 760px) {
+  .page { padding: 32px 16px 40px; }
+  header.top, footer { margin-left: 0; }
+  section { grid-template-columns: minmax(0, 1fr); }
+  .side { margin-bottom: 14px; }
+}
+
+/* small diagrams: four dots on a square */
+.mini { width: 30px; height: 30px; flex: none; }
+.mini .d { stroke: var(--ink); stroke-width: 1.5; fill: var(--bg); }
+.mini .d.f { fill: var(--ink); }
+.mini .d.x { fill: var(--beni); stroke: var(--beni); }
+.mini .sq { fill: none; stroke: var(--line); }
+
+/* the answer */
+.plan { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0 6px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--line); padding: 14px 0; margin-top: 22px; }
+.plan .mv { display: grid; justify-items: center; gap: 4px; text-align: center; }
+.plan .n { font: 400 12px/1 var(--sans); color: var(--faint); }
+.plan .k { font: 400 26px/1 var(--sans); }
+.plan .w { font: 400 12px/1.3 var(--sans); color: var(--muted); }
+.key { font: 400 14px/1.5 var(--sans); color: var(--muted); margin-top: 10px; }
+.key b { color: var(--ink); }
+
+/* play */
+.play { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 24px 32px; align-items: start; }
+#table { display: block; width: 100%; height: auto; touch-action: manipulation; }
+#table .felt { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+#table .sq { fill: none; stroke: var(--line); stroke-dasharray: 3 4; }
+#table .coin circle { stroke: var(--ink); stroke-width: 2; fill: var(--surface); }
+#table .coin.t circle { fill: var(--washi); }
+#table .coin.hid circle { fill: var(--grid); stroke: var(--faint); }
+#table .coin text { font: 400 22px/1 var(--sans); fill: var(--ink); text-anchor: middle; dominant-baseline: central; }
+#table .coin.hid text { fill: var(--faint); }
+#table .seat { cursor: pointer; }
+#table .seat .hit { fill: transparent; }
+#table .seat .ring { fill: none; stroke: var(--beni); stroke-width: 2.5; stroke-dasharray: 5 4; opacity: 0; }
+#table .seat.sel .ring { opacity: 1; }
+#table .seat text { font: 400 12.5px/1 var(--sans); fill: var(--muted); text-anchor: middle; dominant-baseline: central; }
+#table .seat.sel text { fill: var(--beni); font-weight: 700; }
+#table .seat:focus { outline: none; }
+#table .seat:focus-visible .hit { stroke: var(--ink); stroke-width: 2; }
+#table .you { font: 400 12.5px/1 var(--sans); fill: var(--faint); text-anchor: middle; }
+#spin { transform-origin: 160px 160px; }
+#spin.go { transition: transform 1.1s cubic-bezier(.3, .1, .2, 1); }
+.status { border-top: 1px solid var(--ink); padding-top: 10px; }
+.status .big { font: 400 30px/1.15 var(--sans); }
+.status .big.won { color: var(--beni); }
+.status .sub { color: var(--muted); font-size: 15px; margin-top: 4px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+.lbl { font: 400 13px/1.4 var(--sans); color: var(--muted); display: block; margin-bottom: 6px; }
+.toggle { display: inline-flex; align-items: center; gap: 8px; font: 400 14px/1.4 var(--sans); color: var(--ink); cursor: pointer; }
+.toggle input { accent-color: var(--ink); width: 16px; height: 16px; margin: 0; padding: 0; }
+.log { font: 400 14px/1.5 var(--sans); font-variant-numeric: tabular-nums; color: var(--muted); }
+.belief { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.belief div { border-top: 1px solid var(--line); padding-top: 8px; display: grid; gap: 4px; justify-items: start; font: 400 13px/1.35 var(--sans); }
+.belief .nm { color: var(--ink); font-weight: 700; }
+.belief .st { color: var(--muted); }
+.belief .on .st { color: var(--ink); }
+.belief .off { opacity: 0.45; }
+
+/* trace */
+.fig-scroll { overflow-x: auto; }
+figure h3 { font-size: 14px; }
+figure .subtitle { font: 400 13px/1.45 var(--sans); color: var(--muted); margin: 2px 0 10px; }
+.trace { display: grid; grid-template-columns: 104px repeat(8, minmax(52px, 1fr)); min-width: 540px; font: 400 13px/1.3 var(--sans); }
+.trace .h { display: grid; justify-items: center; gap: 3px; padding: 4px 2px 8px; border-bottom: 1px solid var(--ink); color: var(--muted); font-size: 12px; text-align: center; }
+.trace .h b { color: var(--ink); font-size: 14px; }
+.trace .rh { display: flex; align-items: center; gap: 8px; padding: 8px 6px 8px 0; border-bottom: 1px solid var(--line); color: var(--ink); }
+.trace .c { border-bottom: 1px solid var(--line); display: grid; place-items: center; padding: 6px 3px; }
+.trace .c i { display: block; width: 100%; height: 26px; background: var(--washi); }
+.trace .c.no { color: var(--faint); }
+.trace .h.cur { border-bottom: 3px solid var(--beni); padding-bottom: 6px; }
+
+/* transitions table */
+.tbl-scroll { overflow-x: auto; }
+table.tr { min-width: 460px; }
+table.tr td:first-child { white-space: nowrap; }
+table.tr .won { color: var(--beni); font-weight: 700; }
+
+/* histogram */
+#hist { display: block; width: 100%; height: auto; }
+#hist .bar { fill: var(--washi); }
+#hist .bar.max { fill: var(--beni); }
+#hist .grid { stroke: var(--grid); }
+#hist .base { stroke: var(--ink); }
+#hist text { font: 400 12px/1 var(--sans); fill: var(--faint); }
+#hist .val { fill: var(--ink); }
+.stats { display: flex; flex-wrap: wrap; gap: 4px 24px; font: 400 14px/1.5 var(--sans); font-variant-numeric: tabular-nums; color: var(--muted); }
+.stats b { color: var(--ink); }
+
+/* checks */
+.checks { list-style: none; margin: 0; padding: 0; }
+.checks li { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 15.5px; }
+.checks li:first-child { border-top: 1px solid var(--line); }
+.checks li span:first-child { font-weight: 700; font-size: 14px; }
+@media (max-width: 700px) { .play { grid-template-columns: minmax(0, 1fr); } #table { max-width: 340px; margin: 0 auto; } }
+@media (max-width: 560px) {
+  .plan .w { display: none; }
+  .plan .k { font-size: 22px; }
+  .checks li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+}
+@media (prefers-reduced-motion: reduce) { #spin.go { transition: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    <p class="eyebrow"><a href="../../../">Sandbox</a> · Quant brain teasers · Coin toss series, 2</p>
+    <h1>Four coins on a spinning table: seven blind moves always make them match</h1>
+    <p class="lede">Four coins sit at the corners of a square on a round table, each heads or tails at random. You can't see them. Each turn you say which coins to flip, by where they sit in front of you. If all four then match, all heads or all tails, you win. If not, the table turns to an angle you don't know and you go again. What can you say to be sure of winning?</p>
+    <div class="plan" aria-label="The plan: opposite, neighbours, opposite, one, opposite, neighbours, opposite">
+      <div class="mv"><span class="n">1</span><span class="k">D</span><span class="w">opposite</span></div>
+      <div class="mv"><span class="n">2</span><span class="k">A</span><span class="w">neighbours</span></div>
+      <div class="mv"><span class="n">3</span><span class="k">D</span><span class="w">opposite</span></div>
+      <div class="mv"><span class="n">4</span><span class="k" style="color: var(--beni)">S</span><span class="w">one coin</span></div>
+      <div class="mv"><span class="n">5</span><span class="k">D</span><span class="w">opposite</span></div>
+      <div class="mv"><span class="n">6</span><span class="k">A</span><span class="w">neighbours</span></div>
+      <div class="mv"><span class="n">7</span><span class="k">D</span><span class="w">opposite</span></div>
+    </div>
+    <p class="key"><b>D</b> flip two diagonally opposite coins. <b>A</b> flip two neighbouring coins. <b>S</b> flip any one coin. Stop as soon as you are told you've won; at most seven moves are needed, and no shorter plan always works.</p>
+  </header>
+
+  <section aria-labelledby="s-play">
+    <div class="side">
+      <span class="mark" id="s-play">Play</span>
+      <p>Click seats to choose coins, then flip. Or let the plan move for you.</p>
+    </div>
+    <div class="body">
+      <div class="play">
+        <div>
+          <svg id="table" viewBox="0 0 320 306" role="group" aria-label="Round table with four coins. Seats are fixed in front of you; the table turns underneath."></svg>
+        </div>
+        <div class="body">
+          <div class="status" aria-live="polite">
+            <div class="big" id="verdict">Not yet</div>
+            <p class="sub" id="verdictSub"></p>
+          </div>
+          <div>
+            <span class="lbl">Choose coins</span>
+            <div class="row">
+              <button type="button" data-pick="5">Opposite pair</button>
+              <button type="button" data-pick="3">Neighbours</button>
+              <button type="button" data-pick="1">One coin</button>
+              <button type="button" data-pick="0">Clear</button>
+            </div>
+          </div>
+          <div class="row">
+            <button type="button" class="primary" id="btnFlip">Flip chosen coins</button>
+            <button type="button" id="btnPlan">Next plan move</button>
+            <button type="button" id="btnNew">New game</button>
+          </div>
+          <label class="toggle"><input type="checkbox" id="peek"> Peek at the coins</label>
+          <p class="log" id="log"></p>
+        </div>
+      </div>
+      <div>
+        <span class="lbl">What you know could still be on the table, from your moves alone</span>
+        <div class="belief" id="belief"></div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-shapes">
+    <div class="side">
+      <span class="mark" id="s-shapes">Three shapes</span>
+      <p>Turning the table, or swapping heads for tails, doesn't change a shape.</p>
+    </div>
+    <div class="body">
+      <p>Since the table turns and either all-heads or all-tails wins, only the pattern matters. A table that hasn't won has one of three shapes, and a move has one of three kinds: two opposite coins (D), two neighbours (A) or one coin (S). Flipping three is the same as flipping one and then swapping heads and tails, and flipping all four changes nothing.</p>
+      <div class="tbl-scroll">
+        <table class="tr">
+          <thead><tr><th>Shape now</th><th>Layouts</th><th>after D</th><th>after A</th><th>after S</th></tr></thead>
+          <tbody id="trBody"></tbody>
+        </table>
+      </div>
+      <p>Read down the D and A columns. <b>D never changes a shape except to win from Diagonal.</b> A swaps Adjacent and Diagonal, or wins from Adjacent. Neither ever touches One.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-why">
+    <div class="side">
+      <span class="mark" id="s-why">Why seven</span>
+      <p>Follow what could still be on the table.</p>
+    </div>
+    <div class="body">
+      <p><b>D A D wins any 2–2 table.</b> If the table is Diagonal, the first D wins. If it is Adjacent, D leaves it Adjacent; A then wins or makes it Diagonal; the second D wins Diagonal. One is untouched throughout.</p>
+      <p><b>S turns One into a 2–2 table.</b> If D A D hasn't won, the table must be One. Flipping one coin either wins (it was the odd coin) or makes a 2–2 table. Another D A D then finishes it. That is 3 + 1 + 3 = 7 moves.</p>
+      <figure>
+        <h3>Shapes still possible after each move</h3>
+        <p class="subtitle">A filled cell means that shape could still be on the table. Every route ends in a win by move 7.</p>
+        <div class="fig-scroll"><div class="trace" id="trace"></div></div>
+        <figcaption>Computed by flipping every possible table, removing those that win, and allowing every turn of the table.</figcaption>
+      </figure>
+      <p><b>No six-move plan works.</b> A breadth-first search over everything you could know, trying all 15 ways to choose coins each turn, finds nothing shorter than seven moves. Among plans built from D, A and S, D A D S D A D is the only seven-move plan that always wins.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-test">
+    <div class="side">
+      <span class="mark" id="s-test">Every case</span>
+      <p>All 16 starting tables against all 4<sup>7</sup> ways the table can turn.</p>
+    </div>
+    <div class="body">
+      <figure>
+        <h3>Moves needed to win with the plan</h3>
+        <p class="subtitle">Share of games, from 262,144 games: every start and every sequence of turns, played in your browser.</p>
+        <svg id="hist" viewBox="0 0 640 230" role="img" aria-label="Histogram of moves needed: each count from 0 to 7 is one eighth of games"></svg>
+        <figcaption>0 moves means the coins already matched. The worst case, 7 moves, is in red.</figcaption>
+      </figure>
+      <div class="stats" id="stats"></div>
+      <p>Each count from 0 to 7 is exactly one game in eight, so a random table takes 3.5 moves on average, and no table and no run of turns ever takes more than seven.</p>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-checks">
+    <div class="side">
+      <span class="mark" id="s-checks">Checks</span>
+      <p><code>solver.py</code> and its tests.</p>
+    </div>
+    <div class="body">
+      <p>The Python solver in <a href="solver.py"><code>solver.py</code></a> and the tests in <a href="test/test_solver.py"><code>test/test_solver.py</code></a> verify:</p>
+      <ul class="checks">
+        <li><span>Answer</span><span>After D A D S D A D, no table that hasn't won is still possible.</span></li>
+        <li><span>Worst case</span><span>Over all 16 starts and all 4<sup>7</sup> turn sequences, the plan never needs more than 7 moves.</span></li>
+        <li><span>Minimal</span><span>Breadth-first search over all 15 flip choices finds no plan shorter than 7.</span></li>
+        <li><span>Unique</span><span>Of the 3<sup>7</sup> plans built from D, A and S, only D A D S D A D always wins.</span></li>
+        <li><span>Shapes</span><span>The move table above: D wins Diagonal and keeps the others, A wins or swaps Adjacent and Diagonal, S links One with the 2–2 shapes.</span></li>
+        <li><span>Even spread</span><span>Moves needed are 0 to 7, each in exactly one game in eight.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    Coin toss series, problem 2. A classic blindfold puzzle, restated. Solution, code and page are original.
+  </footer>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const NS = "http://www.w3.org/2000/svg";
+  const FULL = 15;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const PLAN = ["D", "A", "D", "S", "D", "A", "D"];
+  const MASK = { D: 0b0101, A: 0b0011, S: 0b0001 };
+  const NAME = { D: "opposite pair", A: "neighbours", S: "one coin" };
+  const SHAPES = ["ONE", "ADJACENT", "DIAGONAL"];
+  const SHAPE_LABEL = { ONE: "One", ADJACENT: "Adjacent", DIAGONAL: "Diagonal", WON: "Won" };
+  const SHAPE_DESC = { ONE: "three match, one differs", ADJACENT: "two pairs side by side", DIAGONAL: "heads and tails alternate" };
+  const SHAPE_EX = { ONE: 0b0001, ADJACENT: 0b0011, DIAGONAL: 0b0101 };
+
+  // --- logic (mirrors solver.py) ---
+  const bit = (s, i) => (s >> i) & 1;
+  const rot = (s, k) => { k = ((k % 4) + 4) % 4; return ((s << k) | (s >> (4 - k))) & FULL; };
+  const won = s => s === 0 || s === FULL;
+  const pop = s => bit(s, 0) + bit(s, 1) + bit(s, 2) + bit(s, 3);
+  const shape = s => won(s) ? "WON" : pop(s) % 2 ? "ONE" : (s === 5 || s === 10) ? "DIAGONAL" : "ADJACENT";
+  const START = new Set([...Array(16).keys()].filter(s => !won(s)));
+  function step(belief, mask) {
+    const out = new Set();
+    for (const s of belief) { const t = s ^ mask; if (!won(t)) for (let k = 0; k < 4; k++) out.add(rot(t, k)); }
+    return out;
+  }
+  function trace(plan) { const t = [START]; for (const m of plan) t.push(step(t[t.length - 1], MASK[m])); return t; }
+
+  // --- mini diagrams: dots at the corners, seat 0 top-left, clockwise ---
+  const CORNER = [[8, 8], [22, 8], [22, 22], [8, 22]];
+  function mini(state, cls = "f") {
+    return `<svg class="mini" viewBox="0 0 30 30" aria-hidden="true"><rect class="sq" x="8" y="8" width="14" height="14"/>` +
+      CORNER.map(([x, y], i) => `<circle class="d ${bit(state, i) ? cls : ""}" cx="${x}" cy="${y}" r="4.5"/>`).join("") + `</svg>`;
+  }
+  document.querySelectorAll(".plan .mv").forEach((el, i) => el.insertAdjacentHTML("beforeend", mini(MASK[PLAN[i]], "x")));
+
+  // --- transitions table ---
+  (() => {
+    const counts = { ONE: 0, ADJACENT: 0, DIAGONAL: 0 };
+    for (const s of START) counts[shape(s)]++;
+    const fmt = set => [...set].sort((a, b) => ["WON", ...SHAPES].indexOf(a) - ["WON", ...SHAPES].indexOf(b))
+      .map(x => x === "WON" ? `<span class="won">Win</span>` : SHAPE_LABEL[x]).join(" or ");
+    $("trBody").innerHTML = SHAPES.map(sh => {
+      const s = SHAPE_EX[sh];
+      const cells = ["D", "A", "S"].map(m => {
+        const res = new Set(); for (let k = 0; k < 4; k++) res.add(shape(rot(s, k) ^ MASK[m]));
+        return `<td>${fmt(res)}</td>`;
+      }).join("");
+      return `<tr><td><span style="display:inline-flex;gap:8px;align-items:center">${mini(s)}<span><b>${SHAPE_LABEL[sh]}</b><br><span style="color:var(--muted);font-size:12.5px">${SHAPE_DESC[sh]}</span></span></span></td><td class="num">${counts[sh]} of 14</td>${cells}</tr>`;
+    }).join("");
+  })();
+
+  // --- trace figure ---
+  const TRACE = trace(PLAN);
+  function renderTrace(cur) {
+    let html = `<div class="h"></div><div class="h${cur === 0 ? " cur" : ""}"><b>Start</b>before any move</div>`;
+    PLAN.forEach((m, i) => { html += `<div class="h${cur === i + 1 ? " cur" : ""}">${mini(MASK[m], "x")}<b>${i + 1}. ${m}</b></div>`; });
+    for (const sh of SHAPES) {
+      html += `<div class="rh">${mini(SHAPE_EX[sh])}${SHAPE_LABEL[sh]}</div>`;
+      TRACE.forEach(b => {
+        const on = [...b].some(s => shape(s) === sh);
+        html += `<div class="c${on ? "" : " no"}" title="${SHAPE_LABEL[sh]}: ${on ? "possible" : "ruled out"}">${on ? "<i></i>" : "–"}</div>`;
+      });
+    }
+    $("trace").innerHTML = html;
+  }
+
+  // --- table drawing ---
+  const C = 160, R = 70, SEAT_R = 118;
+  const pos = (i, r) => { const a = (-135 + 90 * i) * Math.PI / 180; return [C + r * Math.cos(a), C + r * Math.sin(a)]; };
+  const svg = $("table");
+  svg.innerHTML = `<g id="spin"><circle class="felt" cx="${C}" cy="${C}" r="108"/>` +
+    `<rect class="sq" x="${C - R / Math.SQRT2}" y="${C - R / Math.SQRT2}" width="${R * Math.SQRT2}" height="${R * Math.SQRT2}"/>` +
+    [0, 1, 2, 3].map(i => { const [x, y] = pos(i, R); return `<g class="coin" id="coin${i}"><circle cx="${x}" cy="${y}" r="25"/><text x="${x}" y="${y}">?</text></g>`; }).join("") +
+    `</g>` +
+    [0, 1, 2, 3].map(i => {
+      const [x, y] = pos(i, R), [lx, ly] = pos(i, SEAT_R + 14);
+      return `<g class="seat" id="seat${i}" tabindex="0" role="checkbox" aria-checked="false" aria-label="Seat ${i + 1}">` +
+        `<circle class="hit" cx="${x}" cy="${y}" r="32"/><circle class="ring" cx="${x}" cy="${y}" r="33"/><text x="${lx}" y="${ly}">seat ${i + 1}</text></g>`;
+    }).join("") +
+    `<text class="you" x="${C}" y="298">you sit here</text>`;
+
+  const g = { coins: 0, sel: 0, moves: 0, plan: 0, done: false, busy: false, belief: START, history: [] };
+
+  function newGame() {
+    g.coins = Math.floor(Math.random() * 16);
+    Object.assign(g, { sel: 0, moves: 0, plan: 0, done: won(g.coins), busy: false, belief: START, history: [] });
+    render();
+  }
+
+  function render() {
+    const peek = $("peek").checked || g.done;
+    for (let i = 0; i < 4; i++) {
+      const el = $("coin" + i), h = bit(g.coins, i);
+      el.setAttribute("class", "coin " + (peek ? (h ? "h" : "t") : "hid"));
+      el.querySelector("text").textContent = peek ? (h ? "H" : "T") : "?";
+      const seat = $("seat" + i), on = bit(g.sel, i);
+      seat.classList.toggle("sel", !!on);
+      seat.setAttribute("aria-checked", on ? "true" : "false");
+    }
+    const v = $("verdict");
+    if (g.done) {
+      v.textContent = g.moves ? `Won in ${g.moves} move${g.moves > 1 ? "s" : ""}` : "Won before moving";
+      v.className = "big won";
+      $("verdictSub").textContent = g.moves ? `All four show ${g.coins ? "heads" : "tails"}.` : "The coins already matched. Start a new game to play.";
+    } else {
+      v.textContent = g.moves ? `Move ${g.moves} done` : "Not yet";
+      v.className = "big";
+      $("verdictSub").textContent = g.plan < PLAN.length && g.plan === g.moves
+        ? `Plan move ${g.plan + 1}: flip the ${NAME[PLAN[g.plan]]}.`
+        : g.plan === g.moves ? "" : "You've left the plan, so it may no longer be sure to win.";
+    }
+    $("btnFlip").disabled = g.done || g.busy || !g.sel;
+    $("btnPlan").disabled = g.done || g.busy || g.plan !== g.moves || g.plan >= PLAN.length;
+    document.querySelectorAll("[data-pick]").forEach(b => { b.disabled = g.done || g.busy; });
+    $("log").textContent = g.history.length ? "Moves: " + g.history.join(", ") : "No moves yet.";
+    // belief
+    $("belief").innerHTML = SHAPES.map(sh => {
+      const n = [...g.belief].filter(s => shape(s) === sh).length;
+      const on = n > 0;
+      return `<div class="${on ? "on" : "off"}">${mini(SHAPE_EX[sh])}<span class="nm">${SHAPE_LABEL[sh]}</span><span class="st">${on ? `possible (${n} layout${n > 1 ? "s" : ""})` : "ruled out"}</span></div>`;
+    }).join("");
+    renderTrace(g.plan === g.moves ? g.plan : -1);
+  }
+
+  function toggleSeat(i) { if (g.done || g.busy) return; g.sel ^= 1 << i; render(); }
+  for (let i = 0; i < 4; i++) {
+    const seat = $("seat" + i);
+    seat.addEventListener("click", () => toggleSeat(i));
+    seat.addEventListener("keydown", e => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggleSeat(i); } });
+  }
+  document.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", () => { g.sel = +b.dataset.pick; render(); }));
+
+  function describe(mask) {
+    const n = pop(mask);
+    if (n === 1) return "S";
+    if (mask === 5 || mask === 10) return "D";
+    if (n === 2) return "A";
+    return n === 3 ? "three" : "all four";
+  }
+
+  function flip(fromPlan) {
+    if (g.done || g.busy || !g.sel) return;
+    const mask = g.sel;
+    const kind = describe(mask);
+    if (fromPlan || (g.plan === g.moves && g.plan < PLAN.length && kind === PLAN[g.plan])) g.plan++;
+    g.coins ^= mask; g.moves++; g.sel = 0;
+    g.belief = step(g.belief, mask);
+    g.history.push(kind);
+    if (won(g.coins)) { g.done = true; render(); return; }
+    // the table turns by an unknown number of quarter turns
+    const k = Math.floor(Math.random() * 4);
+    render();
+    if (reduce) { g.coins = rot(g.coins, k); render(); return; }
+    g.busy = true; render();
+    const spin = $("spin");
+    spin.classList.add("go");
+    spin.style.transform = `rotate(${360 + 90 * k}deg)`;
+    setTimeout(() => {
+      spin.classList.remove("go"); spin.style.transform = "";
+      g.coins = rot(g.coins, k); g.busy = false; render();
+    }, 1150);
+  }
+
+  $("btnFlip").addEventListener("click", () => flip(false));
+  $("btnPlan").addEventListener("click", () => { g.sel = MASK[PLAN[g.plan]]; flip(true); });
+  $("btnNew").addEventListener("click", newGame);
+  $("peek").addEventListener("change", render);
+
+  // --- every case ---
+  (() => {
+    const counts = Array(9).fill(0);
+    for (let s = 0; s < 16; s++) {
+      for (let r = 0; r < 16384; r++) {
+        let st = s, used = won(st) ? 0 : -1;
+        for (let i = 0; i < 7 && used < 0; i++) {
+          st ^= MASK[PLAN[i]];
+          if (won(st)) used = i + 1; else st = rot(st, (r >> (2 * i)) & 3);
+        }
+        counts[used < 0 ? 8 : used]++;
+      }
+    }
+    const total = counts.reduce((a, b) => a + b, 0);
+    const shares = counts.slice(0, 8).map(c => c / total);
+    const W = 640, H = 230, L = 44, B = 196, T = 16, bw = (W - L - 10) / 8;
+    const y = v => B - (v / 0.2) * (B - T);
+    let h = "";
+    for (const t of [0, 0.05, 0.1, 0.15, 0.2]) h += `<line class="grid" x1="${L}" x2="${W - 6}" y1="${y(t)}" y2="${y(t)}"/><text x="${L - 6}" y="${y(t) + 4}" text-anchor="end">${Math.round(t * 100)}%</text>`;
+    shares.forEach((v, i) => {
+      const x = L + i * bw + 6;
+      h += `<rect class="bar${i === 7 ? " max" : ""}" x="${x}" y="${y(v)}" width="${bw - 12}" height="${B - y(v)}"><title>${i} moves: ${(v * 100).toFixed(1)}% of games</title></rect>`;
+      h += `<text class="val" x="${x + (bw - 12) / 2}" y="${y(v) - 6}" text-anchor="middle">${(v * 100).toFixed(1)}%</text>`;
+      h += `<text x="${x + (bw - 12) / 2}" y="${B + 18}" text-anchor="middle">${i}</text>`;
+    });
+    h += `<line class="base" x1="${L}" x2="${W - 6}" y1="${B}" y2="${B}"/>`;
+    $("hist").innerHTML = h;
+    const mean = shares.reduce((a, v, i) => a + v * i, 0);
+    $("stats").innerHTML = `<span>Games <b>${total.toLocaleString()}</b></span><span>Never won <b>${counts[8]}</b></span>` +
+      `<span>Most moves <b>${shares.map((v, i) => v ? i : 0).reduce((a, b) => Math.max(a, b))}</b></span><span>Average <b>${mean.toFixed(2)}</b></span>`;
+  })();
+
+  newGame();
+})();
+</script>
+</body>
+</html>
