@@ -123,15 +123,6 @@ ul.items h3 a:hover, ul.items h3 a:focus-visible { color: var(--beni); }
 ul.items h3 a::after { content: " →"; color: var(--beni); }
 ul.items p { font-size: 15.5px; line-height: 1.6; color: var(--ink); margin-top: 4px; }
 footer { margin: 56px 0 0 212px; max-width: 700px; }
-ol.sub { list-style: none; margin: 10px 0 0; padding: 0 0 0 16px; border-left: 1px solid var(--line); counter-reset: sub; }
-ol.sub li { padding: 8px 0 10px; border-bottom: 0; counter-increment: sub; }
-ol.sub li + li { border-top: 1px solid var(--line); }
-ol.sub h4 { margin: 0; font: 700 15.5px/1.4 var(--sans); }
-ol.sub h4::before { content: counter(sub) ". "; color: var(--muted); font-weight: 400; }
-ol.sub h4 a { text-decoration: underline; text-decoration-color: var(--beni); text-decoration-thickness: 1px; text-underline-offset: 4px; }
-ol.sub h4 a:hover, ol.sub h4 a:focus-visible { color: var(--beni); }
-ol.sub h4 a::after { content: " →"; color: var(--beni); }
-ol.sub p { font-size: 15px; }
 @media (max-width: 760px) {
   .page { padding-top: 32px; }
   header.top, footer { margin-left: 0; }
@@ -182,15 +173,9 @@ ol.sub p { font-size: 15px; }
         <h3><a href="quant_questions/binomial_tree_betting_scheme/">Binomial Tree Betting Scheme</a></h3>
         <p>Replicate a ±$100 payoff on a World Series with game-by-game bets. The answer: bet $31.25 on game 1.</p>
       </li>
-      <li class="series">
-        <h3>Coin toss series</h3>
-        <p>Puzzles built on tossing fair coins.</p>
-        <ol class="sub">
-          <li>
-            <h4><a href="quant_questions/coin_toss/rotating_table/">Four Coins on a Spinning Table</a></h4>
-            <p>Make four hidden coins match while the table turns after every move. Seven blind moves always win, and no shorter plan does.</p>
-          </li>
-        </ol>
+      <li>
+        <h3><a href="quant_questions/coin_toss/rotating_table/">Four Coins on a Spinning Table</a></h3>
+        <p>Make four hidden coins match while the table turns after every move. Seven blind moves always win, and no shorter plan does.</p>
       </li>
     </ul>
   </section>
