@@ -3,6 +3,7 @@ import random
 from unittest import TestCase
 
 from guess_the_other_coin.solver import (
+    MATCH, NO_MATCH, event, event_name, nash_equilibria, shared_events,
     COIN, STRATEGIES, guaranteed, outcomes, play, random_guessing_rate, simulate, win_rate, win_table,
 )
 
@@ -38,3 +39,26 @@ class TestGuessTheOtherCoin(TestCase):
         self.assertEqual(simulate("same", "opposite", 1000, random.Random(1)), 1000)
         wins = simulate("same", "same", 20000, random.Random(2))
         self.assertAlmostEqual(wins / 20000, 0.5, delta=0.02)
+
+    def test_guesses_are_bets_on_events(self):
+        self.assertEqual(event("A", "same"), MATCH)
+        self.assertEqual(event("B", "opposite"), NO_MATCH)
+        self.assertEqual(event_name(event("A", "heads")), "B heads")
+        self.assertEqual(event_name(event("B", "tails")), "A tails")
+
+    def test_winning_bets_are_complements(self):
+        everything = frozenset(product(COIN, COIN))
+        for a, b in guaranteed():
+            self.assertEqual(event("A", a) | event("B", b), everything)
+            self.assertFalse(event("A", a) & event("B", b))
+
+    def test_only_match_is_shared(self):
+        self.assertEqual(shared_events(), {MATCH, NO_MATCH})
+
+    def test_nash_equilibria(self):
+        eq = nash_equilibria()
+        self.assertEqual(len(eq), 6)
+        self.assertIn(("same", "opposite"), eq)
+        self.assertIn(("heads", "tails"), eq)
+        self.assertNotIn(("same", "same"), eq)
+        self.assertEqual(sorted(win_rate(a, b) for a, b in eq), [0.75] * 4 + [1.0] * 2)

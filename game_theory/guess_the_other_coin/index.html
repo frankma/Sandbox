@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Guess the Other Coin</title>
-<meta name="description" content="Coin Toss 1: two players toss coins and guess each other's. One guesses same, the other guesses opposite, and they win every toss.">
+<meta name="description" content="A team game: two players toss coins and guess each other's. One guesses same, the other guesses opposite, and they win every toss.">
 <style>
 /* Kinari theme (kinari.css at the repo root, inlined) */
 /* Kinari: unbleached paper, sumi ink, one beni red. Newspaper structure, MUJI restraint.
@@ -198,28 +198,161 @@ figure .subtitle { font: 400 13px/1.45 var(--sans); color: var(--muted); margin:
   .grid4 { grid-template-columns: 64px repeat(2, minmax(0, 1fr)); font-size: 13px; }
   .checks li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
 }
-@media (prefers-reduced-motion: reduce) { .coin.spin { animation: none; } }
+.answer .why b { font-weight: 700; color: var(--ink); }
+
+/* change of view: stepped explainer */
+section.wide { grid-template-columns: minmax(0, 1fr); }
+section.wide > .side { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin-bottom: 14px; }
+section.wide > .side p { margin: 0; }
+.main { display: grid; gap: 18px 32px; align-items: start; grid-template-columns: minmax(0, 1fr) minmax(260px, 330px);
+  grid-template-areas: "stage narr" "controls controls"; }
+.vstage { grid-area: stage; border-top: 1px solid var(--ink); padding-top: 12px; }
+.vstage .sh { font: 400 19px/1.35 var(--sans); max-width: none; }
+.vstage .sh b { color: var(--beni); }
+.vstage .sq { font: 400 14px/1.45 var(--sans); color: var(--muted); margin-top: 2px; max-width: none; }
+.vstage .vstrip { border-top: 1px solid var(--line); padding-top: 8px; font: 400 14.5px/1.45 var(--sans); max-width: none; }
+#view { display: block; width: 100%; max-width: min(560px, calc((100vh - 260px) * 1.52)); height: auto; margin: 8px auto 6px; }
+#view g.mv { transition: transform 0.9s cubic-bezier(.4, .1, .2, 1), opacity 0.6s ease; }
+#view.instant g.mv, #view.instant .tile rect { transition: none; }
+#view text { font: 400 13px/1 var(--sans); fill: var(--ink); }
+#view .muted { fill: var(--muted); font-size: 12px; }
+#view .bold { font-weight: 700; }
+#view .beni { fill: var(--beni); }
+#view .ln { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+#view .ln.faint { stroke: var(--faint); }
+#view .ln.red { stroke: var(--beni); stroke-width: 2; }
+#view .vcoin circle { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
+#view .vcoin text { font-size: 18px; font-weight: 700; text-anchor: middle; dominant-baseline: central; }
+#view .tile rect { fill: var(--surface); stroke: var(--ink); stroke-width: 1.2; transition: fill 0.6s; }
+#view.tint .tile.m rect { fill: var(--washi); }
+#view .tile .face { font-size: 19px; text-anchor: middle; }
+#view .tile .mk { font-size: 11px; text-anchor: middle; fill: var(--muted); opacity: 0; transition: opacity 0.5s; }
+#view.marks .tile .mk { opacity: 1; }
+#view .box { fill: var(--surface); stroke: var(--faint); stroke-dasharray: 3 3; }
+#view .box.key { stroke: var(--ink); stroke-dasharray: none; stroke-width: 1.5; }
+#view .mid { text-anchor: middle; }
+#view .end { text-anchor: end; }
+.narr { grid-area: narr; border-top: 1px solid var(--ink); padding-top: 16px; }
+.narr h2 { font-size: 22px; margin-top: 8px; }
+.narr p { font-size: 15.5px; line-height: 1.65; margin-top: 10px; }
+.controls.step { grid-area: controls; display: grid; grid-template-columns: auto auto auto minmax(0, 1fr) auto; gap: 8px; align-items: center; margin-top: 0; }
+.segs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; margin-left: 8px; }
+.seg { all: unset; cursor: pointer; display: block; height: 22px; position: relative; }
+.seg::before { content: ""; position: absolute; left: 0; right: 0; top: 10px; height: 3px; background: var(--line); }
+.seg span { position: absolute; left: 0; top: 10px; height: 3px; width: 0; background: var(--ink); }
+.seg.go span { transition: width 0.9s linear; }
+.seg[aria-current="step"] span { background: var(--beni); }
+.seg:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.secname { min-width: 9.5em; box-sizing: border-box; margin-left: 8px; padding: 9px 14px; border: 1px solid var(--line);
+  font: 700 14px/1 var(--sans); color: var(--ink); text-align: center; white-space: nowrap; }
+.secname.peek { color: var(--muted); }
+@media (max-width: 980px) {
+  .main { grid-template-columns: minmax(0, 1fr); grid-template-areas: "stage" "controls" "narr"; }
+  .narr { border-top: 0; padding-top: 0; }
+}
+@media (max-width: 480px) {
+  .controls.step { grid-template-columns: auto auto auto minmax(0, 1fr); }
+  .segs { grid-column: 1 / -1; grid-row: 2; margin-left: 0; }
+  .secname { grid-column: 4; grid-row: 1; justify-self: end; min-width: 0; }
+}
+.matrix button small { display: block; font-size: 11px; margin-top: 4px; opacity: 0.85; }
+.matrix button { grid-template-rows: auto auto; align-content: center; }
+@media (prefers-reduced-motion: reduce) { .coin.spin { animation: none; } #view g.mv, .seg.go span { transition: none; } }
 </style>
 </head>
 <body>
 <div class="page">
   <header class="top">
-    <p class="eyebrow"><a href="../../../">Sandbox</a> · Quant brain teasers · Coin toss series, 1</p>
-    <h1>Guess the other coin: one says “same”, the other says “opposite”, and they never lose</h1>
+    <p class="eyebrow"><a href="../../">Sandbox</a> · Game theory</p>
+    <h1>Guess the other coin: see the two coins as one event, and bet on both sides of it</h1>
     <p class="lede">Two players each toss a fair coin, separately. Each sees only their own coin, then guesses the other's. They win together if at least one guess is right and lose if both are wrong. They can agree a plan beforehand but cannot talk after the toss. Is there a plan that wins every time?</p>
     <div class="answer" aria-label="The answer">
       <div>
         <span class="who">Player A says</span>
         <p class="rule">“Yours is the <b>same</b> as mine”</p>
-        <p class="why">Right whenever the coins match: HH or TT.</p>
+        <p class="why">A bet that the coins <b>match</b>: right on HH or TT.</p>
       </div>
       <div>
         <span class="who">Player B says</span>
         <p class="rule">“Yours is the <b>opposite</b> of mine”</p>
-        <p class="why">Right whenever the coins differ: HT or TH.</p>
+        <p class="why">A bet that they <b>don't match</b>: right on HT or TH.</p>
       </div>
     </div>
   </header>
+
+  <section class="wide" aria-labelledby="s-view">
+    <div class="side">
+      <span class="mark" id="s-view">Change of view</span>
+      <p>From two coins to one event, in five steps. Use the arrows or click the bar.</p>
+    </div>
+    <div class="main">
+      <div class="vstage">
+        <p class="sh" id="stHead"></p>
+        <p class="sq" id="stQ"></p>
+        <svg id="view" viewBox="0 0 440 280" role="img" aria-labelledby="stHead">
+          <defs><marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 z" style="fill: var(--ink)"/></marker></defs>
+          <g class="mv" id="vArrows">
+            <path class="ln" d="M144 50 Q220 8 296 50" marker-end="url(#arr)"/>
+            <text class="mid muted" x="220" y="20">A guesses B's coin</text>
+            <path class="ln" d="M296 72 Q220 114 144 72" marker-end="url(#arr)"/>
+            <text class="mid muted" x="220" y="112">B guesses A's coin</text>
+          </g>
+          <g class="mv" id="vAxes">
+            <text class="mid muted" x="185" y="142">B: heads</text><text class="mid muted" x="265" y="142">B: tails</text>
+            <text class="end muted" x="142" y="179">A: heads</text><text class="end muted" x="142" y="239">A: tails</text>
+          </g>
+          <g class="mv" id="vPair">
+            <path class="ln faint" d="M160 84 L160 90 L280 90 L280 84"/>
+            <text class="mid muted" x="220" y="110">one draw: four outcomes, ¼ each</text>
+          </g>
+          <g class="mv vcoin" id="vCoinA"><circle r="22"/><text>A</text></g>
+          <g class="mv vcoin" id="vCoinB"><circle r="22"/><text>B</text></g>
+          <g class="mv tile m" id="tHH"><rect width="70" height="50"/><text class="face" x="35" y="27">H H</text><text class="mk" x="35" y="43">A right</text></g>
+          <g class="mv tile" id="tHT"><rect width="70" height="50"/><text class="face" x="35" y="27">H T</text><text class="mk" x="35" y="43">B right</text></g>
+          <g class="mv tile" id="tTH"><rect width="70" height="50"/><text class="face" x="35" y="27">T H</text><text class="mk" x="35" y="43">B right</text></g>
+          <g class="mv tile m" id="tTT"><rect width="70" height="50"/><text class="face" x="35" y="27">T T</text><text class="mk" x="35" y="43">A right</text></g>
+          <g class="mv" id="vBets">
+            <text class="mid bold" x="115" y="116">A bets Match</text><text class="mid muted" x="115" y="134">“same as mine”</text>
+            <text class="mid bold" x="325" y="116">B bets No match</text><text class="mid muted" x="325" y="134">“opposite of mine”</text>
+          </g>
+          <g class="mv" id="vBrackets">
+            <path class="ln" d="M40 208 L40 214 L190 214 L190 208"/><text class="mid" x="115" y="234">Match · ½</text>
+            <path class="ln" d="M250 208 L250 214 L400 214 L400 208"/><text class="mid" x="325" y="234">No match · ½</text>
+          </g>
+          <g class="mv" id="vSure">
+            <text class="mid" x="220" y="268">every toss lands in exactly one group</text>
+          </g>
+          <g class="mv" id="vEvents">
+            <text class="mid bold" x="110" y="30">A can bet on</text><text class="mid bold" x="330" y="30">B can bet on</text>
+            <rect class="box" x="30" y="48" width="160" height="32"/><text class="mid muted" x="110" y="68">B's coin is heads</text>
+            <rect class="box" x="30" y="92" width="160" height="32"/><text class="mid muted" x="110" y="112">B's coin is tails</text>
+            <rect class="box key" x="30" y="136" width="160" height="32"/><text class="mid bold" x="110" y="156">Match</text>
+            <rect class="box key" x="30" y="180" width="160" height="32"/><text class="mid bold" x="110" y="200">No match</text>
+            <rect class="box" x="250" y="48" width="160" height="32"/><text class="mid muted" x="330" y="68">A's coin is heads</text>
+            <rect class="box" x="250" y="92" width="160" height="32"/><text class="mid muted" x="330" y="112">A's coin is tails</text>
+            <rect class="box key" x="250" y="136" width="160" height="32"/><text class="mid bold" x="330" y="156">Match</text>
+            <rect class="box key" x="250" y="180" width="160" height="32"/><text class="mid bold" x="330" y="200">No match</text>
+            <path class="ln red" d="M190 152 L250 196"/><path class="ln red" d="M190 196 L250 152"/>
+            <text class="mid beni" x="220" y="246">split one event: A takes one side, B the other</text>
+            <text class="mid muted" x="220" y="268">“B's coin is heads” has no complement on B's list</text>
+          </g>
+        </svg>
+        <p class="vstrip" id="stStrip"></p>
+      </div>
+      <div class="narr" aria-live="polite">
+        <span class="mark" id="nMark"></span>
+        <h2 id="nTitle"></h2>
+        <p id="nText"></p>
+      </div>
+      <div class="controls step">
+        <button type="button" id="vPrev" aria-label="Previous step">←</button>
+        <button type="button" class="primary" id="vPlay">Replay</button>
+        <button type="button" id="vNext" aria-label="Next step">→</button>
+        <div class="segs" id="segs" role="group" aria-label="Steps"></div>
+        <div class="secname" id="secname" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
 
   <section aria-labelledby="s-toss">
     <div class="side">
@@ -271,13 +404,14 @@ figure .subtitle { font: 400 13px/1.45 var(--sans); color: var(--muted); margin:
       <p>Click a cell to load that pair of plans into the toss above.</p>
     </div>
     <div class="body">
-      <p>A player's guess can only depend on their own coin, so each has just four plans: say the same, say the opposite, always say heads or always say tails. A random plan is a mix of these four, so it can't beat the best of them. Of the 16 pairs, two win every toss.</p>
+      <p>A player's guess can only depend on their own coin, so each has just four plans: say the same, say the opposite, always say heads or always say tails. A random plan is a mix of these four, so it can't beat the best of them. Of the 16 pairs, two win every toss: the two ways to split Match and No match.</p>
       <figure>
         <h3>Chance of winning, by plan</h3>
-        <p class="subtitle">Rows: A's plan. Columns: B's plan. Outlined in red: the pairs that never lose.</p>
+        <p class="subtitle">Rows: A's plan. Columns: B's plan. Outlined in red: the pairs that never lose. “Stable”: neither player gains by switching plan alone.</p>
         <div class="fig-scroll"><div class="matrix" id="matrix"></div></div>
         <figcaption>Exact, from the four equally likely tosses. Guessing at random wins 75% of the time.</figcaption>
       </figure>
+      <p><b>As a strategy game.</b> The players share one payoff, so this is a team game with hidden information: each plan is a strategy chosen before the toss. Six pairs are stable, or Nash equilibria: the two that never lose, and the four where both always name a fixed face. Those four win only 75%, yet no player can do better by changing plan alone. Being stable isn't enough, so the team has to agree on the hedge before the coins are tossed.</p>
     </div>
   </section>
 
@@ -289,8 +423,8 @@ figure .subtitle { font: 400 13px/1.45 var(--sans); color: var(--muted); margin:
     <div class="body">
       <p><b>Each guess is right exactly half the time, whatever the plan.</b> A is guessing B's coin, which A never sees and which doesn't depend on A's coin. So across the four tosses, any plan of A's is right in exactly two, and the same goes for B. That makes four right guesses in all, whatever the players agree.</p>
       <p><b>Winning every toss needs exactly one right guess per toss.</b> There are four tosses and only four right guesses to share out. Every toss needs at least one, so no toss can have two: the guesses must never be right at the same time.</p>
-      <p><b>“Same” and “opposite” split the tosses perfectly.</b> “Same” is right on HH and TT; “opposite” is right on HT and TH. Every toss is covered once. When both players say “same”, they are right together on HH and TT and wrong together on HT and TH, which wastes two right guesses and wins only half the time.</p>
-      <p>The quant lesson is that you can't make either bet better than 50%, but you can choose how the two bets are correlated. The winning plan makes A's and B's hits perfectly negatively correlated, the way a hedge pairs a loss on one leg with a gain on the other.</p>
+      <p><b>The change of view finds that split.</b> As bets on the pair of coins, the two guesses must be complementary events. Match and No match is the only event both players can name, so A takes one side and B the other. When both say “same”, they back the same side: right together on HH and TT, wrong together on HT and TH, and only half the tosses are won.</p>
+      <p>The quant lesson is a hedge. You can't make either bet better than 50%, but by taking opposite sides of one event the two payoffs become perfectly negatively correlated, and the team's total is fixed at one right guess on every toss.</p>
     </div>
   </section>
 
@@ -312,7 +446,7 @@ figure .subtitle { font: 400 13px/1.45 var(--sans); color: var(--muted); margin:
   </section>
 
   <footer>
-    Coin toss series, problem 1. A classic cooperative guessing puzzle, restated. Solution, code and page are original.
+    Game theory. A classic cooperative guessing puzzle, restated. Solution, code and page are original.
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
@@ -326,6 +460,8 @@ figure .subtitle { font: 400 13px/1.45 var(--sans); color: var(--muted); margin:
     tails:    { label: "Always tails",     short: "always tails",  f: () => "T" },
   };
   const KEYS = Object.keys(PLANS);
+  const bet = (k, other) => k === "same" ? "a bet that the coins match" : k === "opposite" ? "a bet that they don't match"
+    : `a bet that ${other}'s coin is ${k}`;
   const WORD = { H: "heads", T: "tails" };
   const $ = id => document.getElementById(id);
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -350,7 +486,7 @@ figure .subtitle { font: 400 13px/1.45 var(--sans); color: var(--muted); margin:
     for (const [p, coin, guess, right, other] of [["A", r.ca, r.ga, r.ar, "B"], ["B", r.cb, r.gb, r.br, "A"]]) {
       const el = $("coin" + p);
       el.textContent = coin; el.classList.remove("blank");
-      $("guess" + p).innerHTML = `Sees ${WORD[coin]}, guesses ${other}'s coin is <b>${WORD[guess]}</b>.` +
+      $("guess" + p).innerHTML = `Sees ${WORD[coin]}, guesses ${other}'s coin is <b>${WORD[guess]}</b>, ${bet(p === "A" ? state.a : state.b, other)}.` +
         `<span class="verdict ${right ? "" : "wrong"}">${right ? "Right" : "Wrong"}: ${other} has ${WORD[p === "A" ? r.cb : r.ca]}.</span>`;
     }
     const v = $("verdict");
@@ -418,7 +554,7 @@ figure .subtitle { font: 400 13px/1.45 var(--sans); color: var(--muted); margin:
         html += `<div class="cell${now}" role="cell">` +
           `<span class="line ${r.ar ? "ok" : "no"}">A says ${WORD[r.ga]}: ${r.ar ? "right" : "wrong"}</span>` +
           `<span class="line ${r.br ? "ok" : "no"}">B says ${WORD[r.gb]}: ${r.br ? "right" : "wrong"}</span>` +
-          `<span class="out ${r.win ? "" : "lose"}">${r.win ? "Win" : "Lose"}</span></div>`;
+          `<span class="out ${r.win ? "" : "lose"}">${r.win ? "Win" : "Lose"} · ${ca === cb ? "Match" : "No match"}</span></div>`;
       }
     }
     $("grid4").innerHTML = html;
@@ -439,12 +575,13 @@ figure .subtitle { font: 400 13px/1.45 var(--sans); color: var(--muted); margin:
         const r = rate(a, b);
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.textContent = Math.round(r * 100) + "%";
+        const stable = KEYS.every(x => rate(x, b) <= r) && KEYS.every(y => rate(a, y) <= r);
+        btn.innerHTML = Math.round(r * 100) + "%" + (stable ? "<small>stable</small>" : "");
         btn.style.background = `color-mix(in srgb, ${ai} ${shade[r]}%, ${bg})`;
         btn.style.color = r === 1 ? bg : ink;
         if (r === 1) btn.classList.add("best");
         if (a === state.a && b === state.b) btn.classList.add("cur");
-        const desc = `A ${PLANS[a].short}, B ${PLANS[b].short}: wins ${Math.round(r * 100)}%`;
+        const desc = `A ${PLANS[a].short}, B ${PLANS[b].short}: wins ${Math.round(r * 100)}%${stable ? ", stable" : ""}`;
         btn.setAttribute("aria-label", desc + (a === state.a && b === state.b ? " (current)" : ""));
         btn.addEventListener("click", () => {
           state.a = a; state.b = b; $("planA").value = a; $("planB").value = b;
@@ -467,6 +604,122 @@ figure .subtitle { font: 400 13px/1.45 var(--sans); color: var(--muted); margin:
   $("btnReset").addEventListener("click", () => { resetTally(); renderAll(); });
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", renderMatrix);
   renderAll();
+})();
+</script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const svg = $("view");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const STEPS = [
+    { name: "Two guesses", head: "each player is right in two of the four tosses",
+      q: "Two separate half-chances: how can they add up to a sure win?",
+      title: "Each guess on its own is a coin flip",
+      text: "Seen coin by coin, A guesses B's coin and B guesses A's. Neither sees the coin they guess, so whatever the plan, each is right in exactly two of the four tosses. The grid marks who is right with the winning plan, but from this angle it looks like luck.",
+      strip: "Two guesses, each right half the time. Nothing here says they can't both miss." },
+    { name: "One pair", head: "the two coins are one draw from four outcomes",
+      q: "What if we stop looking at the coins one at a time?",
+      title: "Bind the two coins into one event",
+      text: "Put the coins together. The pair is a single random draw: HH, HT, TH or TT, each with chance ¼. Each guess is really a claim about this pair, not about one coin.",
+      strip: "One draw, four outcomes, ¼ each." },
+    { name: "One event", head: "sort the outcomes by one question: do the coins match?",
+      q: "Which question about the pair splits it cleanly in two?",
+      title: "Match or no match",
+      text: "Match is HH or TT; No match is HT or TH. Each has chance ½ and every toss lands on exactly one side. Neither player can see the answer, because it needs both coins, but each can bet on it.",
+      strip: "Two complementary events: exactly one of them happens on every toss." },
+    { name: "Opposite bets", head: "A bets the event happens, B bets it doesn't",
+      q: "How does a guess about a coin become a bet on the event?",
+      title: "Take opposite sides of the same bet",
+      text: "“Your coin is the same as mine” is the claim “the coins match”. “Your coin is the opposite of mine” is the claim “they don't match”. A backs the event and B backs its complement. One side of a complementary pair always pays, so the team never loses: a perfect hedge.",
+      strip: "A is right exactly on Match, B exactly on No match: one right guess on every toss." },
+    { name: "Why only this", head: "Match is the only event both players can bet on",
+      q: "Could any other pair of plans hedge this way?",
+      title: "The one bet both can split",
+      text: "A can only make claims about B's coin, so A's four plans are bets on “B has heads”, “B has tails”, Match or No match. B's are the same with A's coin. To cover every toss the two bets must be complements. “B has heads” has no complement on B's list; only Match and No match appear on both.",
+      strip: "Split Match and No match between the players: the only plan that never loses." },
+  ];
+  // per step: [x, y, opacity]; groups drawn in absolute coordinates use x = y = 0
+  const A = o => o.map(v => [0, 0, v]);
+  const LAYOUT = {
+    vCoinA: [[120, 61, 1], [190, 50, 1], [190, 50, 1], [190, 50, 1], [190, 50, 0]],
+    vCoinB: [[320, 61, 1], [250, 50, 1], [250, 50, 1], [250, 50, 1], [250, 50, 0]],
+    vArrows: A([1, 0, 0, 0, 0]),
+    vAxes: A([1, 0, 0, 0, 0]),
+    vPair: A([0, 1, 1, 0, 0]),
+    tHH: [[150, 150, 1], [50, 140, 1], [40, 150, 1], [40, 150, 1], [40, 150, 0]],
+    tHT: [[230, 150, 1], [140, 140, 1], [250, 150, 1], [250, 150, 1], [250, 150, 0]],
+    tTH: [[150, 210, 1], [230, 140, 1], [330, 150, 1], [330, 150, 1], [330, 150, 0]],
+    tTT: [[230, 210, 1], [320, 140, 1], [120, 150, 1], [120, 150, 1], [120, 150, 0]],
+    vBrackets: A([0, 0, 1, 1, 0]),
+    vBets: A([0, 0, 0, 1, 0]),
+    vSure: A([0, 0, 1, 1, 0]),
+    vEvents: A([0, 0, 0, 0, 1]),
+  };
+  const MARKS = [true, false, false, true, false], TINT = [false, false, true, true, false];
+
+  function apply(i, hidden) {
+    for (const [id, steps] of Object.entries(LAYOUT)) {
+      const [x, y, o] = steps[i], el = $(id);
+      el.style.transform = `translate(${x}px, ${y}px)`;
+      el.style.opacity = hidden ? 0 : o;
+    }
+    svg.classList.toggle("marks", !hidden && MARKS[i]);
+    svg.classList.toggle("tint", !hidden && TINT[i]);
+  }
+
+  const segs = $("segs"), name = $("secname");
+  STEPS.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "seg"; b.innerHTML = "<span></span>";
+    b.setAttribute("aria-label", `${s.name}: ${s.title}`);
+    b.addEventListener("click", () => go(i));
+    b.addEventListener("mouseenter", () => { name.textContent = s.name; name.classList.add("peek"); });
+    b.addEventListener("focus", () => { name.textContent = s.name; name.classList.add("peek"); });
+    b.addEventListener("mouseleave", restore); b.addEventListener("blur", restore);
+    segs.appendChild(b);
+  });
+  function restore() { name.textContent = STEPS[cur].name; name.classList.remove("peek"); }
+
+  let cur = 0;
+  function go(i, from) {
+    const prev = from !== undefined ? from : cur;
+    cur = Math.max(0, Math.min(STEPS.length - 1, i));
+    const s = STEPS[cur];
+    $("stHead").innerHTML = `<b>${s.name}</b>: ${s.head}`;
+    $("stQ").textContent = s.q;
+    $("stStrip").textContent = s.strip;
+    $("nMark").textContent = s.name; $("nTitle").textContent = s.title; $("nText").textContent = s.text;
+    restore();
+    $("vPrev").disabled = cur === 0; $("vNext").disabled = cur === STEPS.length - 1;
+    // starting state, then animate to the step
+    if (!reduce) {
+      svg.classList.add("instant");
+      if (prev === cur) apply(Math.max(cur - 1, 0), cur === 0); else apply(prev);
+      svg.getBoundingClientRect();
+      svg.classList.remove("instant");
+    }
+    requestAnimationFrame(() => apply(cur));
+    [...segs.children].forEach((b, k) => {
+      const bar = b.firstChild;
+      b.classList.remove("go"); bar.style.width = k < cur ? "100%" : "0";
+      if (k === cur) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+    });
+    const bar = segs.children[cur];
+    bar.getBoundingClientRect();
+    bar.classList.add("go"); requestAnimationFrame(() => { bar.firstChild.style.width = "100%"; });
+  }
+
+  $("vPrev").addEventListener("click", () => go(cur - 1));
+  $("vNext").addEventListener("click", () => go(cur + 1));
+  $("vPlay").addEventListener("click", () => go(cur, cur));
+  let inView = false;
+  new IntersectionObserver(es => { inView = es[0].isIntersecting; }, { threshold: 0.4 }).observe(svg);
+  addEventListener("keydown", e => {
+    if (!inView || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+    if (e.key === "ArrowRight") { e.preventDefault(); go(cur + 1); }
+    if (e.key === "ArrowLeft") { e.preventDefault(); go(cur - 1); }
+  });
+  go(0, 0);
 })();
 </script>
 </body>

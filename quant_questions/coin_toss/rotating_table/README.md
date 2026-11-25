@@ -1,4 +1,4 @@
-# Coin Toss 2: Four Coins on a Spinning Table
+# Coin Toss 1: Four Coins on a Spinning Table
 
 ## Problem
 
