@@ -1,4 +1,4 @@
-"""Coin Toss 1: guess the other coin.
+"""Guess the other coin: a two-player team game with hidden coins.
 
 Two players each toss a fair coin, separately and independently. Each sees only
 their own coin, then guesses the other player's coin. They win together if at
@@ -12,6 +12,15 @@ plan is a mixture of these, so checking the 4 x 4 = 16 pairs is enough.
 Winning plan: A guesses B's coin is the SAME as A's; B guesses A's coin is the
 OPPOSITE of B's. If the coins match A is right, if they differ B is right, so
 exactly one guess is right on every toss.
+
+The change of view: treat the two coins as one draw from {HH, HT, TH, TT}. Every
+guess is then a bet on an event of that draw. "Same as mine" bets on MATCH,
+"opposite of mine" bets on NO MATCH. Two bets cover every toss only if they are
+complements, and MATCH / NO MATCH is the only event both players can bet on.
+
+As a game, the 4 x 4 win table is a common-payoff game. Its pure Nash
+equilibria are the two 100% pairs and four 75% pairs (both name a fixed face),
+which is why the plan has to be agreed beforehand.
 
 Run `python3 solver.py` to print the win rate of every pair of plans.
 """
@@ -31,6 +40,41 @@ STRATEGIES = {
     "heads": lambda own: "H",
     "tails": lambda own: "T",
 }
+
+
+def event(player, strategy):
+    """The event a player's guess bets on: the set of (coin_a, coin_b) where it is right."""
+    if player == "A":
+        return frozenset((a, b) for a, b in product(COIN, COIN) if STRATEGIES[strategy](a) == b)
+    return frozenset((a, b) for a, b in product(COIN, COIN) if STRATEGIES[strategy](b) == a)
+
+
+MATCH = frozenset({("H", "H"), ("T", "T")})
+NO_MATCH = frozenset({("H", "T"), ("T", "H")})
+
+
+def event_name(ev):
+    names = {MATCH: "match", NO_MATCH: "no match"}
+    if ev in names:
+        return names[ev]
+    (a, b), _ = sorted(ev)
+    side = "A" if all(x[0] == a for x in ev) else "B"
+    face = a if side == "A" else b
+    return f"{side} {'heads' if face == 'H' else 'tails'}"
+
+
+def shared_events():
+    """Events that both players can bet on."""
+    return {event("A", s) for s in STRATEGIES} & {event("B", s) for s in STRATEGIES}
+
+
+def nash_equilibria():
+    """Pure pairs where neither player can raise the shared win rate alone."""
+    table = win_table()
+    return sorted(
+        (a, b) for (a, b), r in table.items()
+        if all(table[(x, b)] <= r for x in STRATEGIES) and all(table[(a, y)] <= r for y in STRATEGIES)
+    )
 
 
 def play(strategy_a, strategy_b, coin_a, coin_b):
@@ -80,6 +124,10 @@ if __name__ == "__main__":
     print()
     print("Guaranteed wins:", ", ".join(f"A {a} / B {b}" for a, b in guaranteed()))
     print(f"Random guessing wins {random_guessing_rate():.0%} of the time.")
+    print()
+    print("Events: A same ->", event_name(event("A", "same")), "| B opposite ->", event_name(event("B", "opposite")))
+    print("Events both can bet on:", sorted(event_name(e) for e in shared_events()))
+    print("Nash equilibria:", ", ".join(f"{a}/{b} ({win_rate(a, b):.0%})" for a, b in nash_equilibria()))
     print()
     print("A same / B opposite, every toss:")
     for (ca, cb), (ar, br, win) in outcomes("same", "opposite").items():

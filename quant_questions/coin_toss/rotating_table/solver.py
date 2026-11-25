@@ -1,4 +1,4 @@
-"""Coin Toss 2: four coins on a rotating table.
+"""Coin Toss 1: four coins on a rotating table.
 
 Four coins sit at the corners of a square on a round table, each heads or tails
 at random. You can't see them. Each turn you name some seats (relative to you)
