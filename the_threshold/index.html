@@ -110,6 +110,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   /* page */
   main { max-width: 1040px; margin: 0 auto; padding: 40px 20px 56px; }
   header .lede { margin-top: 14px; }
+  .label { display: block; font: 700 12px/1.2 var(--sans); color: var(--beni); }   /* section label above the h1, as on the other sub-pages */
   header h1 { margin-top: 8px; }
   section { margin-top: 52px; }
   section > h2 { margin-bottom: 8px; }
@@ -194,7 +195,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
 <body>
 <main>
   <header>
-    <div class="eyebrow">Sandbox · Percolation</div>
+    <span class="label">Games</span>
     <h1>The Threshold</h1>
     <p class="lede">Open each cell of an N×N grid with probability p, pour water in along the top row and let it spread breadth-first. Does it reach the bottom? Below a critical p almost never; above it almost always.</p>
     <div class="verdict" aria-live="polite">
