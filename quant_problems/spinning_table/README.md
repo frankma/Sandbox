@@ -48,5 +48,5 @@ Over all 16 starting tables and all $4^7$ sequences of turns, the plan needs 0, 
 | File | Contents |
 |---|---|
 | [`solver.py`](solver.py) | Rotations, shapes, belief tracking, the breadth-first search and a game player. `python3 solver.py` prints the plan and its trace. |
-| [`test/test_solver.py`](test/test_solver.py) | Unit tests. From `quant_questions/coin_toss/`, run `python3 -m unittest discover -s rotating_table -t .` |
+| [`test/test_solver.py`](test/test_solver.py) | Unit tests. From `quant_problems/`, run `python3 -m unittest discover -s spinning_table -t .` |
 | [`index.html`](index.html) | Interactive page: play blind on a spinning table, watch which shapes are still possible, and test the plan against every case. |

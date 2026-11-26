@@ -11,7 +11,7 @@ from sudoku.sudoku import Sudoku
 RANK = 3
 SIZE = RANK * RANK
 
-KINARI_CSS = Path(__file__).resolve().parents[1] / 'kinari.css'
+KINARI_CSS = Path(__file__).resolve().parents[2] / 'kinari.css'
 
 
 def _kinari_tokens() -> dict:

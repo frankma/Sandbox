@@ -85,5 +85,5 @@ where $8/(k\pi)^3$ are the sine coefficients of $x - x^2$ (they vanish for even 
 | File | Contents |
 |---|---|
 | [`solver.py`](solver.py) | Pure-Python Crank–Nicolson solver and exact series. `python3 solver.py` prints the table. |
-| [`test/test_solver.py`](test/test_solver.py) | Unit tests. From `quant_questions/`, run `python3 -m unittest discover -s heat_equation_finite_difference -t .` |
+| [`test/test_solver.py`](test/test_solver.py) | Unit tests. From `quant_problems/`, run `python3 -m unittest discover -s heat_equation_finite_difference -t .` |
 | [`index.html`](index.html) | Stand-alone visual walk-through. Open it in a browser. |
