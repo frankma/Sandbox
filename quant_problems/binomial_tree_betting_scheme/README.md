@@ -91,5 +91,5 @@ This is $X$ times the probability that a fair series reaches the deciding game. 
 | File | Contents |
 |---|---|
 | [`solver.py`](solver.py) | Backward induction, betting tree and path simulator. `python3 solver.py` prints the tree. |
-| [`test/test_solver.py`](test/test_solver.py) | Unit tests. From `quant_questions/`, run `python3 -m unittest discover -s binomial_tree_betting_scheme -t .` |
+| [`test/test_solver.py`](test/test_solver.py) | Unit tests. From `quant_problems/`, run `python3 -m unittest discover -s binomial_tree_betting_scheme -t .` |
 | [`index.html`](index.html) | Stand-alone interactive tree. Open it in a browser. |

@@ -307,8 +307,8 @@ footer .engine { font: 400 12px/1.5 var(--sans); }
 </main>
 
 <script>
-// Engine: a JavaScript port of sudoku/generator.py and sudoku/solver.py (LOGICAL method),
-// used when the page is opened as a plain file. When served by sudoku/webapp/app.py,
+// Engine: a JavaScript port of games/sudoku/generator.py and games/sudoku/solver.py (LOGICAL method),
+// used when the page is opened as a plain file. When served by games/sudoku/webapp/app.py,
 // the page calls the Python solver through the /api endpoints instead.
 const SudokuEngine = (function () {
     const RANK = 3;
@@ -653,8 +653,8 @@ const SudokuEngine = (function () {
 
     function showEngine() {
         engineEl.textContent = useApi
-            ? 'Solver: sudoku/solver.py (Python, via the local Flask server)'
-            : 'Solver: in-page JavaScript port of sudoku/solver.py — no server needed';
+            ? 'Solver: games/sudoku/solver.py (Python, via the local Flask server)'
+            : 'Solver: in-page JavaScript port of games/sudoku/solver.py — no server needed';
     }
 
     // ---- candidate tooltip ----

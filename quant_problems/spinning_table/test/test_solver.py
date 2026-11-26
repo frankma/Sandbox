@@ -3,7 +3,7 @@ from itertools import product
 import random
 from unittest import TestCase
 
-from rotating_table.solver import (
+from spinning_table.solver import (
     MOVES, PLAN, START, STATES, min_moves, orbit, play, rotate, run, shape, shapes, shortest_plan, step, won,
     worst_case,
 )
