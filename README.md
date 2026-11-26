@@ -12,8 +12,8 @@ Once a project has a proper home in another repo, it moves out of the sandbox. T
 | [maze/](maze/) | Grid maze and a path solver | numpy |
 | [sudoku/](sudoku/) | Sudoku solver and generator, with tkinter, Flask and Streamlit front-ends | numpy (+ flask / streamlit, see [requirements](sudoku/requirements.txt)) |
 | [finding_fox/](finding_fox/) | Word-search game, a single HTML page | none (open in a browser) |
-| [the_threshold/](the_threshold/) | Percolation game: breadth-first flood through an N×N grid, a Monte Carlo threshold curve, and a rot mode (random rot vs targeted attack, with a break-fraction histogram around 1 − p_c), a single HTML page | none (open in a browser) |
-| [quant_questions/](quant_questions/) | Quant brain teasers, each with a write-up, solver, tests and visual page | none |
+| [the_threshold/](the_threshold/) | Percolation simulation (listed under Quant problems on the front page): breadth-first flood through an N×N grid, a Monte Carlo threshold curve, and a rot mode (random rot vs targeted attack, with a break-fraction histogram around 1 − p_c), a single HTML page | none (open in a browser) |
+| [quant_questions/](quant_questions/) | Quant problems, each with a write-up, solver, tests and visual page | none |
 | [game_theory/](game_theory/) | Game-theory problems, each with a write-up, solver, tests and visual page | none |
 
 ## Running

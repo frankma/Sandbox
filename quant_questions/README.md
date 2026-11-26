@@ -1,6 +1,8 @@
-# Brain Teasers
+# Quant Problems
 
 Each folder is self-contained, with the problem, a worked solution, runnable code, tests and a visual HTML page.
+
+The front page's Quant problems section also lists [The Threshold](../the_threshold/), a percolation simulation that lives at the repo root as a single page with no Python solver.
 
 | Problem | Topic | Answer |
 |---|---|---|

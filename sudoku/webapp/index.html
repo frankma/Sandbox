@@ -115,7 +115,8 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
     padding: 32px 16px 40px;
 }
 
-h1 { margin: 6px 0 8px; }
+h1 { margin: 6px 0 8px; font-weight: 700; font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.1; letter-spacing: -0.01em; }   /* bold title, as on the other sub-pages */
+.label { display: block; font: 700 12px/1.2 var(--sans); color: var(--beni); }   /* section label above the h1, as on the other sub-pages */
 .standfirst { margin: 0 0 22px; }
 
 .grid {
@@ -263,7 +264,7 @@ footer .engine { font: 400 12px/1.5 var(--sans); }
 </head>
 <body>
 <main class="page">
-    <div class="kicker">Puzzles</div>
+    <span class="label">Games</span>
     <h1>Sudoku</h1>
     <p class="standfirst">Fill every row, column and box with 1–9. Hover an empty square to see which digits still fit.</p>
 

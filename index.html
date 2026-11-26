@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sandbox</title>
-<meta name="description" content="Small, self-contained games and quant brain teasers, each a single page that runs in the browser.">
+<meta name="description" content="Small, self-contained games, quant problems and game theory, each a single page that runs in the browser.">
 <style>
 /* Kinari theme (kinari.css at the repo root, inlined) */
 /* Kinari: unbleached paper, sumi ink, one beni red. Newspaper structure, MUJI restraint.
@@ -134,7 +134,7 @@ footer { margin: 56px 0 0 212px; max-width: 700px; }
 <body>
 <div class="page">
   <header class="top">
-    <h1>Sandbox: games and brain teasers that run in the browser</h1>
+    <h1>Sandbox: games and quant problems that run in the browser</h1>
     <p class="lede">Small, self-contained projects. Each page below is a single HTML file with nothing to install.</p>
   </header>
 
@@ -144,10 +144,6 @@ footer { margin: 56px 0 0 212px; max-width: 700px; }
       <p>Play in the page.</p>
     </div>
     <ul class="items">
-      <li>
-        <h3><a href="the_threshold/">The Threshold</a></h3>
-        <p>Percolation on an N×N grid: open cells with probability p, flood from the top breadth-first, and watch the chance of reaching the bottom jump at the critical threshold. Includes a Monte Carlo threshold curve and a rot mode.</p>
-      </li>
       <li>
         <h3><a href="sudoku/webapp/">Sudoku</a></h3>
         <p>Generate a puzzle at your chosen difficulty, ask for a hint, or watch the logical solver fill it step by step. Also runs as Flask, tkinter and Streamlit apps.</p>
@@ -161,8 +157,8 @@ footer { margin: 56px 0 0 212px; max-width: 700px; }
 
   <section aria-labelledby="quant">
     <div class="side">
-      <span class="mark" id="quant">Quant brain teasers</span>
-      <p>Problem, worked solution, solver, tests and a visual page.</p>
+      <span class="mark" id="quant">Quant problems</span>
+      <p>A question with an answer, worked through on a visual page.</p>
     </div>
     <ul class="items">
       <li>
@@ -176,6 +172,10 @@ footer { margin: 56px 0 0 212px; max-width: 700px; }
       <li>
         <h3><a href="quant_questions/coin_toss/rotating_table/">Four Coins on a Spinning Table</a></h3>
         <p>Make four hidden coins match while the table turns after every move. Seven blind moves always win, and no shorter plan does.</p>
+      </li>
+      <li>
+        <h3><a href="the_threshold/">The Threshold</a></h3>
+        <p>Percolation on an N×N grid: open cells with probability p, flood from the top breadth-first, and watch the chance of reaching the bottom jump at the critical threshold. Includes a Monte Carlo threshold curve and a rot mode.</p>
       </li>
     </ul>
   </section>
