@@ -8,6 +8,5 @@ class TestExpression(TestCase):
         env = {'x': 1, 'y': 2, 'z': 3}
         expression = Plus(Minus(Constant(1), Variable('z')), Times(Divide(Variable('x'), Constant(3)), Variable('y')))
 
-        exp = expression.__str__()
-        val = expression.evaluate(env)
-        pass
+        self.assertEqual(str(expression), '1 - z + (x / 3) * y')
+        self.assertAlmostEqual(expression.evaluate(env), 1 - 3 + 1 / 3 * 2)

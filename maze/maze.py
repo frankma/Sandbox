@@ -12,7 +12,6 @@ class Maze(object):
         self.moves = list(zip([0, 1, 0, -1], [1, 0, -1, 0]))  # East - South - West - North
         if not (self.check_coordinate(start_coordinate) and self.check_coordinate(end_coordinate)):
             raise ValueError('invalid start/end coordinate')
-        pass
 
     def display(self):
         canvas = np.empty(self.grid.shape, dtype='str')
@@ -21,7 +20,6 @@ class Maze(object):
         canvas[self.start_coordinate] = 'S'
         canvas[self.end_coordinate] = 'E'
         print(canvas)
-        pass
 
     def check_coordinate(self, coordinate: Tuple[int, int]):
         rdx, cdx = coordinate

@@ -33,7 +33,6 @@ class TestSudoku(TestCase):
                                     [3, 1, 0, 0, 0, 2, 0, 0, 0],
                                     [0, 0, 0, 8, 0, 0, 0, 0, 7],
                                     [2, 0, 0, 0, 0, 0, 1, 0, 3]]
-        pass
 
     def tearDown(self) -> None:
         pass
@@ -48,7 +47,6 @@ class TestSudoku(TestCase):
         self.assertRaises(ValueError, Sudoku.create, self.grid_wrong_shape)
 
         self.assertRaises(ValueError, Sudoku.create, self.grid_wrong_element)
-        pass
 
     def test_get_vec(self):
         sudoku = Sudoku.create(self.grid_two_by_two)
@@ -66,7 +64,6 @@ class TestSudoku(TestCase):
             vec_blc = sudoku.get_vec(n, SdkVec.Block)
             grid_blc = np.array([self.grid_two_by_two[rdx][cdx] for rdx, cdx in block_indices[n]])
             self.assertTrue(np.all((grid_blc - vec_blc) == 0))
-        pass
 
     def test_get_get_relevant_coordinates(self):
         sudoku = Sudoku.create(self.grid_two_by_two)
@@ -80,7 +77,6 @@ class TestSudoku(TestCase):
         self.assertTrue(coordinates_2_1_ss.__len__() == 4)
         coordinates_2_1_sf_ss = sudoku.get_relevant_coordinates((2, 1), skip_filled=False, skip_self=False)
         self.assertTrue(coordinates_2_1_sf_ss.__len__() == 8)
-        pass
 
     def test_validate_coord(self):
         sudoku = Sudoku.create(self.grid_two_by_two)
@@ -88,7 +84,6 @@ class TestSudoku(TestCase):
         sudoku.grid[(0, 0)] = 2  # duplicated value
         self.assertFalse(sudoku.validate_coord([(0, 0), (0, 1), (0, 2), (0, 3), (1, 0), (2, 0), (3, 0), (1, 1)]))
         self.assertTrue(sudoku.validate_coord([(1, 2), (1, 3), (2, 1), (2, 2), (2, 3), (3, 1), (3, 2), (3, 3)]))
-        pass
 
     def test_fill_coord(self):
         sudoku = Sudoku.create(self.grid_two_by_two)
@@ -99,4 +94,3 @@ class TestSudoku(TestCase):
         self.assertTrue(sudoku.grid[(3, 3)] == 0)
         self.assertTrue(sudoku.fill_coord((3, 3), 2))
         self.assertTrue(sudoku.grid[(3, 3)] == 2)
-        pass

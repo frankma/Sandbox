@@ -91,45 +91,18 @@ class TestSudoKuSolver(TestCase):
                        [0, 0, 0, 8, 0, 0, 0, 0, 7],
                        [2, 0, 0, 0, 0, 0, 1, 0, 3]]
         self.solver_expert = SudokuSolver(Sudoku.create(grid_expert))
-        pass
-
-    def tearDown(self) -> None:
-        pass
 
     def test_auto_complete(self):
         self.solver_no_trial_needed.auto_reduction()
         self.assertTrue(self.solver_no_trial_needed.solution.is_fulfilled)
-        pass
 
     def test_trial_fill(self):
-        import cProfile
-        import pstats
-        profiler = cProfile.Profile()
-        profiler.enable()
-
         self.solver_expert.solve(solver_type=SolverType.LOGICAL)
         self.assertTrue(self.solver_expert.solution.is_fulfilled)
 
-        profiler.disable()
-        stats = pstats.Stats(profiler).sort_stats('tottime')
-        # stats = pstats.Stats(profiler).sort_stats('cumtime')
-        stats.print_stats()
-        pass
-
     def test_backtrack_fill(self):
-        import cProfile
-        import pstats
-        profiler = cProfile.Profile()
-        profiler.enable()
-
         self.solver_expert.solve(solver_type=SolverType.BACKTRACK)
         self.assertTrue(self.solver_expert.solution.is_fulfilled)
-
-        profiler.disable()
-        stats = pstats.Stats(profiler).sort_stats('tottime')
-        # stats = pstats.Stats(profiler).sort_stats('cumtime')
-        stats.print_stats()
-        pass
 
     def test_solve(self):
         solver_no_trial_needed = self.solver_no_trial_needed.__copy__()
@@ -178,7 +151,6 @@ class TestSudoKuSolver(TestCase):
         self.assertTrue(solver_medium.solution.is_fulfilled)
         self.assertTrue(solver_hard.solution.is_fulfilled)
         self.assertTrue(solver_expert.solution.is_fulfilled)
-        pass
 
     def test_solve_steps_matches_solve(self):
         solver_reference = self.solver_medium.__copy__()
@@ -198,7 +170,6 @@ class TestSudoKuSolver(TestCase):
         for coord, value, _ in steps:
             self.assertTrue(replay.fill_coord(coord, value) or replay.grid[coord] == value)
         self.assertTrue(replay.is_fulfilled)
-        pass
 
     def test_hint_progresses_towards_solution(self):
         solver = self.solver_hard.__copy__()
@@ -212,10 +183,8 @@ class TestSudoKuSolver(TestCase):
             solver.fill_coordinates({coord: value})
 
         self.assertTrue(solver.solution.unfilled_count < self.solver_hard.solution.unfilled_count)
-        pass
 
     def test_hint_none_when_solved(self):
         solver = self.solver_no_trial_needed.__copy__()
         solver.solve(solver_type=SolverType.LOGICAL)
         self.assertIsNone(solver.hint())
-        pass
