@@ -83,6 +83,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 input, select { font: 400 15px/1.2 var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 0; padding: 7px 8px; }
 footer { font: 400 12.5px/1.5 var(--sans); color: var(--faint); border-top: 1px solid var(--line); padding-top: 16px; }
+footer p { max-width: none; }   /* footers are short reference text: they may use the whole column */
 /* charts and diagrams stretch to their figure; never style bare `svg`, or MathJax formulas blow up in Safari */
 figure > svg, .fig-scroll > svg { display: block; width: 100%; height: auto; }
 mjx-container svg { display: inline; max-width: none; }
@@ -123,7 +124,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
     padding-block: 48px 72px;
   }
   main { max-width: 1000px; margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; }
-  .prose { max-width: 66ch; }
+  .prose { max-width: 64ch; }
   section, header { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
   mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width: 100%; }
   h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.12; }
@@ -186,7 +187,8 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   td.v { color: var(--ember); font-weight: 700; }
   tfoot td { color: var(--muted); border-bottom: 0; }
 
-  .checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 0; max-width: 72ch; }
+  .checks { list-style: none; padding: 0; margin: 0; display: grid; gap: 0; }
+  .checks li > span:last-child { max-width: 64ch; }
   .checks li { display: grid; grid-template-columns: 9.5rem 1fr; gap: 16px; padding-block: 12px; border-bottom: 1px solid var(--rule); }
   .checks li:first-child { border-top: 1px solid var(--rule); }
   .checks .label { padding-top: 0.35em; line-height: 1.3; }
@@ -195,7 +197,6 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   svg text { fill: var(--muted); font-family: var(--font-data); font-size: 11px; }
   svg .axis { stroke: var(--ink); stroke-width: 1; }
   svg .gridline { stroke: var(--grid); stroke-width: 1; }
-  footer { color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--rule); padding-top: 18px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
   /* paper-theme base rules this page needs to undo */

@@ -79,6 +79,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 input, select { font: 400 15px/1.2 var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 0; padding: 7px 8px; }
 footer { font: 400 12.5px/1.5 var(--sans); color: var(--faint); border-top: 1px solid var(--line); padding-top: 16px; }
+footer p { max-width: none; }   /* footers are short reference text: they may use the whole column */
 /* charts and diagrams stretch to their figure; never style bare `svg`, or MathJax formulas blow up in Safari */
 figure > svg, .fig-scroll > svg { display: block; width: 100%; height: auto; }
 mjx-container svg { display: inline; max-width: none; }
@@ -117,7 +118,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   body { background: var(--paper); color: var(--ink); font: 400 1.0625rem/1.65 var(--font-body); padding-inline: 20px; padding-block: 44px 72px; }
   main { max-width: 1040px; margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; }
   section, header { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
-  .prose { max-width: 66ch; }
+  .prose { max-width: 64ch; }
   .prose > * + * { margin-top: 0.85em; }
   p { margin: 0; }
   h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; line-height: 1.1; font-weight: 700; }
@@ -243,8 +244,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .strategies div { padding: 10px 0 12px; border-bottom: 1px solid var(--rule); display: grid; gap: 2px; }
   .strategies b { font: 700 0.9rem/1.3 var(--font-label); }
   .strategies span { font-size: 0.95rem; color: var(--muted); }
-  ol.findings { margin: 0; padding-left: 1.3em; display: grid; gap: 10px; max-width: 70ch; }
-  footer { color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--rule); padding-top: 18px; }
+  ol.findings { margin: 0; padding-left: 1.3em; display: grid; gap: 10px; max-width: 64ch; }
 
   /* paper-theme base rules this page needs to undo */
   input[type="range"] { padding: 0; border: 0; background: transparent; }
