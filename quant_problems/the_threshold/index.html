@@ -82,6 +82,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 input, select { font: 400 15px/1.2 var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 0; padding: 7px 8px; }
 footer { font: 400 12.5px/1.5 var(--sans); color: var(--faint); border-top: 1px solid var(--line); padding-top: 16px; }
+footer p { max-width: none; }   /* footers are short reference text: they may use the whole column */
 /* charts and diagrams stretch to their figure; never style bare `svg`, or MathJax formulas blow up in Safari */
 figure > svg, .fig-scroll > svg { display: block; width: 100%; height: auto; }
 mjx-container svg { display: inline; max-width: none; }
@@ -114,7 +115,6 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   header h1 { margin-top: 8px; font-weight: 700; font-size: clamp(2.2rem, 5vw, 3.4rem); line-height: 1.1; letter-spacing: -0.01em; }   /* bold title, as on the other sub-pages */
   section { margin-top: 52px; }
   section > h2 { margin-bottom: 8px; }
-  section > p { max-width: 66ch; }
   section > p + p { margin-top: 12px; }
 
   .verdict { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-top: 28px; }
@@ -403,7 +403,12 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
     <p><strong>Connectivity is not strength.</strong> These exhibits ask only whether some path survives. Just before the break, that path is a thin, stringy cluster hanging on single cells; the current it could carry falls to zero at the threshold (in two dimensions roughly as (p − p<sub>c</sub>)<sup>1.3</sup>) and its stiffness falls faster still. A real structure carries load, and each failure shifts load onto its neighbours, so failures cascade and it can give way well before its last path is cut. Read 40% as an upper bound on the random rot a structure survives, not as a safety margin.</p>
   </section>
 
-  <footer>Original simulation; nothing is fetched. Grids come from a seeded generator (mulberry32), so a seed reproduces the grid. Each cell draws one uniform number u and is open when u &lt; p. The threshold p<sub>c</sub> ≈ 0.592746 is the published estimate for site percolation on the square lattice. Rot mode shuffles the cells with the same generator; its histogram follows Newman and Ziff, adding rotten cells in random order and joining eight-way neighbours with union-find until one cluster touches both sides.</footer>
+  <section>
+    <h2 class="rule-top">How the page computes it</h2>
+    <p>Grids come from a seeded generator (mulberry32), so a seed reproduces the grid. Each cell draws one uniform number u and is open when u &lt; p. Rot mode shuffles the cells with the same generator; its histogram follows Newman and Ziff, adding rotten cells in random order and joining eight-way neighbours with union-find until one cluster touches both sides.</p>
+  </section>
+
+  <footer>Original simulation; nothing is fetched. The threshold p<sub>c</sub> ≈ 0.592746 is the published estimate for site percolation on the square lattice.</footer>
 </main>
 
 <script>

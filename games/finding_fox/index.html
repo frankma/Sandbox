@@ -79,6 +79,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 input, select { font: 400 15px/1.2 var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 0; padding: 7px 8px; }
 footer { font: 400 12.5px/1.5 var(--sans); color: var(--faint); border-top: 1px solid var(--line); padding-top: 16px; }
+footer p { max-width: none; }   /* footers are short reference text: they may use the whole column */
 /* charts and diagrams stretch to their figure; never style bare `svg`, or MathJax formulas blow up in Safari */
 figure > svg, .fig-scroll > svg { display: block; width: 100%; height: auto; }
 mjx-container svg { display: inline; max-width: none; }
@@ -129,7 +130,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
   .label { font: 700 0.72rem/1.2 var(--font-label); color: var(--reveal); }
   .sub { font: 400 0.82rem/1.45 var(--font-label); color: var(--muted); }
   header { display: grid; gap: 6px; border-bottom: 1px solid var(--rule); padding-bottom: 12px; }
-  header .sub { max-width: 70ch; font-size: 0.9rem; }
+  header .sub { font-size: 0.9rem; }
 
   .layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
   @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
