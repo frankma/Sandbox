@@ -21,7 +21,6 @@ class SudokuSolver(object):
         cc = coordinate_candidates if coordinate_candidates is not None \
             else {c: self.solution.scan_candidates(c) for c in self.solution.coord_dim.keys()}
         self.coord_candidates = {c: cds for c, cds in cc.items() if bool(cds)}  # type:Dict[Tuple[int, int], Set[int]]
-        pass
 
     def __copy__(self) -> 'SudokuSolver':
         return SudokuSolver(self.solution.__copy__(), copy.deepcopy(self.coord_candidates))
@@ -34,14 +33,13 @@ class SudokuSolver(object):
         elif solver_type is SolverType.BACKTRACK:
             self.backtrack_fill()
         else:
-            raise NotImplemented
+            raise NotImplementedError
 
         is_solved = self.solution.is_fulfilled
         if is_solved:
             self.coord_candidates.clear()
         logger.info('used %.4f secs through %s method %s sudoku' %
                     (time.perf_counter() - tic, solver_type, 'solved' if is_solved else 'cannot solve'))
-        pass
 
     def fill_coordinates(self, coord_values: Dict[Tuple[int, int], int]) -> bool:
         all_filled = True
@@ -50,7 +48,6 @@ class SudokuSolver(object):
             all_filled &= self.solution.fill_coord(coord, value)
             for c in self.solution.get_relevant_coordinates(coord):
                 coord_to_refresh[c].add(value)
-        # coord_to_refresh = {c: vs for c, vs in coord_to_refresh.items() if bool(vs)}
         for coord in (coord_to_refresh.keys() & self.coord_candidates.keys()):
             self.coord_candidates[coord] = self.coord_candidates[coord] - coord_to_refresh[coord]
         self.coord_candidates = {c: vs for c, vs in self.coord_candidates.items() if bool(vs)}
@@ -61,14 +58,12 @@ class SudokuSolver(object):
         while coord_w_def_val.__len__() > 0:
             self.fill_coordinates(coord_w_def_val)
             coord_w_def_val = {c: vs.pop() for c, vs in self.coord_candidates.items() if vs.__len__() == 1}
-        pass
 
     def trial_fill(self) -> Sudoku:
         self.auto_reduction()  # eliminate unnecessary trialing
         if self.solution.is_fulfilled:
             return self.solution
         else:
-            # coord, candidates = self.coord_candidates.popitem()
             coord = min(self.coord_candidates, key=(lambda x: self.coord_candidates[x].__len__()))
             candidates = self.coord_candidates.pop(coord)
             for value in candidates:
@@ -83,7 +78,6 @@ class SudokuSolver(object):
                     solution = solver.trial_fill()
                     if solution is not None:
                         return solution
-        pass
 
     def backtrack_fill(self):
         """Depth-first search that stops at the first solution. Keeps the values used in each
@@ -144,7 +138,6 @@ class SudokuSolver(object):
                 yield coord, value, 'single'
             self.fill_coordinates(coord_w_def_val)
             coord_w_def_val = {c: vs.pop() for c, vs in self.coord_candidates.items() if vs.__len__() == 1}
-        pass
 
     def trial_fill_steps(self) -> Iterator[Tuple[Tuple[int, int], int, str]]:
         """Generator twin of trial_fill(); yields (coord, value, technique) in solving order, where

@@ -9,7 +9,7 @@ Once a project has a proper home in another repo, it moves out of the sandbox. T
 | Folder | What it is | Dependencies |
 |---|---|---|
 | [bet/](bet/) | Binary expression tree: build, print and evaluate arithmetic expressions | none |
-| [maze/](maze/) | Grid maze and a path solver | numpy |
+| [maze/](maze/) | Grid maze with start and end checks; the path solver is still a stub | numpy |
 | [games/](games/) | Games: [Sudoku](games/sudoku/) (solver and generator, with tkinter, Flask and Streamlit front-ends) and [Finding FOX](games/finding_fox/) (a word-search page) | Sudoku: numpy (+ flask / streamlit, see [requirements](games/sudoku/requirements.txt)) |
 | [quant_problems/](quant_problems/) | Quant problems, each with a write-up and visual page, most with a solver and tests; includes [The Threshold](quant_problems/the_threshold/), a percolation simulation | none |
 | [game_theory/](game_theory/) | Game-theory problems, each with a write-up, solver, tests and visual page | none |

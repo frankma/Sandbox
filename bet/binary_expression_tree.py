@@ -3,19 +3,16 @@ from typing import Dict
 
 class Expression(object):
     def __str__(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def evaluate(self, env: Dict):
-        raise NotImplemented
-
-    pass
+        raise NotImplementedError
 
 
 class BinaryOperator(Expression):
     def __init__(self, left: Expression, right: Expression):
         self.left = left  # type: Expression
         self.right = right  # type: Expression
-        pass
 
 
 class Plus(BinaryOperator):
@@ -57,13 +54,11 @@ class Divide(BinaryOperator):
 class UnaryOperator(Expression):
     def __init__(self, value: Expression):
         self.value = value
-        pass
 
 
 class Operand(Expression):
     def __init__(self, value):
         self.value = value
-        pass
 
 
 class Constant(Operand):

@@ -15,7 +15,6 @@ class TestGenerator(TestCase):
     def test_generate_solved(self):
         solved = generate_solved(rank=3)
         self.assertTrue(solved.is_fulfilled)
-        pass
 
     def test_generate_has_unique_solution(self):
         puzzle = generate(rank=3, difficulty='medium', seed=42)
@@ -31,10 +30,8 @@ class TestGenerator(TestCase):
         self.assertTrue(solver_b.solution.is_fulfilled)
 
         self.assertTrue((solver_a.solution.grid == solver_b.solution.grid).all())
-        pass
 
     def test_generate_difficulties(self):
         for difficulty in DIFFICULTY_GIVENS:
             puzzle = generate(rank=3, difficulty=difficulty, seed=1)
             self.assertTrue(puzzle.unfilled_count > 0)
-        pass

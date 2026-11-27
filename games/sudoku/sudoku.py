@@ -39,7 +39,6 @@ class Sudoku(object):
         self.dim_coord = dim_coord  # type: Dict[int, Dict[SdkVec, List[Tuple[int, int]]]]
         self.unfilled_count = np.size(self.grid[self.grid == 0])  # type: int
         self.key_coord = Sudoku.gen_key_coord(self.rank)  # type: List[Tuple[int, int]]
-        pass
 
     def __copy__(self) -> 'Sudoku':
         return Sudoku(np.copy(self.grid), self.rank, self.coord_dim, self.dim_coord)
