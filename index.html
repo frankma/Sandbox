@@ -110,8 +110,7 @@ mjx-container[display="true"] { overflow-x: auto; overflow-y: hidden; max-width:
 
 /* Layout: one reading column with a 180px margin column for section labels; stacks under 760px. */
 .page { max-width: 920px; margin: 0 auto; padding: 56px 20px 48px; }
-header.top { margin-left: 212px; }   /* no max-width: headings use the whole column */
-header.top .lede { margin-top: 14px; }
+header.top .lede { margin-top: 14px; }   /* header.top has no max-width: headings use the whole column */
 section { display: grid; grid-template-columns: 180px minmax(0, 700px); gap: 0 32px; border-top: 1px solid var(--line); margin-top: 40px; padding-top: 16px; }
 .side p { font: 400 13px/1.5 var(--sans); color: var(--muted); margin-top: 6px; }
 ul.items { list-style: none; margin: 0; padding: 0; }
@@ -123,10 +122,9 @@ ul.items h3 a { text-decoration: underline; text-decoration-color: var(--beni); 
 ul.items h3 a:hover, ul.items h3 a:focus-visible { color: var(--beni); }
 ul.items h3 a::after { content: " →"; color: var(--beni); }
 ul.items p { font-size: 15.5px; line-height: 1.6; color: var(--ink); margin-top: 4px; }
-footer { margin: 56px 0 0 212px; max-width: 700px; }
+footer { margin-top: 56px; max-width: 700px; }
 @media (max-width: 760px) {
   .page { padding-top: 32px; }
-  header.top, footer { margin-left: 0; }
   section { grid-template-columns: minmax(0, 1fr); }
   .side { margin-bottom: 14px; }
 }
